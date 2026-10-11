@@ -168,9 +168,10 @@ const CarpetModeControlCapabilitySwitchListMenuItem = () => {
 
 const CarpetSensorModeControlCapabilitySelectListMenuItem = () => {
     const SORT_ORDER = {
-        "off": 4,
-        "detach": 3,
-        "avoid": 2,
+        "off": 5,
+        "detach": 4,
+        "avoid": 3,
+        "cross": 2,
         "lift": 1
     };
 
@@ -202,6 +203,9 @@ const CarpetSensorModeControlCapabilitySelectListMenuItem = () => {
                 break;
             case "avoid":
                 label = "Avoid Carpet";
+                break;
+            case "cross":
+                label = "Cross Carpet";
                 break;
             case "lift":
                 label = "Lift Mop";
