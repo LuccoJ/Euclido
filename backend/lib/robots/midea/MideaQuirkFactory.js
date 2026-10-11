@@ -380,7 +380,7 @@ class MideaQuirkFactory {
                 return new Quirk({
                     id: id,
                     title: "Increased Carpet Avoidance",
-                    description: "When enabled, when avoiding carpets, the robot will stay further away from them.",
+                    description: "When enabled and the carpet sensor mode is set to \"Avoid Carpet\", the robot will stay further away from carpets.",
                     options: ["off", "on"],
                     getter: async () => {
                         const response = await this.robot.sendCommand(new MSmartPacket({
