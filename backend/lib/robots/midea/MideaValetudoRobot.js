@@ -295,7 +295,9 @@ class MideaValetudoRobot extends ValetudoRobot {
                     },
                 }));
             } else {
-                Logger.warn(`Received unknown fan_level ${data.fan_level}`);
+                if (!this.isRobotManagedOperationMode(data.mopMode ?? this.lastRawOperationMode)) {
+                    Logger.warn(`Received unknown fan_level ${data.fan_level}`);
+                }
             }
         }
 
@@ -334,7 +336,9 @@ class MideaValetudoRobot extends ValetudoRobot {
                     },
                 }));
             } else {
-                Logger.warn(`Received unknown water_level ${data.water_level}`);
+                if (!this.isRobotManagedOperationMode(data.mopMode ?? this.lastRawOperationMode)) {
+                    Logger.warn(`Received unknown water_level ${data.water_level}`);
+                }
             }
         }
 
@@ -1119,6 +1123,17 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
 
         return new ValetudoRobotError(parameters);
+    }
+
+    /**
+     * In the smart (5) and personalized (6) operation modes, the robot uses its own per-room settings and reports
+     * fan and water values that don't map to any of the presets. That is expected and not worth a warning.
+     *
+     * @param {number|undefined} rawOperationMode
+     * @returns {boolean}
+     */
+    isRobotManagedOperationMode(rawOperationMode) {
+        return rawOperationMode === 5 || rawOperationMode === 6;
     }
 
     getManufacturer() {
