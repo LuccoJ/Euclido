@@ -15,7 +15,7 @@ class MideaMopDockCleanManualTriggerCapability extends MopDockCleanManualTrigger
             payload: MSmartPacket.buildPayload(
                 MSmartConst.SETTING.TRIGGER_STATION_ACTION,
                 Buffer.from([
-                    0x01, // Mode: Mop Clean (basic) - TODO: there is also 0x03 for station cleaning
+                    0x01, // Mode: Mop Clean (basic). 0x03 is station self-cleaning, see MideaMopDockSelfCleanManualTriggerCapability
                     0x01  // Control: Start
                 ])
             )

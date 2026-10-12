@@ -44,6 +44,7 @@ module.exports = {
     MideaMopDockMopAutoDryingControlCapability: require("./MideaMopDockMopAutoDryingControlCapability"),
     MideaMopDockMopDryingTimeControlCapability: require("./MideaMopDockMopDryingTimeControlCapability"),
     MideaMopDockMopWashTemperatureControlCapability: require("./MideaMopDockMopWashTemperatureControlCapability"),
+    MideaMopDockSelfCleanManualTriggerCapability: require("./MideaMopDockSelfCleanManualTriggerCapability"),
     MideaMopExtensionControlCapability: require("./MideaMopExtensionControlCapability"),
     MideaMopExtensionFurnitureLegHandlingControlCapability: require("./MideaMopExtensionFurnitureLegHandlingControlCapability"),
     MideaMopTwistControlCapabilityV1: require("./MideaMopTwistControlCapabilityV1"),
