@@ -32,7 +32,7 @@ class MideaOperationModeControlCapabilityV2 extends OperationModeControlCapabili
             if (response?.payload?.[3] === 0x00) {
                 this.robot.parseAndUpdateState(
                     new MSmartStatusDTO({
-                        station_work_status: matchedPreset.value
+                        mopMode: matchedPreset.value
                     })
                 );
             } else {
