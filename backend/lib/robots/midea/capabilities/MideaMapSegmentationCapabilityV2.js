@@ -1,4 +1,5 @@
 const entities = require("../../../entities");
+const Logger = require("../../../Logger");
 const MapSegmentationCapability = require("../../../core/capabilities/MapSegmentationCapability");
 const MSmartConst = require("../../../msmart/MSmartConst");
 const MSmartPacket = require("../../../msmart/MSmartPacket");
@@ -67,7 +68,17 @@ class MideaMapSegmentationCapabilityV2 extends MapSegmentationCapability {
             )
         });
 
-        await this.robot.sendCommand(packet.toHexString());
+        Logger.info(
+            `Starting segment cleanup of segments [${segments.map(s => s.id).join(", ")}] ` +
+            `with operation mode ${operationMode} (${OperationModeStateAttribute?.value ?? "not yet known"}), ` +
+            `fan speed ${fanSpeed}, water grade ${waterGrade}, iterations ${options?.iterations ?? 1}. ` +
+            `Robot last reported operation mode ${this.robot.lastRawOperationMode}. ` +
+            `Payload: ${segmentDataPayload.toString("hex")}`
+        );
+
+        const response = await this.robot.sendCommand(packet.toHexString());
+
+        Logger.info(`Segment cleanup response payload: ${response?.payload?.toString("hex")}`);
     }
 
     /**

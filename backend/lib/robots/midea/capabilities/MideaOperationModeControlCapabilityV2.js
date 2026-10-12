@@ -1,3 +1,4 @@
+const Logger = require("../../../Logger");
 const OperationModeControlCapability = require("../../../core/capabilities/OperationModeControlCapability");
 
 const MSmartConst = require("../../../msmart/MSmartConst");
@@ -26,6 +27,8 @@ class MideaOperationModeControlCapabilityV2 extends OperationModeControlCapabili
                     Buffer.from([matchedPreset.value])
                 )
             });
+
+            Logger.info(`Setting operation mode to ${matchedPreset.value} (${matchedPreset.name})`);
 
             const response = await this.robot.sendCommand(packet.toHexString());
 

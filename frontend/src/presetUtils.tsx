@@ -1,6 +1,10 @@
 import {Capability, PresetSelectionState, PresetValue} from "./api";
 import React, {ReactElement} from "react";
 import {
+    AutoAwesome as OperationModeSmart,
+    Tune as OperationModePersonalized
+} from "@mui/icons-material";
+import {
     FanSpeedHighIcon,
     FanSpeedLowIcon,
     FanSpeedMaxIcon,
@@ -20,7 +24,7 @@ import {
     WaterGradeOffIcon
 } from "./components/CustomIcons";
 
-const order: Array<PresetValue> = ["off", "min", "low", "medium", "high", "max", "turbo", "vacuum", "vacuum_and_mop", "vacuum_then_mop", "mop"];
+const order: Array<PresetValue> = ["off", "min", "low", "medium", "high", "max", "turbo", "vacuum", "vacuum_and_mop", "vacuum_then_mop", "mop", "smart", "personalized"];
 export const sortPresets = (presets: PresetSelectionState["value"][]) => {
     return [...presets].sort((a, b) => {
         return order.indexOf(a) - order.indexOf(b);
@@ -40,7 +44,9 @@ export const presetFriendlyNames: {[key in PresetValue]: string} = Object.freeze
     "vacuum_and_mop": "Vacuum & Mop",
     "vacuum_then_mop": "Vacuum then Mop",
     "vacuum": "Vacuum",
-    "mop": "Mop"
+    "mop": "Mop",
+    "smart": "Smart",
+    "personalized": "Personalized"
 });
 
 export function getPresetIconOrLabel(capability: Capability, preset: PresetValue, style?: React.CSSProperties): ReactElement | string {
@@ -92,6 +98,10 @@ export function getPresetIconOrLabel(capability: Capability, preset: PresetValue
                     return <OperationModeVacuumAndMop style={style}/>;
                 case "vacuum_then_mop":
                     return <OperationModeVacuumThenMop style={style}/>;
+                case "smart":
+                    return <OperationModeSmart style={style}/>;
+                case "personalized":
+                    return <OperationModePersonalized style={style}/>;
                 default:
                     return presetFriendlyNames[preset];
             }

@@ -32,7 +32,9 @@
                   "vacuum",
                   "mop",
                   "vacuum_and_mop",
-                  "vacuum_then_mop"
+                  "vacuum_then_mop",
+                  "smart",
+                  "personalized"
                 ]
               },
               "customValue": {
