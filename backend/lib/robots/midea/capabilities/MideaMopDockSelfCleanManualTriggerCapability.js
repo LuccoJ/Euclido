@@ -13,10 +13,9 @@ class MideaMopDockSelfCleanManualTriggerCapability extends MopDockSelfCleanManua
         const packet = new MSmartPacket({
             messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
             payload: MSmartPacket.buildPayload(
-                MSmartConst.SETTING.TRIGGER_STATION_ACTION,
+                MSmartConst.SETTING.TRIGGER_STATION_SELF_CLEANING,
                 Buffer.from([
-                    0x03, // Mode: Station self-cleaning
-                    0x01  // Control: Start
+                    0x01  // Start
                 ])
             )
         });
@@ -28,6 +27,7 @@ class MideaMopDockSelfCleanManualTriggerCapability extends MopDockSelfCleanManua
      * @returns {Promise<void>}
      */
     async stopCleaning() {
+        // The station action stop also stops the self-cleaning
         const packet = new MSmartPacket({
             messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
             payload: MSmartPacket.buildPayload(
