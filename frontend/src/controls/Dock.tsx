@@ -286,6 +286,10 @@ const Dock = (): React.ReactElement => {
         const { value: robotState } = robotStatus;
         const supportedComponents = robotInfo?.modelDetails?.supportedDockComponents ?? [];
 
+        // With four buttons, use two rows of two instead of letting one of them wrap on its own
+        const buttonCount = [mopDockCleanTriggerSupported, mopDockDryTriggerSupported, mopDockSelfCleanTriggerSupported, triggerEmptySupported].filter(Boolean).length;
+        const buttonSx = buttonCount === 4 ? {flex: "1 1 40%", minWidth: "min-content"} : {flex: 1, minWidth: "min-content"};
+
         return (
             <>
                 <Typography variant="overline">
@@ -302,7 +306,7 @@ const Dock = (): React.ReactElement => {
                 <Grid2 container direction="row" alignItems="center" sx={{flex: 1}} spacing={1} pt={1} wrap={"wrap"}>
                     {
                         mopDockCleanTriggerSupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={feedbackPending || commandIsExecuting || !["idle", "cleaning", "pause"].includes(dockState) || robotState !== "docked" || !mopAttachmentAttached}
                                 variant="outlined"
@@ -322,7 +326,7 @@ const Dock = (): React.ReactElement => {
                     }
                     {
                         mopDockDryTriggerSupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={feedbackPending || commandIsExecuting || !["idle", "drying", "pause"].includes(dockState) || robotState !== "docked" || !mopAttachmentAttached}
                                 variant="outlined"
@@ -342,7 +346,7 @@ const Dock = (): React.ReactElement => {
                     }
                     {
                         mopDockSelfCleanTriggerSupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={feedbackPending || commandIsExecuting || !["idle", "pause"].includes(dockState) || robotState !== "docked"}
                                 variant="outlined"
@@ -361,7 +365,7 @@ const Dock = (): React.ReactElement => {
                     }
                     {
                         triggerEmptySupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={commandIsExecuting || !["idle", "pause"].includes(dockState) || robotState !== "docked"}
                                 variant="outlined"
