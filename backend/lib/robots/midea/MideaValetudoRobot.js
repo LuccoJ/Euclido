@@ -21,6 +21,7 @@ const {DUMMY_CLIENT_CERT, DUMMY_CLIENT_KEY} = require("./MideaConst");
 
 const CA_KEY_PATH = "/etc/ssl/valetudo/ca.key";
 const CA_CERT_PATH = "/etc/ssl/valetudo/ca.pem";
+const MAP_PUBLISH_MAX_DELAY = 5000; // ms
 const BIND_IP = "127.0.13.37";
 
 /**
@@ -57,6 +58,8 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.mapParser = new MideaMapParser({mapHacksProvider: this.mapHacksProvider});
         this.mapUpdateDebounceTimeout = null;
         this.activeMapUpdateCount = 0;
+        this.lastMapPublishTimestamp = 0;
+        this.mapUpdateStats = MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS();
 
         this.dummycloud = new MSmartDummycloud({
             dummyCloudTLSManager: this.dummyCloudTLSManager,
@@ -433,10 +436,17 @@ class MideaValetudoRobot extends ValetudoRobot {
         // might fire without everything being fully processed, leading to some elements of the map flickering in the UI
         this.activeMapUpdateCount++;
 
+        const parseStart = Date.now();
         try {
             await this.mapParser.update(type, data);
         } finally {
             this.activeMapUpdateCount--;
+
+            const parseTime = Date.now() - parseStart;
+            this.mapUpdateStats.parts[type] = (this.mapUpdateStats.parts[type] ?? 0) + 1;
+            this.mapUpdateStats.maxParseTime = Math.max(this.mapUpdateStats.maxParseTime, parseTime);
+            this.mapUpdateStats.totalParseTime += parseTime;
+            this.logMapUpdateStats();
         }
 
         if (this.mapUpdateDebounceTimeout) {
@@ -444,20 +454,57 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
 
         this.mapUpdateDebounceTimeout = setTimeout(() => {
-            if (this.activeMapUpdateCount > 0) {
-                // Don't publish yet if there are still parts of the map being parsed
+            if (
+                this.activeMapUpdateCount > 0 &&
+                Date.now() - this.lastMapPublishTimestamp < MAP_PUBLISH_MAX_DELAY
+            ) {
+                // Don't publish yet if there are still parts of the map being parsed.
+                // On a busy robot, parts can keep arriving faster than they are parsed, so that would never happen
+                // and the map would freeze. Hence the maximum delay, after which the map is published regardless.
+                this.mapUpdateStats.skipped++;
+
                 return;
             }
 
             const newMap = this.mapParser.getCurrentMap();
             if (newMap.metaData.totalLayerArea > 0) {
                 this.state.map = newMap;
+                this.lastMapPublishTimestamp = Date.now();
+                this.mapUpdateStats.published++;
 
                 this.emitMapUpdated();
             }
 
             this.mapUpdateDebounceTimeout = null;
         }, 200); // Wait another 200ms for any further map updates to arrive after the last one was processed
+    }
+
+    /**
+     * Logs once a minute how many map updates arrived and how long parsing them took
+     *
+     * @private
+     */
+    logMapUpdateStats() {
+        const now = Date.now();
+        const stats = this.mapUpdateStats;
+
+        if (now - stats.since < 60_000) {
+            return;
+        }
+
+        const count = Object.values(stats.parts).reduce((sum, n) => {
+            return sum + n;
+        }, 0);
+
+        Logger.info(
+            `Map updates in the last ${Math.round((now - stats.since) / 1000)}s: ${count} parts ` +
+            `(${Object.entries(stats.parts).map(([type, n]) => {
+                return `${type}: ${n}`;
+            }).join(", ")}), parsing took ${stats.totalParseTime}ms in total and ${stats.maxParseTime}ms at most. ` +
+            `Maps published: ${stats.published}, held back because parts were still being parsed: ${stats.skipped}`
+        );
+
+        this.mapUpdateStats = MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS();
     }
 
     async executeMapPoll() {
@@ -1153,6 +1200,17 @@ class MideaValetudoRobot extends ValetudoRobot {
         );
     }
 }
+
+MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS = () => {
+    return {
+        since: Date.now(),
+        parts: {},
+        totalParseTime: 0,
+        maxParseTime: 0,
+        published: 0,
+        skipped: 0
+    };
+};
 
 MideaValetudoRobot.FAN_SPEEDS = Object.freeze({
     //[stateAttrs.PresetSelectionStateAttribute.INTENSITY.OFF]: 0, Works on the J15PU, but not really useful here
