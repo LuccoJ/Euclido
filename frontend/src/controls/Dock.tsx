@@ -4,6 +4,7 @@ import {
     useAutoEmptyDockManualTriggerMutation,
     useMopDockCleanManualTriggerMutation,
     useMopDockDryManualTriggerMutation,
+    useMopDockSelfCleanManualTriggerMutation,
     useRobotAttributeQuery,
     useRobotStatusQuery,
     useRobotInformationQuery,
@@ -25,6 +26,7 @@ import {
     Villa as DockIcon,
     Water as CleanMopIcon,
     WindPower as DryMopIcon,
+    CleaningServices as SelfCleanDockIcon,
     Help as DockComponentUnknownIcon,
     ExpandMore as OpenIcon,
     ExpandLess as CloseIcon
@@ -235,10 +237,12 @@ const Dock = (): React.ReactElement => {
         triggerEmptySupported,
         mopDockCleanTriggerSupported,
         mopDockDryTriggerSupported,
+        mopDockSelfCleanTriggerSupported,
     ] = useCapabilitiesSupported(
         Capability.AutoEmptyDockManualTrigger,
         Capability.MopDockCleanManualTrigger,
         Capability.MopDockDryManualTrigger,
+        Capability.MopDockSelfCleanManualTrigger,
     );
 
     const {
@@ -253,6 +257,10 @@ const Dock = (): React.ReactElement => {
         mutate: triggerMopDockDryCommand,
         isPending: mopDockDryCommandExecuting,
     } = useMopDockDryManualTriggerMutation();
+    const {
+        mutate: triggerMopDockSelfCleanCommand,
+        isPending: mopDockSelfCleanCommandExecuting,
+    } = useMopDockSelfCleanManualTriggerMutation();
 
     const { value: dockState } = dockStatus?.[0] ?? {value: "idle"};
 
@@ -260,7 +268,7 @@ const Dock = (): React.ReactElement => {
 
     const body = React.useMemo(() => {
         const dockStatusIsRelevant = mopDockCleanTriggerSupported || mopDockDryTriggerSupported;
-        const commandIsExecuting = emptyIsExecuting || mopDockCleanCommandExecuting || mopDockDryCommandExecuting;
+        const commandIsExecuting = emptyIsExecuting || mopDockCleanCommandExecuting || mopDockDryCommandExecuting || mopDockSelfCleanCommandExecuting;
         const mopAttachmentAttached = attachments?.find(a => {
             return a.type === "mop";
         })?.attached === true;
@@ -278,6 +286,10 @@ const Dock = (): React.ReactElement => {
         const { value: robotState } = robotStatus;
         const supportedComponents = robotInfo?.modelDetails?.supportedDockComponents ?? [];
 
+        // With four buttons, use two rows of two instead of letting one of them wrap on its own
+        const buttonCount = [mopDockCleanTriggerSupported, mopDockDryTriggerSupported, mopDockSelfCleanTriggerSupported, triggerEmptySupported].filter(Boolean).length;
+        const buttonSx = buttonCount === 4 ? {flex: "1 1 40%", minWidth: "min-content"} : {flex: 1, minWidth: "min-content"};
+
         return (
             <>
                 <Typography variant="overline">
@@ -294,7 +306,7 @@ const Dock = (): React.ReactElement => {
                 <Grid2 container direction="row" alignItems="center" sx={{flex: 1}} spacing={1} pt={1} wrap={"wrap"}>
                     {
                         mopDockCleanTriggerSupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={feedbackPending || commandIsExecuting || !["idle", "cleaning", "pause"].includes(dockState) || robotState !== "docked" || !mopAttachmentAttached}
                                 variant="outlined"
@@ -314,7 +326,7 @@ const Dock = (): React.ReactElement => {
                     }
                     {
                         mopDockDryTriggerSupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={feedbackPending || commandIsExecuting || !["idle", "drying", "pause"].includes(dockState) || robotState !== "docked" || !mopAttachmentAttached}
                                 variant="outlined"
@@ -333,8 +345,27 @@ const Dock = (): React.ReactElement => {
                         </Grid2>
                     }
                     {
+                        mopDockSelfCleanTriggerSupported &&
+                        <Grid2 sx={buttonSx}>
+                            <Button
+                                disabled={feedbackPending || commandIsExecuting || !["idle", "pause"].includes(dockState) || robotState !== "docked"}
+                                variant="outlined"
+                                size="medium"
+                                color="inherit"
+                                onClick={() => {
+                                    // A running self-clean shows up as "cleaning" and can be stopped with the mop clean button
+                                    triggerMopDockSelfCleanCommand("start");
+                                    setFeedbackPending(true);
+                                }}
+                                sx={{width: "100%"}}
+                            >
+                                <StyledIcon as={SelfCleanDockIcon} /> Self-clean
+                            </Button>
+                        </Grid2>
+                    }
+                    {
                         triggerEmptySupported &&
-                        <Grid2 sx={{flex: 1, minWidth: "min-content"}}>
+                        <Grid2 sx={buttonSx}>
                             <Button
                                 disabled={commandIsExecuting || !["idle", "pause"].includes(dockState) || robotState !== "docked"}
                                 variant="outlined"
@@ -363,6 +394,8 @@ const Dock = (): React.ReactElement => {
         mopDockCleanTriggerSupported,
         mopDockDryCommandExecuting,
         mopDockDryTriggerSupported,
+        mopDockSelfCleanCommandExecuting,
+        mopDockSelfCleanTriggerSupported,
         feedbackPending,
         setFeedbackPending,
         robotStatus,
@@ -370,6 +403,7 @@ const Dock = (): React.ReactElement => {
         triggerEmptySupported,
         triggerMopDockCleanCommand,
         triggerMopDockDryCommand,
+        triggerMopDockSelfCleanCommand,
         robotInfo,
         dockComponents
     ]);
