@@ -28,6 +28,7 @@ module.exports = {
     MideaLocateCapabilityV1: require("./MideaLocateCapabilityV1"),
     MideaLocateCapabilityV2: require("./MideaLocateCapabilityV2"),
     MideaManualControlCapability: require("./MideaManualControlCapability"),
+    MideaMapAnnotationsCapability: require("./MideaMapAnnotationsCapability"),
     MideaMapResetCapabilityV1: require("./MideaMapResetCapabilityV1"),
     MideaMapResetCapabilityV2: require("./MideaMapResetCapabilityV2"),
     MideaMapSegmentEditCapabilityV1: require("./MideaMapSegmentEditCapabilityV1"),

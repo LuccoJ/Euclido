@@ -16,6 +16,8 @@ const SETTING = Object.freeze({
     SET_VALID_MAP_IDS: 0x2D, // Used by the cloud to sync cloud state with device state. The cloud being higher prio
 
     SET_FLOOR_TYPE: 0x31,
+    SET_DOOR_SILLS: 0x33,
+    SET_CURTAINS: 0x34,
 
     SET_FAN_SPEED: 0x50,
     SET_WATER_GRADE: 0x51,
