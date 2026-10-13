@@ -21,6 +21,13 @@ class MideaMapParser {
          */
         this.annotationEntities = [];
 
+        /**
+         * Last raw value of map updates that are only logged for now, to log each one once when it changes
+         *
+         * @type {{[type: string]: string}}
+         */
+        this.lastLoggedUpdates = {};
+
         this.reset();
     }
 
@@ -120,6 +127,13 @@ class MideaMapParser {
                 break;
 
             case "threshold_area":
+            case "user_deleted_detected_curtain":
+            case "displayed_curtain":
+            case "user_deleted_detected_door_sill":
+            case "displayed_door_sill":
+                // Ignored for now, but logged to learn their format
+                this.logUpdateOnChange(type, data);
+                break;
             case "points":
             case "bridge_data":
             case "backup_map":
@@ -127,10 +141,6 @@ class MideaMapParser {
             case "stain_area":
             case "partition":
             case "adjacent":
-            case "user_deleted_detected_curtain":
-            case "displayed_curtain":
-            case "user_deleted_detected_door_sill":
-            case "displayed_door_sill":
             case "detect_file_segment_info":
             case "imu_file_segment_info":
                 // Ignored for now
@@ -142,6 +152,21 @@ class MideaMapParser {
                 break;
             default:
                 Logger.warn(`Unknown map update type '${type}'`);
+        }
+    }
+
+    /**
+     * @private
+     * @param {string} type
+     * @param {any} data
+     */
+    logUpdateOnChange(type, data) {
+        const raw = Buffer.isBuffer(data) ? data.toString("hex") : (typeof data === "string" ? data : JSON.stringify(data));
+
+        if (this.lastLoggedUpdates[type] !== raw) {
+            this.lastLoggedUpdates[type] = raw;
+
+            Logger.info(`Map update '${type}' (${typeof data}${Buffer.isBuffer(data) ? ", buffer" : ""}): ${raw?.slice(0, 2000)}`);
         }
     }
 
