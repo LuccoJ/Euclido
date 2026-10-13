@@ -221,7 +221,10 @@ class MideaMapParser {
     }
 
     /**
-     * Turns a reported rectangle back into the line it was drawn from: the line between the middles of its short sides
+     * Turns a reported rectangle back into the line it was drawn from. The robot keeps the corners in the order they were
+     * sent, and MideaMapAnnotationsCapability sends the two corners on one side of the line first, so the line runs
+     * between the middles of the sides c3-c0 and c1-c2. Their lengths can't be used for that, since a short line
+     * gives a rectangle that is wider than it is long.
      *
      * @private
      * @param {MideaAnnotationRecord} record
@@ -236,9 +239,8 @@ class MideaMapParser {
             return {x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2)};
         };
 
-        const [pA, pB] = Math.hypot(c1.x - c0.x, c1.y - c0.y) >= Math.hypot(c2.x - c1.x, c2.y - c1.y) ?
-            [middle(c3, c0), middle(c1, c2)] :
-            [middle(c0, c1), middle(c2, c3)];
+        const pA = middle(c3, c0);
+        const pB = middle(c1, c2);
 
         return new mapEntities.LineMapEntity({
             points: [pA.x, pA.y, pB.x, pB.y],

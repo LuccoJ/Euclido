@@ -123,7 +123,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 
     /**
      * Turns the annotation's line into a rectangle of the type's width around it, in robot map coordinates.
-     * The corners are in cyclic order.
+     * The corners are in cyclic order, starting with the two on one side of the line (MideaMapParser relies on that).
      *
      * @private
      * @param {ValetudoMapAnnotation} annotation
