@@ -249,6 +249,10 @@ class MideaRoomOrderManager {
                 // Notably, 5 is known to be able to hard-shut the robot
                 throw new Error(`Room ${room.id} has fan speed ${room.fanSpeed}, which is not sent`);
             }
+            const route = ROUTE_TYPE_TO_WIRE[room.route_type];
+            if (route === undefined) {
+                throw new Error(`Room ${room.id} has an unknown route type ${room.route_type}`);
+            }
 
             const offset = i * RECORD_LENGTH;
             records[offset] = room.id;
@@ -259,7 +263,7 @@ class MideaRoomOrderManager {
             records[offset + 5] = room.infinite_water_speed;
             records[offset + 6] = room.cleanSeq;
             records[offset + 7] = room.fluidType;
-            records[offset + 8] = room.route_type;
+            records[offset + 8] = route;
         });
 
         const payload = Buffer.concat([
@@ -326,15 +330,23 @@ function describe(room) {
 }
 
 /*
-    room_cfg stores the fan speed on an ordered scale (1 = quietest), while the wire uses the same values as the global
-    fan speed (MideaValetudoRobot.FAN_SPEEDS: 4 = min, 1 = low, 2 = medium, 3 = high). Seen on the robot: sending 2
-    stores 3. The rest of this table follows from that and is checked by the readback.
+    room_cfg stores some fields on a different scale than the wire uses. These map the stored value to the one to send.
+
+    Fan: stored 1 = quiet ... 4 = max, while the wire uses the global fan speed values (MideaValetudoRobot.FAN_SPEEDS:
+    4 = min, 1 = low, 2 = medium, 3 = high). Seen on the robot: sending 2 stores 3.
+    Route: stored 1 = standard, 2 = quick, 3 = fine, while the wire uses 0 = quick, 1 = standard, 2 = fine.
+    Mode, water and fluid are stored as sent.
  */
 const FAN_SPEED_TO_WIRE = Object.freeze({
     1: 4,
     2: 1,
     3: 2,
     4: 3
+});
+const ROUTE_TYPE_TO_WIRE = Object.freeze({
+    1: 1,
+    2: 0,
+    3: 2
 });
 const RECORD_FIELDS = ["cleanCount", "vacuum_mop_mode", "fanSpeed", "infinite_water_speed", "cleanSeq", "fluidType", "route_type"];
 const RECORD_LENGTH = 10;
