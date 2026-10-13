@@ -10,7 +10,7 @@ const ValetudoMapAnnotation = require("../../../entities/core/ValetudoMapAnnotat
 /**
  * Curtains (0x34) and thresholds/door sills (0x33).
  *
- * Both take records of 20 bytes: id, a type byte, state (1 = set, 2 = delete), an is_ai flag and the four corners
+ * Both take records of 20 bytes: id, a type byte, state (0 when setting, 2 = delete), an is_ai flag and the four corners
  * of a thin rectangle as eight u16 LE values in robot map coordinates. Valetudo annotations are lines, so each line
  * becomes a rectangle of a fixed width around it.
  *
@@ -103,7 +103,8 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 
             payload[offset] = FIRST_USER_DEFINED_ID + i;
             payload[offset + 1] = 0; // Threshold: 0 = passable. Unused for curtains
-            payload[offset + 2] = action; // State, mirrors the action
+            // State. The robot only passes a set on to the planner when this is 0
+            payload[offset + 2] = action === ACTION.SET ? 0 : action;
             payload[offset + 3] = 0; // Not AI-detected
 
             // The robot takes the corners in cyclic order and calls them left bottom, right bottom, right top, left top
