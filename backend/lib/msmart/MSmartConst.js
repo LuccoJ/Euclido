@@ -3,6 +3,7 @@ const SETTING = Object.freeze({
     SET_WORK_STATUS: 0x01, // This is the state, the high-level state machine is in. To get the robot to do things, you set it
     DO_MANUAL_CONTROL_CMD: 0x02,
     START_SEGMENT_CLEANUP: 0x03,
+    START_GO_TO_LOCATION: 0x04,
     START_ZONE_CLEANUP: 0x05,
     SET_VIRTUAL_WALLS: 0x20,
     SET_RESTRICTED_ZONES: 0x21,
