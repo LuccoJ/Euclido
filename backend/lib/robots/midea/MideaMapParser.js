@@ -13,6 +13,14 @@ class MideaMapParser {
     constructor(options) {
         this.mapHacksProvider = options.mapHacksProvider;
 
+        /**
+         * Map annotations (curtains, thresholds) as set via Valetudo. The robot doesn't report these back,
+         * so they are kept separately from the parsed entities and survive map resets.
+         *
+         * @type {Array<import("../../entities/map/entities/LineMapEntity")>}
+         */
+        this.annotationEntities = [];
+
         this.reset();
     }
 
@@ -137,8 +145,15 @@ class MideaMapParser {
         }
     }
 
+    /**
+     * @param {Array<import("../../entities/map/entities/LineMapEntity")>} entities
+     */
+    setAnnotationEntities(entities) {
+        this.annotationEntities = entities;
+    }
+
     getCurrentMap() {
-        let entities = [...this.entities];
+        let entities = [...this.entities, ...this.annotationEntities];
 
         if (this.dockPositionValid) {
             const dockCoords = this.convertToValetudoCoordinates(this.dockPosition.x, this.dockPosition.y);
