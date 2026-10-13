@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const Logger = require("../../Logger");
+const MideaPersistentStore = require("./MideaPersistentStore");
 const MSmartConst = require("../../msmart/MSmartConst");
 const MSmartPacket = require("../../msmart/MSmartPacket");
 const path = require("node:path");
@@ -9,17 +10,16 @@ const stateAttrs = require("../../entities/state/attributes");
  * Per-job room order for the J15.
  *
  * The robot ignores the order of the rooms in a room clean (0x03) and sorts them by each room's stored `cleanSeq`
- * instead. So, for a job with a custom order, the `cleanSeq` values of the selected rooms are swapped among themselves
- * to match the clicked order before the job is started, and put back once the job is over.
+ * instead, with 0 meaning that the robot decides. So, for a job with a custom order, the selected rooms get
+ * cleanSeq 1, 2, 3, ... in the clicked order before the job is started, and 0 again once the job is over.
+ * That leaves the robot in a known state after every job, even if Valetudo is restarted in between: the rooms still
+ * to be reset are remembered and reset as soon as the robot is at rest.
  *
  * `cleanSeq` is written with 0x2B (record version 2), which overwrites every field of the room, so each record carries
  * the room's current values from room_cfg for everything else. The robot saves room_cfg itself; nothing here writes it.
  *
- * Because the robot-side decoding of those fields is not verified, the first use sends one record that changes nothing
- * and checks that room_cfg still holds the same values afterwards. Every write is read back the same way. If anything
- * doesn't match, the feature switches itself off until that is looked into.
- *
- * The values to put back are persisted next to Valetudo's configuration file, so a restart doesn't lose them.
+ * Because the robot-side decoding of those fields is not fully known, every write is read back from room_cfg.
+ * If anything doesn't match, the feature switches itself off until that is looked into.
  */
 class MideaRoomOrderManager {
     /**
@@ -30,18 +30,21 @@ class MideaRoomOrderManager {
         this.robot = options.robot;
         this.enabled = this.robot.config.get("embedded") === true;
 
-        /** @type {{verified: boolean, disabled: string|null, pending: {[roomId: string]: number}}} */
-        this.storage = {verified: false, disabled: null, pending: {}};
+        /** @type {{disabled: string|null, toReset: Array<number>}} */
+        this.state = {disabled: null, toReset: []};
         this.awaitingJobStart = false;
         this.awaitingJobStartTimeout = undefined;
-        this.restoreInProgress = false;
+        this.resetInProgress = false;
 
         if (this.enabled) {
-            this.storagePath = path.join(path.dirname(this.robot.config.location), STORAGE_FILENAME);
-            this.storage = Object.assign(this.storage, this.load());
+            this.store = new MideaPersistentStore({
+                config: this.robot.config,
+                key: STORE_KEY
+            });
+            this.state = Object.assign(this.state, this.store.get());
 
-            if (Object.keys(this.storage.pending).length > 0) {
-                Logger.info(`Room order: a restore of cleanSeq is pending from before: ${JSON.stringify(this.storage.pending)}`);
+            if (this.state.toReset.length > 0) {
+                Logger.info(`Room order: rooms [${this.state.toReset.join(", ")}] still need their cleanSeq reset to 0`);
             }
 
             this.robot.onStateAttributesUpdated(() => {
@@ -51,97 +54,59 @@ class MideaRoomOrderManager {
     }
 
     /**
-     * Makes the robot clean the given rooms in the given order. Does nothing when the order already matches.
+     * Makes the robot clean the given rooms in the given order.
      *
      * @param {Array<number>} roomIds in the order they should be cleaned
      * @returns {Promise<void>}
      */
     async applyOrder(roomIds) {
-        if (!this.enabled) {
+        if (!this.enabled || roomIds.length < 2) {
             return;
         }
-        if (this.storage.disabled) {
-            Logger.warn(`Room order: switched off (${this.storage.disabled}). Rooms will be cleaned in the robot's order.`);
+        if (this.state.disabled) {
+            Logger.warn(`Room order: switched off (${this.state.disabled}). Rooms will be cleaned in the robot's order.`);
 
-            return;
-        }
-        if (roomIds.length < 2) {
             return;
         }
 
         const rooms = this.readRooms();
-        const originalSeq = (id) => {
-            return this.storage.pending[id] ?? rooms[id]?.cleanSeq;
-        };
-
         for (const id of roomIds) {
             if (!rooms[id]) {
-                Logger.warn(`Room order: room ${id} is not in room_cfg. Rooms will be cleaned in the robot's order.`);
-
-                return;
-            }
-            if (!(originalSeq(id) > 0)) {
-                // 0 means the robot picks the order itself
-                Logger.info(`Room order: room ${id} has cleanSeq ${originalSeq(id)}, so the robot decides the order.`);
-
-                return;
+                throw new Error(`Room ${id} is not in room_cfg`);
             }
         }
 
-        if (!this.storage.verified) {
-            await this.verifyEncoding(rooms[roomIds[0]]);
-        }
-
-        // Rooms not in this job go back to their original value, the selected ones share their original values in clicked order
+        // The selected rooms in clicked order, and rooms left over from an earlier job back to 0
         const desired = {};
-        for (const id of Object.keys(this.storage.pending)) {
-            desired[id] = this.storage.pending[id];
+        for (const id of this.state.toReset) {
+            desired[id] = 0;
         }
-        const values = roomIds.map(id => {
-            return originalSeq(id);
-        }).sort((a, b) => {
-            return a - b;
-        });
         roomIds.forEach((id, i) => {
-            desired[id] = values[i];
+            desired[id] = i + 1;
         });
 
-        const changes = Object.keys(desired).filter(id => {
+        const changes = Object.keys(desired).map(id => {
+            return parseInt(id);
+        }).filter(id => {
             return rooms[id] && rooms[id].cleanSeq !== desired[id];
         });
 
         Logger.info(
-            `Room order: wanted [${roomIds.join(", ")}]. cleanSeq before: ` +
-            roomIds.map(id => {
-                return `${id}=${rooms[id].cleanSeq}`;
-            }).join(", ") +
-            `. Rooms to change: ${changes.map(id => {
+            `Room order: wanted [${roomIds.join(", ")}]. Rooms to change: ` +
+            (changes.map(id => {
                 return `${id} ${rooms[id].cleanSeq}->${desired[id]}`;
-            }).join(", ") || "none"}`
+            }).join(", ") || "none")
         );
 
-        if (changes.length === 0) {
-            return;
+        this.updateState({toReset: [...new Set([...this.state.toReset, ...roomIds])]});
+
+        if (changes.length > 0) {
+            await this.writeAndVerify(changes.map(id => {
+                return Object.assign({}, rooms[id], {cleanSeq: desired[id]});
+            }));
         }
 
-        for (const id of changes) {
-            if (this.storage.pending[id] === undefined) {
-                this.storage.pending[id] = rooms[id].cleanSeq;
-            }
-        }
-        this.persist();
-
-        await this.writeAndVerify(changes.map(id => {
-            return Object.assign({}, rooms[id], {cleanSeq: desired[id]});
-        }));
-
-        // Rooms of an earlier job that this write put back don't need restoring anymore
-        for (const id of Object.keys(this.storage.pending)) {
-            if (!roomIds.includes(parseInt(id))) {
-                delete this.storage.pending[id];
-            }
-        }
-        this.persist();
+        this.updateState({toReset: roomIds});
 
         this.awaitingJobStart = true;
         clearTimeout(this.awaitingJobStartTimeout);
@@ -153,39 +118,35 @@ class MideaRoomOrderManager {
     }
 
     /**
-     * Puts back the original cleanSeq values, if any are pending
+     * Sets cleanSeq back to 0 for the rooms an earlier job changed
      *
      * @returns {Promise<void>}
      */
-    async restore() {
-        const pendingIds = Object.keys(this.storage.pending);
-        if (pendingIds.length === 0 || this.restoreInProgress) {
+    async reset() {
+        if (this.state.toReset.length === 0 || this.resetInProgress) {
             return;
         }
 
-        this.restoreInProgress = true;
+        this.resetInProgress = true;
         try {
             const rooms = this.readRooms();
-            const changes = pendingIds.filter(id => {
-                return rooms[id] && rooms[id].cleanSeq !== this.storage.pending[id];
+            const changes = this.state.toReset.filter(id => {
+                return rooms[id] && rooms[id].cleanSeq !== 0;
             });
 
-            Logger.info(`Room order: job over, restoring cleanSeq ${pendingIds.map(id => {
-                return `${id}=${this.storage.pending[id]}`;
-            }).join(", ")}${changes.length === 0 ? " (already in place)" : ""}`);
+            Logger.info(`Room order: job over, resetting cleanSeq to 0 for rooms [${changes.join(", ")}]`);
 
             if (changes.length > 0) {
                 await this.writeAndVerify(changes.map(id => {
-                    return Object.assign({}, rooms[id], {cleanSeq: this.storage.pending[id]});
+                    return Object.assign({}, rooms[id], {cleanSeq: 0});
                 }));
             }
 
-            this.storage.pending = {};
-            this.persist();
+            this.updateState({toReset: []});
         } catch (e) {
-            Logger.error("Room order: restoring cleanSeq failed. It will be retried.", e);
+            Logger.error("Room order: resetting cleanSeq failed", e);
         } finally {
-            this.restoreInProgress = false;
+            this.resetInProgress = false;
         }
     }
 
@@ -193,7 +154,7 @@ class MideaRoomOrderManager {
      * @private
      */
     onStateChanged() {
-        if (Object.keys(this.storage.pending).length === 0 || this.storage.disabled) {
+        if (this.state.toReset.length === 0 || this.state.disabled) {
             return;
         }
 
@@ -216,28 +177,10 @@ class MideaRoomOrderManager {
 
         // A job that can still be resumed isn't over yet
         if (!this.awaitingJobStart && status.flag !== stateAttrs.StatusStateAttribute.FLAG.RESUMABLE) {
-            this.restore().catch(() => {
-                /* logged in restore() */
+            this.reset().catch(() => {
+                /* logged in reset() */
             });
         }
-    }
-
-    /**
-     * Sends one record with the room's current values and checks that room_cfg still holds them afterwards
-     *
-     * @private
-     * @param {object} room
-     * @returns {Promise<void>}
-     */
-    async verifyEncoding(room) {
-        Logger.info(`Room order: first use, checking the 0x2B encoding with a record that changes nothing (room ${room.id})`);
-
-        await this.writeAndVerify([room]);
-
-        this.storage.verified = true;
-        this.persist();
-
-        Logger.info("Room order: 0x2B encoding check passed");
     }
 
     /**
@@ -277,8 +220,7 @@ class MideaRoomOrderManager {
         }
 
         if (mismatches.length > 0) {
-            this.storage.disabled = `0x2B readback mismatch: ${mismatches.join("; ")}`;
-            this.persist();
+            this.updateState({disabled: `0x2B readback mismatch: ${mismatches.join("; ")}`});
 
             Logger.error(`Room order: the robot didn't store what was sent. Switching the feature off. ${mismatches.join("; ")}`);
 
@@ -301,9 +243,11 @@ class MideaRoomOrderManager {
                     throw new Error(`Room ${room.id} has an unexpected ${field} value: ${value}`);
                 }
             }
-            if (room.fanSpeed === 5) {
-                // Known to be able to hard-shut the robot
-                throw new Error(`Room ${room.id} has fan speed 5, which must never be sent`);
+
+            const fan = FAN_SPEED_TO_WIRE[room.fanSpeed];
+            if (fan === undefined) {
+                // Notably, 5 is known to be able to hard-shut the robot
+                throw new Error(`Room ${room.id} has fan speed ${room.fanSpeed}, which is not sent`);
             }
 
             const offset = i * RECORD_LENGTH;
@@ -311,7 +255,7 @@ class MideaRoomOrderManager {
             records[offset + 1] = room.cleanCount;
             records[offset + 2] = room.vacuum_mop_mode;
             // offset + 3 is not read
-            records[offset + 4] = room.fanSpeed;
+            records[offset + 4] = fan;
             records[offset + 5] = room.infinite_water_speed;
             records[offset + 6] = room.cleanSeq;
             records[offset + 7] = room.fluidType;
@@ -359,29 +303,11 @@ class MideaRoomOrderManager {
 
     /**
      * @private
-     * @returns {object}
+     * @param {object} changes
      */
-    load() {
-        try {
-            if (fs.existsSync(this.storagePath)) {
-                return JSON.parse(fs.readFileSync(this.storagePath).toString());
-            }
-        } catch (e) {
-            Logger.warn("Room order: could not read the stored state", e);
-        }
-
-        return {};
-    }
-
-    /**
-     * @private
-     */
-    persist() {
-        try {
-            fs.writeFileSync(this.storagePath, JSON.stringify(this.storage, null, 2));
-        } catch (e) {
-            Logger.error("Room order: could not store the state", e);
-        }
+    updateState(changes) {
+        this.state = Object.assign({}, this.state, changes);
+        this.store.set(this.state);
     }
 }
 
@@ -399,11 +325,22 @@ function describe(room) {
     }).join(" ");
 }
 
+/*
+    room_cfg stores the fan speed on an ordered scale (1 = quietest), while the wire uses the same values as the global
+    fan speed (MideaValetudoRobot.FAN_SPEEDS: 4 = min, 1 = low, 2 = medium, 3 = high). Seen on the robot: sending 2
+    stores 3. The rest of this table follows from that and is checked by the readback.
+ */
+const FAN_SPEED_TO_WIRE = Object.freeze({
+    1: 4,
+    2: 1,
+    3: 2,
+    4: 3
+});
 const RECORD_FIELDS = ["cleanCount", "vacuum_mop_mode", "fanSpeed", "infinite_water_speed", "cleanSeq", "fluidType", "route_type"];
 const RECORD_LENGTH = 10;
 const SAVE_TIMEOUT = 5000;
 const JOB_START_TIMEOUT = 2 * 60 * 1000;
-const STORAGE_FILENAME = "valetudo_midea_room_order.json";
+const STORE_KEY = "roomOrder";
 // Same file MideaMapHacksProvider reads the room names from
 const ROOM_CFG_PATH = "/oem/slam/room_cfg02.settings";
 const ROOM_CFG_OTHER_PATH = "/oem/slam/room_cfg01.settings";
