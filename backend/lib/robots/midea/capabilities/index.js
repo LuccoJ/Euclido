@@ -23,6 +23,7 @@ module.exports = {
     MideaDoNotDisturbCapabilityV2: require("./MideaDoNotDisturbCapabilityV2"),
     MideaFanSpeedControlCapabilityV1: require("./MideaFanSpeedControlCapabilityV1"),
     MideaFanSpeedControlCapabilityV2: require("./MideaFanSpeedControlCapabilityV2"),
+    MideaGoToLocationCapability: require("./MideaGoToLocationCapability"),
     MideaKeyLockCapabilityV1: require("./MideaKeyLockCapabilityV1"),
     MideaKeyLockCapabilityV2: require("./MideaKeyLockCapabilityV2"),
     MideaLocateCapabilityV1: require("./MideaLocateCapabilityV1"),
