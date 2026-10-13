@@ -125,7 +125,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
     }
 
     /**
-     * Turns the annotation's line into a rectangle of ANNOTATION_WIDTH around it, in robot map coordinates.
+     * Turns the annotation's line into a rectangle of the type's width around it, in robot map coordinates.
      * The corners are in cyclic order.
      *
      * @private
@@ -135,7 +135,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
     getCorners(annotation) {
         const [pA, pB] = annotation.points;
         const length = Math.hypot(pB.x - pA.x, pB.y - pA.y) || 1;
-        const halfWidth = ANNOTATION_WIDTH / 2;
+        const halfWidth = ANNOTATION_WIDTH[annotation.type] / 2;
         const offset = {
             x: -(pB.y - pA.y) / length * halfWidth,
             y: (pB.x - pA.x) / length * halfWidth
@@ -212,7 +212,11 @@ const STORAGE_FILENAME = "valetudo_midea_map_annotations.json";
 const RECORD_LENGTH = 20;
 const MAX_PER_TYPE = 32;
 const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detected ones
-const ANNOTATION_WIDTH = 10; // cm. TODO: compare with the robot's own curtain.width/threshold.width
+// cm. Curtains are drapes that move around, so they get a generous width. TODO: compare with the robot's own widths
+const ANNOTATION_WIDTH = Object.freeze({
+    [ValetudoMapAnnotation.TYPE.CURTAIN]: 30,
+    [ValetudoMapAnnotation.TYPE.THRESHOLD]: 10
+});
 
 const ACTION = Object.freeze({
     SET: 1,
