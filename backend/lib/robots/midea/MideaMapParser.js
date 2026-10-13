@@ -14,12 +14,12 @@ class MideaMapParser {
         this.mapHacksProvider = options.mapHacksProvider;
 
         /**
-         * Map annotations (curtains, thresholds) as set via Valetudo. The robot doesn't report these back,
-         * so they are kept separately from the parsed entities and survive map resets.
+         * Curtains and door sills as last reported by the robot, in robot map coordinates.
+         * Kept separately from the parsed entities so that they survive map resets; the robot sends them again on map load.
          *
-         * @type {Array<import("../../entities/map/entities/LineMapEntity")>}
+         * @type {{curtains: Array<MideaAnnotationRecord>, doorSills: Array<MideaAnnotationRecord>}}
          */
-        this.annotationEntities = [];
+        this.annotations = {curtains: [], doorSills: []};
 
         /**
          * Last raw value of map updates that are only logged for now, to log each one once when it changes
@@ -126,11 +126,17 @@ class MideaMapParser {
                 await this.handleUserDefinedCarpetUpdate(data);
                 break;
 
+            case "displayed_curtain":
+                this.logUpdateOnChange(type, data);
+                this.handleAnnotationUpdate("curtains", data, false);
+                break;
+            case "displayed_door_sill":
+                this.logUpdateOnChange(type, data);
+                this.handleAnnotationUpdate("doorSills", data, true);
+                break;
             case "threshold_area":
             case "user_deleted_detected_curtain":
-            case "displayed_curtain":
             case "user_deleted_detected_door_sill":
-            case "displayed_door_sill":
                 // Ignored for now, but logged to learn their format
                 this.logUpdateOnChange(type, data);
                 break;
@@ -171,14 +177,86 @@ class MideaMapParser {
     }
 
     /**
-     * @param {Array<import("../../entities/map/entities/LineMapEntity")>} entities
+     * Format: "id state is_ai" (door sills: "id type state is_ai"), then the four corners as "x y" pairs,
+     * repeated for each item. An empty string means none.
+     *
+     * @param {"curtains"|"doorSills"} key
+     * @param {any} data
+     * @param {boolean} hasType
      */
-    setAnnotationEntities(entities) {
-        this.annotationEntities = entities;
+    handleAnnotationUpdate(key, data, hasType) {
+        if (typeof data !== "string") {
+            Logger.warn(`Unexpected ${key} data`, data);
+
+            return;
+        }
+
+        const values = data.trim() === "" ? [] : data.trim().split(/\s+/).map(v => parseInt(v, 10));
+        const recordLength = (hasType ? 4 : 3) + 8;
+
+        if (values.length % recordLength !== 0 || values.some(v => isNaN(v))) {
+            Logger.warn(`Unexpected ${key} data format: '${data}'`);
+
+            return;
+        }
+
+        const records = [];
+        for (let i = 0; i < values.length; i += recordLength) {
+            const record = values.slice(i, i + recordLength);
+            const header = hasType ? record.slice(0, 4) : [record[0], 0, record[1], record[2]];
+            const coordinates = record.slice(recordLength - 8);
+
+            records.push({
+                id: header[0],
+                type: header[1],
+                state: header[2],
+                isAi: header[3] !== 0,
+                corners: [0, 2, 4, 6].map(j => {
+                    return {x: coordinates[j], y: coordinates[j + 1]};
+                })
+            });
+        }
+
+        this.annotations[key] = records;
+    }
+
+    /**
+     * Turns a reported rectangle back into the line it was drawn from: the line between the middles of its short sides
+     *
+     * @private
+     * @param {MideaAnnotationRecord} record
+     * @param {string} type
+     * @returns {import("../../entities/map/entities/LineMapEntity")}
+     */
+    annotationRecordToEntity(record, type) {
+        const [c0, c1, c2, c3] = record.corners.map(c => {
+            return this.convertToValetudoCoordinates(c.x, c.y);
+        });
+        const middle = (a, b) => {
+            return {x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2)};
+        };
+
+        const [pA, pB] = Math.hypot(c1.x - c0.x, c1.y - c0.y) >= Math.hypot(c2.x - c1.x, c2.y - c1.y) ?
+            [middle(c3, c0), middle(c1, c2)] :
+            [middle(c0, c1), middle(c2, c3)];
+
+        return new mapEntities.LineMapEntity({
+            points: [pA.x, pA.y, pB.x, pB.y],
+            type: type
+        });
     }
 
     getCurrentMap() {
-        let entities = [...this.entities, ...this.annotationEntities];
+        // Only the user-defined ones. AI-detected ones would otherwise come back as user-defined after the next edit
+        let entities = [
+            ...this.entities,
+            ...this.annotations.curtains.filter(r => !r.isAi).map(r => {
+                return this.annotationRecordToEntity(r, mapEntities.LineMapEntity.TYPE.CURTAIN);
+            }),
+            ...this.annotations.doorSills.filter(r => !r.isAi).map(r => {
+                return this.annotationRecordToEntity(r, mapEntities.LineMapEntity.TYPE.THRESHOLD);
+            })
+        ];
 
         if (this.dockPositionValid) {
             const dockCoords = this.convertToValetudoCoordinates(this.dockPosition.x, this.dockPosition.y);
@@ -983,5 +1061,14 @@ const FLOOR_MATERIAL_MAPPING = Object.freeze({
     2: mapEntities.MapLayer.MATERIAL.WOOD,
     0: mapEntities.MapLayer.MATERIAL.GENERIC
 });
+
+/**
+ * @typedef {object} MideaAnnotationRecord
+ * @property {number} id
+ * @property {number} type door sills only: 0 passable, 1 not passable
+ * @property {number} state
+ * @property {boolean} isAi
+ * @property {Array<{x: number, y: number}>} corners in robot map coordinates, cyclic order
+ */
 
 module.exports = MideaMapParser;

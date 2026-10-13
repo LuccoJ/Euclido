@@ -1,10 +1,7 @@
 const Logger = require("../../../Logger");
 const MapAnnotationsCapability = require("../../../core/capabilities/MapAnnotationsCapability");
-const mapEntities = require("../../../entities/map");
-const MideaPersistentStore = require("../MideaPersistentStore");
 const MSmartConst = require("../../../msmart/MSmartConst");
 const MSmartPacket = require("../../../msmart/MSmartPacket");
-const path = require("node:path");
 const ValetudoMapAnnotation = require("../../../entities/core/ValetudoMapAnnotation");
 
 /**
@@ -14,8 +11,8 @@ const ValetudoMapAnnotation = require("../../../entities/core/ValetudoMapAnnotat
  * of a thin rectangle as eight u16 LE values in robot map coordinates. Valetudo annotations are lines, so each line
  * becomes a rectangle of a fixed width around it.
  *
- * The robot doesn't report user-defined curtains or thresholds back, so Valetudo keeps its own list,
- * persisted in the configuration file, and replaces whatever it set before on every change.
+ * The robot reports what it has stored back as map updates (see MideaMapParser), and that is what the map shows.
+ * On every change, the user-defined ones it reported are deleted and the new list is sent.
  *
  * @extends MapAnnotationsCapability<import("../MideaValetudoRobot")>
  */
@@ -31,20 +28,6 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
                 ValetudoMapAnnotation.TYPE.CURTAIN
             ]
         }));
-
-        /** @type {Array<ValetudoMapAnnotation>} */
-        this.mapAnnotations = [];
-
-        if (this.robot.config.get("embedded") === true) {
-            this.store = new MideaPersistentStore({
-                config: this.robot.config,
-                key: "mapAnnotations",
-                legacyFilePath: path.join(path.dirname(this.robot.config.location), LEGACY_STORAGE_FILENAME)
-            });
-            this.mapAnnotations = this.load();
-        }
-
-        this.updateMapEntities();
     }
 
     /**
@@ -62,12 +45,20 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             }
         }
 
-        for (const [type, setting] of [
-            [ValetudoMapAnnotation.TYPE.CURTAIN, MSmartConst.SETTING.SET_CURTAINS],
-            [ValetudoMapAnnotation.TYPE.THRESHOLD, MSmartConst.SETTING.SET_DOOR_SILLS]
+        for (const [type, setting, key] of [
+            [ValetudoMapAnnotation.TYPE.CURTAIN, MSmartConst.SETTING.SET_CURTAINS, "curtains"],
+            [ValetudoMapAnnotation.TYPE.THRESHOLD, MSmartConst.SETTING.SET_DOOR_SILLS, "doorSills"]
         ]) {
-            const previous = this.mapAnnotations.filter(a => a.type === type);
-            const next = mapAnnotations.filter(a => a.type === type);
+            const previous = this.robot.mapParser.annotations[key].filter(r => !r.isAi);
+            const next = mapAnnotations.filter(a => a.type === type).map((annotation, i) => {
+                return {
+                    id: FIRST_USER_DEFINED_ID + i,
+                    type: 0, // Door sills: 0 = passable
+                    state: 0,
+                    isAi: false,
+                    corners: this.getCorners(annotation)
+                };
+            });
 
             if (previous.length > 0) {
                 await this.sendAnnotations(setting, ACTION.DELETE, previous);
@@ -75,11 +66,13 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             if (next.length > 0) {
                 await this.sendAnnotations(setting, ACTION.SET, next);
             }
-        }
 
-        this.mapAnnotations = mapAnnotations.filter(a => this.supportedAnnotationTypes.includes(a.type));
-        this.persist();
-        this.updateMapEntities();
+            // Shown right away. The robot reports its own view of it shortly after
+            this.robot.mapParser.annotations[key] = [
+                ...this.robot.mapParser.annotations[key].filter(r => r.isAi),
+                ...next
+            ];
+        }
 
         this.robot.pollMap();
     }
@@ -88,34 +81,33 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
      * @private
      * @param {number} setting
      * @param {number} action
-     * @param {Array<ValetudoMapAnnotation>} annotations
+     * @param {Array<import("../MideaMapParser").MideaAnnotationRecord>} records
      * @returns {Promise<void>}
      */
-    async sendAnnotations(setting, action, annotations) {
-        const payload = Buffer.alloc(2 + annotations.length * RECORD_LENGTH);
+    async sendAnnotations(setting, action, records) {
+        const payload = Buffer.alloc(2 + records.length * RECORD_LENGTH);
 
         payload[0] = action;
-        payload[1] = annotations.length;
+        payload[1] = records.length;
 
-        annotations.forEach((annotation, i) => {
+        records.forEach((record, i) => {
             const offset = 2 + i * RECORD_LENGTH;
-            const [c0, c1, c2, c3] = this.getCorners(annotation);
 
-            payload[offset] = FIRST_USER_DEFINED_ID + i;
-            payload[offset + 1] = 0; // Threshold: 0 = passable. Unused for curtains
+            payload[offset] = record.id;
+            payload[offset + 1] = record.type;
             // State. The robot only passes a set on to the planner when this is 0
             payload[offset + 2] = action === ACTION.SET ? 0 : action;
-            payload[offset + 3] = 0; // Not AI-detected
+            payload[offset + 3] = record.isAi ? 1 : 0;
 
             // The robot takes the corners in cyclic order and calls them left bottom, right bottom, right top, left top
-            [c0, c1, c2, c3].forEach((corner, j) => {
+            record.corners.forEach((corner, j) => {
                 payload.writeUInt16LE(corner.x, offset + 4 + j * 4);
                 payload.writeUInt16LE(corner.y, offset + 6 + j * 4);
             });
         });
 
         Logger.info(
-            `Sending ${annotations.length} ${setting === MSmartConst.SETTING.SET_CURTAINS ? "curtain" : "threshold"}(s), ` +
+            `Sending ${records.length} ${setting === MSmartConst.SETTING.SET_CURTAINS ? "curtain" : "threshold"}(s), ` +
             `action ${action === ACTION.SET ? "set" : "delete"}. Payload: ${payload.toString("hex")}`
         );
 
@@ -155,63 +147,15 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             return this.robot.mapParser.convertToMideaCoordinates(p.x, p.y);
         });
     }
-
-    /**
-     * @private
-     */
-    updateMapEntities() {
-        this.robot.mapParser.setAnnotationEntities(this.mapAnnotations.map(annotation => {
-            return new mapEntities.LineMapEntity({
-                points: [
-                    annotation.points[0].x,
-                    annotation.points[0].y,
-                    annotation.points[1].x,
-                    annotation.points[1].y
-                ],
-                type: annotation.type === ValetudoMapAnnotation.TYPE.CURTAIN ?
-                    mapEntities.LineMapEntity.TYPE.CURTAIN :
-                    mapEntities.LineMapEntity.TYPE.THRESHOLD
-            });
-        }));
-    }
-
-    /**
-     * @private
-     * @returns {Array<ValetudoMapAnnotation>}
-     */
-    load() {
-        try {
-            return (this.store.get() ?? []).map(a => {
-                return new ValetudoMapAnnotation({type: a.type, points: a.points});
-            });
-        } catch (e) {
-            Logger.warn("Error while loading the map annotations", e);
-
-            return [];
-        }
-    }
-
-    /**
-     * @private
-     */
-    persist() {
-        if (!this.store) {
-            return;
-        }
-
-        this.store.set(this.mapAnnotations.map(a => {
-            return {type: a.type, points: a.points};
-        }));
-    }
 }
 
-const LEGACY_STORAGE_FILENAME = "valetudo_midea_map_annotations.json";
 const RECORD_LENGTH = 20;
 const MAX_PER_TYPE = 32;
 const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detected ones
-// cm. Curtains are drapes that move around, so they get a generous width. TODO: compare with the robot's own widths
+// cm. Curtains are drapes that move around, and the robot only treats them differently inside the rectangle,
+// so they get a generous width
 const ANNOTATION_WIDTH = Object.freeze({
-    [ValetudoMapAnnotation.TYPE.CURTAIN]: 30,
+    [ValetudoMapAnnotation.TYPE.CURTAIN]: 50,
     [ValetudoMapAnnotation.TYPE.THRESHOLD]: 10
 });
 
