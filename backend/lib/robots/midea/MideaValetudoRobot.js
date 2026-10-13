@@ -1126,14 +1126,14 @@ class MideaValetudoRobot extends ValetudoRobot {
     }
 
     /**
-     * In the smart (5) and personalized (6) operation modes, the robot uses its own per-room settings and reports
+     * In the personalized (6) operation mode, the robot uses its own per-room settings and reports
      * fan and water values that don't map to any of the presets. That is expected and not worth a warning.
      *
      * @param {number|undefined} rawOperationMode
      * @returns {boolean}
      */
     isRobotManagedOperationMode(rawOperationMode) {
-        return rawOperationMode === 5 || rawOperationMode === 6;
+        return rawOperationMode === 6;
     }
 
     getManufacturer() {
@@ -1202,14 +1202,15 @@ MideaValetudoRobot.OPERATION_MODES = Object.freeze({
 });
 
 /*
-    Newer robots additionally support modes in which the robot uses its own per-room settings stored in
+    Newer robots additionally support a mode in which the robot uses its own per-room settings stored in
     /oem/slam/room_cfgXX.settings (vacuum_mop_mode, fanSpeed, cleanCount, cleanSeq, ...)
-    5 = "Smart" (called "AI butler" in some places in the app)
     6 = "Personalized" (called "Customize" in some places in the app)
+
+    There is also 5 = "Smart" (called "AI butler" in some places in the app), which asks the vendor cloud for
+    per-room parameters, so it isn't offered here
  */
 MideaValetudoRobot.EXTENDED_OPERATION_MODES = Object.freeze({
     ...MideaValetudoRobot.OPERATION_MODES,
-    [stateAttrs.PresetSelectionStateAttribute.MODE.SMART]: 5,
     [stateAttrs.PresetSelectionStateAttribute.MODE.PERSONALIZED]: 6,
 });
 
