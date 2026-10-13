@@ -13,6 +13,7 @@ const SETTING = Object.freeze({
     JOIN_SEGMENTS: 0x26,
     SPLIT_SEGMENT: 0x27,
 
+    SET_ROOM_INFO: 0x2B, // Per-room settings. Needs 0x02 instead of 0x01 as the second payload byte (record version 2)
     SET_VALID_MAP_IDS: 0x2D, // Used by the cloud to sync cloud state with device state. The cloud being higher prio
 
     SET_FLOOR_TYPE: 0x31,

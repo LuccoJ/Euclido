@@ -19,6 +19,7 @@ module.exports = {
     MideaCombinedVirtualRestrictionsCapabilityV1: require("./MideaCombinedVirtualRestrictionsCapabilityV1"),
     MideaCombinedVirtualRestrictionsCapabilityV2: require("./MideaCombinedVirtualRestrictionsCapabilityV2"),
     MideaCurrentStatisticsCapability: require("./MideaCurrentStatisticsCapability"),
+    MideaCustomOrderMapSegmentationCapability: require("./MideaCustomOrderMapSegmentationCapability"),
     MideaDoNotDisturbCapabilityV1: require("./MideaDoNotDisturbCapabilityV1"),
     MideaDoNotDisturbCapabilityV2: require("./MideaDoNotDisturbCapabilityV2"),
     MideaFanSpeedControlCapabilityV1: require("./MideaFanSpeedControlCapabilityV1"),

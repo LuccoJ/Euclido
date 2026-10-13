@@ -19,6 +19,7 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
      * @param {import("../../ValetudoEventStore")} options.valetudoEventStore
      * @param {object} [options.waterGrades]
      * @param {boolean} [options.oldMapPollStyle]
+     * @param {any} [options.mapSegmentationCapability] replaces MideaMapSegmentationCapabilityV2
      */
     constructor(options) {
         super(options);
@@ -60,7 +61,7 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
             capabilities.MideaMapResetCapabilityV2,
             capabilities.MideaMappingPassCapabilityV2,
             capabilities.MideaMapSegmentEditCapabilityV2,
-            capabilities.MideaMapSegmentationCapabilityV2,
+            options.mapSegmentationCapability ?? capabilities.MideaMapSegmentationCapabilityV2,
             capabilities.MideaZoneCleaningCapabilityV2,
             capabilities.MideaCombinedVirtualRestrictionsCapabilityV2,
             capabilities.MideaKeyLockCapabilityV2,
