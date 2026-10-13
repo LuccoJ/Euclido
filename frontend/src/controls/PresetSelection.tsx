@@ -128,7 +128,7 @@ const PresetSelectionControl = (props: PresetSelectionProps): React.ReactElement
             );
         }
 
-        if (presetLoadError || preset === undefined) {
+        if (presetLoadError) {
             return (
                 <Grid2>
                     <Typography color="error">Error loading {capability}</Typography>
@@ -150,6 +150,12 @@ const PresetSelectionControl = (props: PresetSelectionProps): React.ReactElement
                     marks={marks}
                     track={capability !== Capability.OperationModeControl ? "normal" : false}
                 />
+                {
+                    preset === undefined &&
+                    <Typography variant="caption" color="text.secondary">
+                        The robot reports a setting Valetudo doesn&apos;t know. Pick one to switch to it.
+                    </Typography>
+                }
             </Box>
         );
     }, [
@@ -198,7 +204,7 @@ const PresetSelectionControl = (props: PresetSelectionProps): React.ReactElement
                                         !pending &&
                                         <Grid2 sx={{marginTop: "-2px" /* ugh */}}>
                                             <Typography variant="subtitle1" sx={{paddingRight: "8px"}}>
-                                                {preset?.value ? presetFriendlyNames[preset.value] : ""}
+                                                {preset?.value ? presetFriendlyNames[preset.value] : "Unknown"}
                                             </Typography>
                                         </Grid2>
                                     }
