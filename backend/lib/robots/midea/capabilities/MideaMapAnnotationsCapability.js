@@ -102,8 +102,8 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             payload[offset + 2] = action; // State, mirrors the action
             payload[offset + 3] = 0; // Not AI-detected
 
-            // The robot stores the four corners in the order D, A, C, B, so this ordering yields c0, c1, c2, c3
-            [c1, c3, c2, c0].forEach((corner, j) => {
+            // The robot takes the corners in cyclic order and calls them left bottom, right bottom, right top, left top
+            [c0, c1, c2, c3].forEach((corner, j) => {
                 payload.writeUInt16LE(corner.x, offset + 4 + j * 4);
                 payload.writeUInt16LE(corner.y, offset + 6 + j * 4);
             });
