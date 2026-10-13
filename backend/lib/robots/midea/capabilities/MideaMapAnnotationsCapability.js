@@ -1,7 +1,7 @@
-const fs = require("node:fs");
 const Logger = require("../../../Logger");
 const MapAnnotationsCapability = require("../../../core/capabilities/MapAnnotationsCapability");
 const mapEntities = require("../../../entities/map");
+const MideaPersistentStore = require("../MideaPersistentStore");
 const MSmartConst = require("../../../msmart/MSmartConst");
 const MSmartPacket = require("../../../msmart/MSmartPacket");
 const path = require("node:path");
@@ -15,7 +15,7 @@ const ValetudoMapAnnotation = require("../../../entities/core/ValetudoMapAnnotat
  * becomes a rectangle of a fixed width around it.
  *
  * The robot doesn't report user-defined curtains or thresholds back, so Valetudo keeps its own list,
- * persisted next to its configuration file, and replaces whatever it set before on every change.
+ * persisted in the configuration file, and replaces whatever it set before on every change.
  *
  * @extends MapAnnotationsCapability<import("../MideaValetudoRobot")>
  */
@@ -36,7 +36,11 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
         this.mapAnnotations = [];
 
         if (this.robot.config.get("embedded") === true) {
-            this.storagePath = path.join(path.dirname(this.robot.config.location), STORAGE_FILENAME);
+            this.store = new MideaPersistentStore({
+                config: this.robot.config,
+                key: "mapAnnotations",
+                legacyFilePath: path.join(path.dirname(this.robot.config.location), LEGACY_STORAGE_FILENAME)
+            });
             this.mapAnnotations = this.load();
         }
 
@@ -176,11 +180,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
      */
     load() {
         try {
-            if (!fs.existsSync(this.storagePath)) {
-                return [];
-            }
-
-            return JSON.parse(fs.readFileSync(this.storagePath).toString()).map(a => {
+            return (this.store.get() ?? []).map(a => {
                 return new ValetudoMapAnnotation({type: a.type, points: a.points});
             });
         } catch (e) {
@@ -194,21 +194,17 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
      * @private
      */
     persist() {
-        if (!this.storagePath) {
+        if (!this.store) {
             return;
         }
 
-        try {
-            fs.writeFileSync(this.storagePath, JSON.stringify(this.mapAnnotations.map(a => {
-                return {type: a.type, points: a.points};
-            })));
-        } catch (e) {
-            Logger.warn("Error while persisting the map annotations", e);
-        }
+        this.store.set(this.mapAnnotations.map(a => {
+            return {type: a.type, points: a.points};
+        }));
     }
 }
 
-const STORAGE_FILENAME = "valetudo_midea_map_annotations.json";
+const LEGACY_STORAGE_FILENAME = "valetudo_midea_map_annotations.json";
 const RECORD_LENGTH = 20;
 const MAX_PER_TYPE = 32;
 const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detected ones
