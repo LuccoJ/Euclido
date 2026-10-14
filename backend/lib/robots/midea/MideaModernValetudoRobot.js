@@ -20,12 +20,8 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
      * @param {object} [options.waterGrades]
      * @param {object} [options.operationModes]
      * @param {boolean} [options.oldMapPollStyle]
-<<<<<<< HEAD
      * @param {any} [options.mapSegmentationCapability] replaces MideaMapSegmentationCapabilityV2
-     * @param {boolean} [options.liveMapSession] keep a map session open while active, for live path updates
-=======
      * @param {boolean} [options.liveMapSession] request the full path more often while active
->>>>>>> claude/midea-live-path
      */
     constructor(options) {
         super(options);

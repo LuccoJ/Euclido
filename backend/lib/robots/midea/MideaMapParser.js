@@ -13,7 +13,6 @@ class MideaMapParser {
     constructor(options) {
         this.mapHacksProvider = options.mapHacksProvider;
 
-<<<<<<< HEAD
         /**
          * Curtains and door sills as last reported by the robot, in robot map coordinates.
          * Kept separately from the parsed entities so that they survive map resets; the robot sends them again on map load.
@@ -30,13 +29,6 @@ class MideaMapParser {
         this.lastLoggedUpdates = {};
 
         /**
-         * Until when a map session is open (ms timestamp), and whether the next path is a full one.
-         * Set by the robot, see MideaModernValetudoRobot.keepMapSessionAlive
-         */
-        this.mapSessionUntil = 0;
-        this.expectFullTrack = false;
-
-        /**
          * Called with the name of each obstacle that the robot reports for the first time
          *
          * @type {((name: string) => void) | undefined}
@@ -45,8 +37,6 @@ class MideaMapParser {
         /** @type {Set<string>|undefined} ids of the obstacles reported so far, undefined until the first report */
         this.knownObstacleIds = undefined;
 
-=======
->>>>>>> claude/midea-live-path
         this.reset();
     }
 
