@@ -18,6 +18,7 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
      * @param {import("../../Configuration")} options.config
      * @param {import("../../ValetudoEventStore")} options.valetudoEventStore
      * @param {object} [options.waterGrades]
+     * @param {object} [options.operationModes]
      * @param {boolean} [options.oldMapPollStyle]
      * @param {any} [options.mapSegmentationCapability] replaces MideaMapSegmentationCapabilityV2
      */
@@ -42,8 +43,8 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
         }));
         this.registerCapability(new capabilities.MideaOperationModeControlCapabilityV2({
             robot: this,
-            presets: Object.keys(MideaValetudoRobot.OPERATION_MODES).map(k => {
-                return new ValetudoSelectionPreset({name: k, value: MideaValetudoRobot.OPERATION_MODES[k]});
+            presets: Object.keys(this.operationModes).map(k => {
+                return new ValetudoSelectionPreset({name: k, value: this.operationModes[k]});
             })
         }));
         this.registerCapability(new capabilities.MideaWaterUsageControlCapabilityV2({

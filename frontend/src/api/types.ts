@@ -37,6 +37,7 @@ export enum Capability {
     MopExtensionFurnitureLegHandlingControl = "MopExtensionFurnitureLegHandlingControlCapability",
     MopDockCleanManualTrigger = "MopDockCleanManualTriggerCapability",
     MopDockDryManualTrigger = "MopDockDryManualTriggerCapability",
+    MopDockSelfCleanManualTrigger = "MopDockSelfCleanManualTriggerCapability",
     MopDockMopAutoDryingControl = "MopDockMopAutoDryingControlCapability",
     OperationModeControl = "OperationModeControlCapability",
     PersistentMapControl = "PersistentMapControlCapability",
@@ -604,7 +605,7 @@ export interface ValetudoCustomizations {
     friendlyName: string;
 }
 
-export type CarpetSensorMode = "off" | "avoid" | "lift" | "detach";
+export type CarpetSensorMode = "off" | "avoid" | "cross" | "lift" | "detach";
 
 export interface CarpetSensorModePayload {
     mode: CarpetSensorMode

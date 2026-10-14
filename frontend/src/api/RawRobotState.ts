@@ -41,7 +41,7 @@ export interface BatteryState {
     flag: "none" | "charged" | "charging" | "discharging";
 }
 
-export type PresetValue = "off" | "min" | "low" | "medium" | "high" | "max" | "turbo" | "custom" | "vacuum" | "mop" | "vacuum_and_mop" | "vacuum_then_mop";
+export type PresetValue = "off" | "min" | "low" | "medium" | "high" | "max" | "turbo" | "custom" | "vacuum" | "mop" | "vacuum_and_mop" | "vacuum_then_mop" | "personalized";
 
 export interface PresetSelectionState {
     __class: RobotAttributeClass.PresetSelectionState;

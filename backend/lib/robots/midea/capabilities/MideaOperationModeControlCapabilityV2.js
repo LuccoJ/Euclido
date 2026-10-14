@@ -1,3 +1,4 @@
+const Logger = require("../../../Logger");
 const OperationModeControlCapability = require("../../../core/capabilities/OperationModeControlCapability");
 
 const MSmartConst = require("../../../msmart/MSmartConst");
@@ -27,12 +28,14 @@ class MideaOperationModeControlCapabilityV2 extends OperationModeControlCapabili
                 )
             });
 
+            Logger.info(`Setting operation mode to ${matchedPreset.value} (${matchedPreset.name})`);
+
             const response = await this.robot.sendCommand(packet.toHexString());
 
             if (response?.payload?.[3] === 0x00) {
                 this.robot.parseAndUpdateState(
                     new MSmartStatusDTO({
-                        station_work_status: matchedPreset.value
+                        mopMode: matchedPreset.value
                     })
                 );
             } else {

@@ -34,13 +34,22 @@ class MideaValetudoRobot extends ValetudoRobot {
      * @param {import("../../ValetudoEventStore")} options.valetudoEventStore
      * @param {object} [options.waterGrades]
      * @param {object} [options.fanSpeeds]
+     * @param {object} [options.operationModes]
      * @param {object} [options.statusMap]
      */
     constructor(options) {
         super(options);
         this.waterGrades = options.waterGrades ?? MideaValetudoRobot.WATER_GRADES;
         this.fanSpeeds = options.fanSpeeds ?? MideaValetudoRobot.FAN_SPEEDS;
+        this.operationModes = options.operationModes ?? MideaValetudoRobot.OPERATION_MODES;
         this.statusMap = options.statusMap ?? MideaValetudoRobot.STATUS_MAP;
+
+        /**
+         * The last raw operation mode reported by the robot. Used to only log changes instead of every poll
+         *
+         * @type {number | undefined}
+         */
+        this.lastRawOperationMode = undefined;
 
         if (this.config.get("embedded") === true) { // The only scenario in which this isn't embedded is when autogenerating the docs
             if (!fs.existsSync(CA_KEY_PATH) || !fs.existsSync(CA_CERT_PATH)) {
@@ -286,14 +295,21 @@ class MideaValetudoRobot extends ValetudoRobot {
                     },
                 }));
             } else {
-                Logger.warn(`Received unknown fan_level ${data.fan_level}`);
+                if (!this.isRobotManagedOperationMode(data.mopMode ?? this.lastRawOperationMode)) {
+                    Logger.warn(`Received unknown fan_level ${data.fan_level}`);
+                }
             }
         }
 
         if (data.mopMode !== undefined) { // Mop mode 0 = vacuum & mop. Needs explicit check for !== undefined
-            let matchingOperationMode = Object.keys(MideaValetudoRobot.OPERATION_MODES).find(key => {
-                return MideaValetudoRobot.OPERATION_MODES[key] === data.mopMode;
+            let matchingOperationMode = Object.keys(this.operationModes).find(key => {
+                return this.operationModes[key] === data.mopMode;
             });
+
+            if (data.mopMode !== this.lastRawOperationMode) {
+                Logger.info(`Operation mode reported by the robot changed from ${this.lastRawOperationMode} to ${data.mopMode} (${matchingOperationMode ?? "unknown"})`);
+                this.lastRawOperationMode = data.mopMode;
+            }
 
             if (matchingOperationMode) {
                 this.state.upsertFirstMatchingAttribute(new stateAttrs.PresetSelectionStateAttribute({
@@ -303,8 +319,6 @@ class MideaValetudoRobot extends ValetudoRobot {
                         rawValue: data.mopMode
                     },
                 }));
-            } else {
-                Logger.warn(`Received unknown mopMode ${data.mopMode}`);
             }
         }
 
@@ -322,7 +336,9 @@ class MideaValetudoRobot extends ValetudoRobot {
                     },
                 }));
             } else {
-                Logger.warn(`Received unknown water_level ${data.water_level}`);
+                if (!this.isRobotManagedOperationMode(data.mopMode ?? this.lastRawOperationMode)) {
+                    Logger.warn(`Received unknown water_level ${data.water_level}`);
+                }
             }
         }
 
@@ -1109,6 +1125,17 @@ class MideaValetudoRobot extends ValetudoRobot {
         return new ValetudoRobotError(parameters);
     }
 
+    /**
+     * In the personalized (6) operation mode, the robot uses its own per-room settings and reports
+     * fan and water values that don't map to any of the presets. That is expected and not worth a warning.
+     *
+     * @param {number|undefined} rawOperationMode
+     * @returns {boolean}
+     */
+    isRobotManagedOperationMode(rawOperationMode) {
+        return rawOperationMode === 6;
+    }
+
     getManufacturer() {
         return "Midea";
     }
@@ -1172,6 +1199,19 @@ MideaValetudoRobot.OPERATION_MODES = Object.freeze({
     [stateAttrs.PresetSelectionStateAttribute.MODE.VACUUM]: 1,
     [stateAttrs.PresetSelectionStateAttribute.MODE.MOP]: 2,
     [stateAttrs.PresetSelectionStateAttribute.MODE.VACUUM_THEN_MOP]: 3,
+});
+
+/*
+    Newer robots additionally support a mode in which the robot uses its own per-room settings stored in
+    /oem/slam/room_cfgXX.settings (vacuum_mop_mode, fanSpeed, cleanCount, cleanSeq, ...)
+    6 = "Personalized" (called "Customize" in some places in the app)
+
+    There is also 5 = "Smart" (called "AI butler" in some places in the app), which asks the vendor cloud for
+    per-room parameters, so it isn't offered here
+ */
+MideaValetudoRobot.EXTENDED_OPERATION_MODES = Object.freeze({
+    ...MideaValetudoRobot.OPERATION_MODES,
+    [stateAttrs.PresetSelectionStateAttribute.MODE.PERSONALIZED]: 6,
 });
 
 MideaValetudoRobot.WATER_GRADES = Object.freeze({

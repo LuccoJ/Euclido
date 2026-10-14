@@ -36,9 +36,10 @@ class MideaCarpetSensorModeControlCapabilityV2 extends CarpetSensorModeControlCa
                 return CarpetSensorModeControlCapability.MODE.OFF;
             case 2:
                 return CarpetSensorModeControlCapability.MODE.LIFT;
-            case 0: // 0 = Avoid, meaning that the robot will never drive over carpets even when vacuuming, which makes little sense
-            case 3: // 3 = Cross, which is a lot more similar to what other vendors would have as "avoid"
+            case 0: // 0 = Avoid, meaning that the robot will never drive over carpets even when vacuuming
                 return CarpetSensorModeControlCapability.MODE.AVOID;
+            case 3: // 3 = Cross, which is a lot more similar to what other vendors would have as "avoid"
+                return CarpetSensorModeControlCapability.MODE.CROSS;
             default:
                 throw new Error(`Received invalid mode ${settings.carpet_behavior}`);
         }
@@ -56,6 +57,9 @@ class MideaCarpetSensorModeControlCapabilityV2 extends CarpetSensorModeControlCa
                 val = 2;
                 break;
             case CarpetSensorModeControlCapability.MODE.AVOID:
+                val = 0;
+                break;
+            case CarpetSensorModeControlCapability.MODE.CROSS:
                 val = 3;
                 break;
             default:
@@ -80,6 +84,7 @@ class MideaCarpetSensorModeControlCapabilityV2 extends CarpetSensorModeControlCa
         return {
             supportedModes: [
                 CarpetSensorModeControlCapability.MODE.AVOID,
+                CarpetSensorModeControlCapability.MODE.CROSS,
                 CarpetSensorModeControlCapability.MODE.OFF,
                 CarpetSensorModeControlCapability.MODE.LIFT,
             ]

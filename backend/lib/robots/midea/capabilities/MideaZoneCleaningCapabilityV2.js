@@ -1,3 +1,4 @@
+const Logger = require("../../../Logger");
 const MSmartConst = require("../../../msmart/MSmartConst");
 const MSmartPacket = require("../../../msmart/MSmartPacket");
 const ZoneCleaningCapability = require("../../../core/capabilities/ZoneCleaningCapability");
@@ -41,6 +42,11 @@ class MideaZoneCleaningCapabilityV2 extends ZoneCleaningCapability {
                 zoneDataPayload
             )
         });
+
+        Logger.info(
+            `Starting zone cleanup of ${options.zones.length} zone(s), iterations ${options.iterations ?? 1}. ` +
+            `Robot last reported operation mode ${this.robot.lastRawOperationMode}.`
+        );
 
         await this.robot.sendCommand(packet.toHexString());
     }
