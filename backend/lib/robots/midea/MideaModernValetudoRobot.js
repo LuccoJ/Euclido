@@ -166,6 +166,10 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
         }
 
         this.lastMapSessionMessage = now;
+        this.mapParser.mapSessionUntil = now + MAP_SESSION_COUNTDOWN * 2000;
+        if (command === "start") {
+            this.mapParser.expectFullTrack = true;
+        }
         Logger.debug(`Sending map session ${command}`);
 
         this.sendCommand(
