@@ -20,8 +20,12 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
      * @param {object} [options.waterGrades]
      * @param {object} [options.operationModes]
      * @param {boolean} [options.oldMapPollStyle]
+<<<<<<< HEAD
      * @param {any} [options.mapSegmentationCapability] replaces MideaMapSegmentationCapabilityV2
      * @param {boolean} [options.liveMapSession] keep a map session open while active, for live path updates
+=======
+     * @param {boolean} [options.liveMapSession] request the full path more often while active
+>>>>>>> claude/midea-live-path
      */
     constructor(options) {
         super(options);
@@ -141,43 +145,28 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
 
 
     /**
-     * Outside of a map session, the robot only sends its full path about every 92s, and that path is also the only
-     * source of its position. While a session is open, it sends the map and the newest part of the path about
-     * every 2s, for as many ~2s ticks as the countdown says. "start" opens a session and requests a full path,
-     * "keepalive" extends it.
+     * Outside of a map session, the robot sends its full path, the only source of its position, about every 92s.
+     * A "start" message makes it send the full path and the map right away. The countdown is kept at a single tick,
+     * so that no session stays open: a longer one doubles the map uploads and, it seems, loads the robot.
      *
      * @private
      */
-    keepMapSessionAlive() {
+    requestFullPath() {
         const status = this.state.getFirstMatchingAttributeByConstructor(entities.state.attributes.StatusStateAttribute);
-        if (!status?.isActiveState) {
-            return;
-        }
-
         const now = Date.now();
-        const sinceLast = now - this.lastMapSessionMessage;
-        let command;
 
-        if (sinceLast > MAP_SESSION_COUNTDOWN * 2000) {
-            command = "start";
-        } else if (sinceLast > MAP_SESSION_KEEPALIVE_INTERVAL) {
-            command = "keepalive";
-        } else {
+        if (!status?.isActiveState || now - this.lastMapSessionMessage < FULL_PATH_REQUEST_INTERVAL) {
             return;
         }
 
         this.lastMapSessionMessage = now;
-        this.mapParser.mapSessionUntil = now + MAP_SESSION_COUNTDOWN * 2000;
-        if (command === "start") {
-            this.mapParser.expectFullTrack = true;
-        }
-        Logger.debug(`Sending map session ${command}`);
+        Logger.debug("Requesting the full path");
 
         this.sendCommand(
-            {command: command, countDown: MAP_SESSION_COUNTDOWN},
+            {command: "start", countDown: 1},
             {target: "map", protocol: "map", fireAndForget: true}
         ).catch(e => {
-            Logger.warn(`Error while sending map session ${command}`, e);
+            Logger.warn("Error while requesting the full path", e);
         });
     }
 
@@ -197,7 +186,7 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
         });
 
         if (this.liveMapSession) {
-            this.keepMapSessionAlive();
+            this.requestFullPath();
         }
 
         if (this.oldMapPollStyle) {
@@ -239,7 +228,6 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
     }
 }
 
-const MAP_SESSION_COUNTDOWN = 30; // ticks of about 2s
-const MAP_SESSION_KEEPALIVE_INTERVAL = 40 * 1000; // ms, well before the countdown runs out
+const FULL_PATH_REQUEST_INTERVAL = 10 * 1000; // ms
 
 module.exports = MideaModernValetudoRobot;
