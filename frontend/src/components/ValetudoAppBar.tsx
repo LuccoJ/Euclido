@@ -180,7 +180,7 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     {
         kind: "MenuSubEntry",
         route: "/options/map_management/segment_cleaning_settings",
-        title: "Room Cleaning Settings",
+        title: "Personalized Room Cleaning Settings",
         parentRoute: "/options/map_management"
     },
     {

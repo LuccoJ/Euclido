@@ -257,7 +257,7 @@ const SegmentCleaningSettings = (): React.ReactElement => {
         if (settingsError) {
             return (
                 <Typography color="error" style={{textAlign: "center"}}>
-                    Error loading the room cleaning settings.
+                    Error loading the personalized room cleaning settings.
                 </Typography>
             );
         }
@@ -306,7 +306,7 @@ const SegmentCleaningSettings = (): React.ReactElement => {
             <Grid2 container direction="row">
                 <Box style={{width: "100%"}}>
                     <DetailPageHeaderRow
-                        title="Room cleaning settings"
+                        title="Personalized room cleaning settings"
                         icon={<SegmentCleaningSettingsIcon/>}
                         helpText={SegmentCleaningSettingsHelp}
                         onRefreshClick={() => {

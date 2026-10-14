@@ -248,7 +248,7 @@ const MapManagement = (): React.ReactElement => {
                 <LinkListMenuItem
                     key="segmentCleaningSettings"
                     url="/options/map_management/segment_cleaning_settings"
-                    primaryLabel="Room Cleaning Settings"
+                    primaryLabel="Personalized Room Cleaning Settings"
                     secondaryLabel="Set the room order and how each room is cleaned"
                     icon={<SegmentCleaningSettingsIcon/>}
                 />

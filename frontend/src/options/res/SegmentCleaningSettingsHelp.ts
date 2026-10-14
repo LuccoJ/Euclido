@@ -1,5 +1,5 @@
 export const SegmentCleaningSettingsHelp = `
-## Room cleaning settings
+## Personalized room cleaning settings
 
 These settings are stored on the robot for each room (segment).
 
