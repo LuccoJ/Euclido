@@ -673,6 +673,7 @@ class MSmartDummycloud {
      * @param {number} [options.timeout] - milliseconds
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
+     * @param {string} [options.protocol] - added to the message envelope
      * @returns {Promise<import("./MSmartPacket")>}
      */
     actualSendCommand(command, options = {}) {

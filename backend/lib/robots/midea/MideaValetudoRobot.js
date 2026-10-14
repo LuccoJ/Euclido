@@ -419,6 +419,7 @@ class MideaValetudoRobot extends ValetudoRobot {
      * @param {number} [options.timeout] - milliseconds
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
+     * @param {string} [options.protocol] - added to the message envelope
      * @returns {Promise<import("../../msmart/MSmartPacket")>}
      */
     async sendCommand(command, options) {
