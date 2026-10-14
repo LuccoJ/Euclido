@@ -45,10 +45,13 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             }
         }
 
-        for (const [type, setting, key] of [
-            [ValetudoMapAnnotation.TYPE.CURTAIN, MSmartConst.SETTING.SET_CURTAINS, "curtains"],
-            [ValetudoMapAnnotation.TYPE.THRESHOLD, MSmartConst.SETTING.SET_DOOR_SILLS, "doorSills"]
-        ]) {
+        /** @type {Array<{type: string, setting: number, key: "curtains"|"doorSills"}>} */
+        const kinds = [
+            {type: ValetudoMapAnnotation.TYPE.CURTAIN, setting: MSmartConst.SETTING.SET_CURTAINS, key: "curtains"},
+            {type: ValetudoMapAnnotation.TYPE.THRESHOLD, setting: MSmartConst.SETTING.SET_DOOR_SILLS, key: "doorSills"}
+        ];
+
+        for (const {type, setting, key} of kinds) {
             const previous = this.robot.mapParser.annotations[key].filter(r => !r.isAi);
             const next = mapAnnotations.filter(a => a.type === type).map((annotation, i) => {
                 return {
