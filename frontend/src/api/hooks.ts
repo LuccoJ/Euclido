@@ -95,7 +95,9 @@ import {
     sendNetworkAdvertisementConfiguration,
     sendMopDockDryManualTriggerCommand,
     sendMopDockCleanManualTriggerCommand,
+    sendMopDockSelfCleanManualTriggerCommand,
     MopDockCleanManualTriggerCommand,
+    MopDockSelfCleanManualTriggerCommand,
     MopDockDryManualTriggerCommand,
     fetchWifiConfigurationProperties,
     fetchWifiScan,
@@ -1511,6 +1513,22 @@ export const useMopDockCleanManualTriggerMutation = () => {
         },
 
         onError: useOnCommandError(Capability.MopDockCleanManualTrigger),
+        onSuccess: (data) => {
+            queryClient.setQueryData<RobotAttribute[]>([QueryKey.Attributes], data, {
+                updatedAt: Date.now(),
+            });
+        },
+    });
+};
+
+export const useMopDockSelfCleanManualTriggerMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (command: MopDockSelfCleanManualTriggerCommand) => {
+            return sendMopDockSelfCleanManualTriggerCommand(command).then(fetchStateAttributes);
+        },
+        onError: useOnCommandError(Capability.MopDockSelfCleanManualTrigger),
         onSuccess: (data) => {
             queryClient.setQueryData<RobotAttribute[]>([QueryKey.Attributes], data, {
                 updatedAt: Date.now(),

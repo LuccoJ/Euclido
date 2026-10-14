@@ -1121,6 +1121,18 @@ export const sendMopDockDryManualTriggerCommand = async (
     );
 };
 
+export type MopDockSelfCleanManualTriggerCommand = "start" | "stop";
+export const sendMopDockSelfCleanManualTriggerCommand = async (
+    command: MopDockSelfCleanManualTriggerCommand
+): Promise<void> => {
+    await valetudoAPI.put(
+        `/robot/capabilities/${Capability.MopDockSelfCleanManualTrigger}`,
+        {
+            action: command,
+        }
+    );
+};
+
 export const fetchMopExtensionControlState = async (): Promise<SimpleToggleState> => {
     return valetudoAPI
         .get<SimpleToggleState>(`/robot/capabilities/${Capability.MopExtensionControl}`)

@@ -86,6 +86,7 @@ const CAPABILITY_TYPE_TO_ROUTER_MAPPING = {
     [capabilities.WifiScanCapability.TYPE]: capabilityRouters.WifiScanCapabilityRouter,
     [capabilities.MopDockCleanManualTriggerCapability.TYPE]: capabilityRouters.MopDockCleanManualTriggerCapabilityRouter,
     [capabilities.MopDockDryManualTriggerCapability.TYPE]: capabilityRouters.MopDockDryManualTriggerCapabilityRouter,
+    [capabilities.MopDockSelfCleanManualTriggerCapability.TYPE]: capabilityRouters.MopDockSelfCleanManualTriggerCapabilityRouter,
     [capabilities.CollisionAvoidantNavigationControlCapability.TYPE]: capabilityRouters.SimpleToggleCapabilityRouter,
     [capabilities.CarpetSensorModeControlCapability.TYPE]: capabilityRouters.CarpetSensorModeControlCapabilityRouter,
     [capabilities.AutoEmptyDockAutoEmptyIntervalControlCapability.TYPE]: capabilityRouters.AutoEmptyDockAutoEmptyIntervalControlCapabilityRouter,

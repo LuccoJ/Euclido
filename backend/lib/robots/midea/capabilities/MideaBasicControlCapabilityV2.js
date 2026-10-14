@@ -1,4 +1,5 @@
 const BasicControlCapability = require("../../../core/capabilities/BasicControlCapability");
+const Logger = require("../../../Logger");
 const MSmartConst = require("../../../msmart/MSmartConst");
 const MSmartPacket = require("../../../msmart/MSmartPacket");
 
@@ -38,6 +39,8 @@ class MideaBasicControlCapabilityV2 extends BasicControlCapability {
                 ])
             )
         });
+
+        Logger.info(`Sending ${command === 6 ? "resume" : "start"}. Robot last reported operation mode ${this.robot.lastRawOperationMode}.`);
 
         await this.robot.sendCommand(packet.toHexString());
         await this.robot.pollState(); // for good measure

@@ -18,6 +18,7 @@
                     "enum": [
                       "off",
                       "avoid",
+                      "cross",
                       "lift",
                       "detach"
                     ]
@@ -45,6 +46,7 @@
                   "enum": [
                     "off",
                     "avoid",
+                    "cross",
                     "lift",
                     "detach"
                   ]
@@ -85,6 +87,7 @@
                       "enum": [
                         "off",
                         "avoid",
+                        "cross",
                         "lift",
                         "detach"
                       ]
