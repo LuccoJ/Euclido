@@ -1,5 +1,7 @@
 const forge = require("node-forge");
 const fs = require("fs");
+const path = require("path");
+const {execFile} = require("child_process");
 
 const BEightParser = require("../../msmart/BEightParser");
 const capabilities = require("./capabilities");
@@ -21,6 +23,8 @@ const {DUMMY_CLIENT_CERT, DUMMY_CLIENT_KEY} = require("./MideaConst");
 
 const CA_KEY_PATH = "/etc/ssl/valetudo/ca.key";
 const CA_CERT_PATH = "/etc/ssl/valetudo/ca.pem";
+const OBSTACLE_SOUND_DIRECTORIES = ["/userdata/sounds/objects", "/oem/sound/objects"];
+const OBSTACLE_SOUND_MIN_INTERVAL = 3000; // ms
 const BIND_IP = "127.0.13.37";
 
 /**
@@ -64,6 +68,12 @@ class MideaValetudoRobot extends ValetudoRobot {
 
         this.mapHacksProvider = new MideaMapHacksProvider({robot: this});
         this.mapParser = new MideaMapParser({mapHacksProvider: this.mapHacksProvider});
+        this.lastObstacleSoundTimestamp = 0;
+        if (this.config.get("embedded") === true) {
+            this.mapParser.onNewObstacle = (name) => {
+                this.playObstacleSound(name);
+            };
+        }
         this.mapUpdateDebounceTimeout = null;
         this.activeMapUpdateCount = 0;
 
@@ -474,6 +484,49 @@ class MideaValetudoRobot extends ValetudoRobot {
 
             this.mapUpdateDebounceTimeout = null;
         }, 200); // Wait another 200ms for any further map updates to arrive after the last one was processed
+    }
+
+    /**
+     * Plays a sound file named after a newly detected obstacle, if there is one, e.g.
+     * /userdata/sounds/objects/shoes.mp3 or /oem/sound/objects/Shoes.mp3 for "Shoes".
+     * Spaces in the name may also be underscores ("trash_can.mp3").
+     *
+     * @private
+     * @param {string} name
+     */
+    playObstacleSound(name) {
+        const now = Date.now();
+        if (now - this.lastObstacleSoundTimestamp < OBSTACLE_SOUND_MIN_INTERVAL) {
+            return;
+        }
+
+        const fileNames = [...new Set([name, name.toLowerCase()].flatMap(n => {
+            return [n, n.replace(/ /g, "_")];
+        }))].map(n => {
+            return `${n}.mp3`;
+        });
+        const file = OBSTACLE_SOUND_DIRECTORIES.flatMap(directory => {
+            return fileNames.map(fileName => {
+                return path.join(directory, fileName);
+            });
+        }).find(candidate => {
+            return fs.existsSync(candidate);
+        });
+
+        if (!file) {
+            Logger.debug(`No sound file for obstacle "${name}"`);
+
+            return;
+        }
+
+        this.lastObstacleSoundTimestamp = now;
+        Logger.info(`Playing ${file} for a newly detected obstacle`);
+
+        execFile("mp3play.sh", [file], (err) => {
+            if (err) {
+                Logger.warn(`Could not play ${file}`, err);
+            }
+        });
     }
 
     async executeMapPoll() {

@@ -13,6 +13,15 @@ class MideaMapParser {
     constructor(options) {
         this.mapHacksProvider = options.mapHacksProvider;
 
+        /**
+         * Called with the name of each obstacle that the robot reports for the first time
+         *
+         * @type {((name: string) => void) | undefined}
+         */
+        this.onNewObstacle = undefined;
+        /** @type {Set<string>|undefined} ids of the obstacles reported so far, undefined until the first report */
+        this.knownObstacleIds = undefined;
+
         this.reset();
     }
 
@@ -134,6 +143,30 @@ class MideaMapParser {
                 break;
             default:
                 Logger.warn(`Unknown map update type '${type}'`);
+        }
+    }
+
+    /**
+     * The obstacles in the first report after startup are already known, so only later ones count as new
+     *
+     * @private
+     * @param {Array<import("../../entities/map/entities/PointMapEntity")>} obstacles
+     */
+    reportNewObstacles(obstacles) {
+        const firstReport = this.knownObstacleIds === undefined;
+        this.knownObstacleIds = this.knownObstacleIds ?? new Set();
+
+        for (const obstacle of obstacles) {
+            const id = obstacle.metaData.id;
+
+            if (!this.knownObstacleIds.has(id)) {
+                this.knownObstacleIds.add(id);
+
+                if (!firstReport && typeof this.onNewObstacle === "function") {
+                    // The label is "<name> (<confidence>)"
+                    this.onNewObstacle(obstacle.metaData.label.replace(/ \([^)]*\)$/, ""));
+                }
+            }
         }
     }
 
@@ -676,6 +709,7 @@ class MideaMapParser {
             }
 
             this.entities.push(...newObstacleEntities);
+            this.reportNewObstacles(newObstacleEntities);
         } catch (e) {
             Logger.warn("Error while parsing semantic_data:", e);
         }
