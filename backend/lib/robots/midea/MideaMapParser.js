@@ -28,6 +28,13 @@ class MideaMapParser {
          */
         this.lastLoggedUpdates = {};
 
+        /**
+         * Until when a map session is open (ms timestamp), and whether the next path is a full one.
+         * Set by the robot, see MideaModernValetudoRobot.keepMapSessionAlive
+         */
+        this.mapSessionUntil = 0;
+        this.expectFullTrack = false;
+
         this.reset();
     }
 
@@ -471,6 +478,14 @@ class MideaMapParser {
     async handleTrackUpdate(data) {
         const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(data);
 
+        // During a map session, the robot sends the full path once after "start" and only the newest part after that
+        const isPart = Date.now() < this.mapSessionUntil && !this.expectFullTrack;
+        this.expectFullTrack = false;
+
+        const previousPaths = isPart ? this.entities.filter(e => {
+            return e.type === mapEntities.PathMapEntity.TYPE.PATH;
+        }) : [];
+
         this.entities = this.entities.filter(e => {
             return ![
                 mapEntities.PathMapEntity.TYPE.PATH,
@@ -518,7 +533,7 @@ class MideaMapParser {
         paths.push({ points: points, type: currentType });
 
 
-        const entities = paths.filter(p => p.type !== 2400 && p.points.length > 0).map(path => {
+        const newEntities = paths.filter(p => p.type !== 2400 && p.points.length > 0).map(path => {
             const transformedPoints = [];
 
             for (let i = 0; i < path.points.length; i += 2) {
@@ -538,6 +553,22 @@ class MideaMapParser {
             });
         });
 
+
+        const entities = previousPaths;
+        for (const entity of newEntities) {
+            const last = entities[entities.length - 1];
+
+            if (last && last.metaData?.vendorPathType === entity.metaData?.vendorPathType) {
+                // A part continues the previous path, so keep it as one entity
+                entities[entities.length - 1] = new mapEntities.PathMapEntity({
+                    points: [...last.points, ...entity.points],
+                    type: mapEntities.PathMapEntity.TYPE.PATH,
+                    metaData: last.metaData
+                });
+            } else {
+                entities.push(entity);
+            }
+        }
 
         // Add the robot position entity based on the very last valid path
         if (entities.length > 0) {
