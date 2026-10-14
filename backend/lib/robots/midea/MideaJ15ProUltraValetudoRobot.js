@@ -38,6 +38,7 @@ class MideaJ15ProUltraValetudoRobot extends MideaModernValetudoRobot {
             capabilities.MideaCollisionAvoidantNavigationControlCapability,
             capabilities.MideaCarpetModeControlCapabilityV3,
             capabilities.MideaMapSegmentMaterialControlCapability,
+            capabilities.MideaMapSegmentCleaningSettingsCapability,
             capabilities.MideaCleanRouteControlCapability,
             capabilities.MideaMopDockMopDryingTimeControlCapability,
             capabilities.MideaAutoEmptyDockAutoEmptyDurationControlCapabilityV2,

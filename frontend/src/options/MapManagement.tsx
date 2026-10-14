@@ -17,6 +17,7 @@ import {
     Crop as CleanupCoverageIcon,
     Download as ValetudoMapDownloadIcon,
     EditNote as MapAnnotationsIcon,
+    Tune as SegmentCleaningSettingsIcon,
     Videocam as SpectatorIcon,
 } from "@mui/icons-material";
 import React from "react";
@@ -168,6 +169,7 @@ const MapManagement = (): React.ReactElement => {
 
         mapSegmentEditCapabilitySupported,
         mapSegmentRenameCapabilitySupported,
+        mapSegmentCleaningSettingsCapabilitySupported,
 
         combinedVirtualRestrictionsCapabilitySupported,
         mapAnnotationsCapabilitySupported,
@@ -180,6 +182,7 @@ const MapManagement = (): React.ReactElement => {
 
         Capability.MapSegmentEdit,
         Capability.MapSegmentRename,
+        Capability.MapSegmentCleaningSettings,
 
         Capability.CombinedVirtualRestrictions,
         Capability.MapAnnotations,
@@ -220,6 +223,7 @@ const MapManagement = (): React.ReactElement => {
 
             if (
                 mapSegmentEditCapabilitySupported || mapSegmentRenameCapabilitySupported ||
+                mapSegmentCleaningSettingsCapabilitySupported ||
                 combinedVirtualRestrictionsCapabilitySupported
             ) {
                 items.push(<SpacerListMenuItem key={"spacer1"}/>);
@@ -235,6 +239,18 @@ const MapManagement = (): React.ReactElement => {
                     primaryLabel="Segment Management"
                     secondaryLabel="Modify the maps segments"
                     icon={<SegmentEditIcon/>}
+                />
+            );
+        }
+
+        if (mapSegmentCleaningSettingsCapabilitySupported) {
+            items.push(
+                <LinkListMenuItem
+                    key="segmentCleaningSettings"
+                    url="/options/map_management/segment_cleaning_settings"
+                    primaryLabel="Room Cleaning Settings"
+                    secondaryLabel="Set the room order and how each room is cleaned"
+                    icon={<SegmentCleaningSettingsIcon/>}
                 />
             );
         }
@@ -272,7 +288,8 @@ const MapManagement = (): React.ReactElement => {
         combinedVirtualRestrictionsCapabilitySupported,
         mapAnnotationsCapabilitySupported,
         mapSegmentEditCapabilitySupported,
-        mapSegmentRenameCapabilitySupported
+        mapSegmentRenameCapabilitySupported,
+        mapSegmentCleaningSettingsCapabilitySupported
     ]);
 
     const utilityMapItems = React.useMemo(() => {

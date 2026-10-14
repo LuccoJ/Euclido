@@ -22,6 +22,7 @@ module.exports = {
     ManualControlCapability: require("./ManualControlCapability"),
     MapAnnotationsCapability: require("./MapAnnotationsCapability"),
     MapResetCapability: require("./MapResetCapability"),
+    MapSegmentCleaningSettingsCapability: require("./MapSegmentCleaningSettingsCapability"),
     MapSegmentEditCapability: require("./MapSegmentEditCapability"),
     MapSegmentMaterialControlCapability: require("./MapSegmentMaterialControlCapability"),
     MapSegmentRenameCapability: require("./MapSegmentRenameCapability"),

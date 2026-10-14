@@ -25,6 +25,7 @@ export enum Capability {
     MapSegmentEdit = "MapSegmentEditCapability",
     MapSegmentRename = "MapSegmentRenameCapability",
     MapSegmentMaterialControl = "MapSegmentMaterialControlCapability",
+    MapSegmentCleaningSettings = "MapSegmentCleaningSettingsCapability",
     MapSegmentation = "MapSegmentationCapability",
     MapSnapshot = "MapSnapshotCapability",
     MappingPass = "MappingPassCapability",
@@ -203,6 +204,31 @@ export interface MapSegmentMaterialControlRequestParameters {
 
 export interface MapSegmentMaterialControlProperties {
     supportedMaterials: Array<MapSegmentMaterial>;
+}
+
+export interface MapSegmentCleaningSettingsEntry {
+    id: string;
+    iterations: number;
+    operationMode: string;
+    fanSpeed: string;
+    waterGrade: string;
+    cleanRoute: string;
+}
+
+export interface MapSegmentCleaningSettings {
+    order: Array<string>;
+    segments: Array<MapSegmentCleaningSettingsEntry>;
+}
+
+export interface MapSegmentCleaningSettingsProperties {
+    iterationCount: {
+        min: number;
+        max: number;
+    };
+    operationModes: Array<string>;
+    fanSpeeds: Array<string>;
+    waterGrades: Array<string>;
+    cleanRoutes: Array<string>;
 }
 
 export type ConsumableType = "filter" | "brush" | "mop" | "detergent" | "bin" | "cleaning" ;

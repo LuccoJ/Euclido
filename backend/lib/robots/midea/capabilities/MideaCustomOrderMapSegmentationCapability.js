@@ -13,7 +13,7 @@ class MideaCustomOrderMapSegmentationCapability extends MideaMapSegmentationCapa
     constructor(options) {
         super(options);
 
-        this.roomOrderManager = new MideaRoomOrderManager({robot: this.robot});
+        this.roomOrderManager = MideaRoomOrderManager.forRobot(this.robot);
     }
 
     /**

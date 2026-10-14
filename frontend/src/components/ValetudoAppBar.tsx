@@ -179,6 +179,12 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     },
     {
         kind: "MenuSubEntry",
+        route: "/options/map_management/segment_cleaning_settings",
+        title: "Room Cleaning Settings",
+        parentRoute: "/options/map_management"
+    },
+    {
+        kind: "MenuSubEntry",
         route: "/options/map_management/virtual_restrictions",
         title: "Virtual Restriction Management",
         parentRoute: "/options/map_management"
