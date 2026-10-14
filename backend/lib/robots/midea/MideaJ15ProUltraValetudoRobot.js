@@ -16,6 +16,7 @@ class MideaJ15ProUltraValetudoRobot extends MideaModernValetudoRobot {
                 options,
                 {
                     waterGrades: MideaJ15ProUltraValetudoRobot.HIGH_RESOLUTION_WATER_GRADES,
+                    mapSegmentationCapability: capabilities.MideaCustomOrderMapSegmentationCapability,
                     operationModes: MideaModernValetudoRobot.EXTENDED_OPERATION_MODES,
                 }
             )
