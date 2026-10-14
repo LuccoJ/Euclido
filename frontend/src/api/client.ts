@@ -32,6 +32,8 @@ import {
     MapSegmentEditJoinRequestParameters,
     MapSegmentEditSplitRequestParameters,
     MapSegmentMaterialControlProperties,
+    MapSegmentCleaningSettings,
+    MapSegmentCleaningSettingsProperties,
     MapSegmentMaterialControlRequestParameters,
     MapSegmentRenameRequestParameters,
     MopDockMopDryingDuration,
@@ -387,6 +389,28 @@ export const sendSetSegmentMaterialCommand = async (parameters: MapSegmentMateri
                 throw new Error("Could not set segment material");
             }
         });
+};
+
+export const fetchMapSegmentCleaningSettings = async (): Promise<MapSegmentCleaningSettings> => {
+    return valetudoAPI
+        .get<MapSegmentCleaningSettings>(`/robot/capabilities/${Capability.MapSegmentCleaningSettings}`)
+        .then(({data}) => {
+            return data;
+        });
+};
+
+export const fetchMapSegmentCleaningSettingsProperties = async (): Promise<MapSegmentCleaningSettingsProperties> => {
+    return valetudoAPI
+        .get<MapSegmentCleaningSettingsProperties>(
+            `/robot/capabilities/${Capability.MapSegmentCleaningSettings}/properties`
+        )
+        .then(({data}) => {
+            return data;
+        });
+};
+
+export const sendMapSegmentCleaningSettings = async (settings: MapSegmentCleaningSettings): Promise<void> => {
+    await valetudoAPI.put(`/robot/capabilities/${Capability.MapSegmentCleaningSettings}`, settings);
 };
 
 export const fetchMapSegmentMaterialControlProperties = async (): Promise<MapSegmentMaterialControlProperties> => {

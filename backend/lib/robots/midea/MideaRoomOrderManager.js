@@ -7,13 +7,15 @@ const path = require("node:path");
 const stateAttrs = require("../../entities/state/attributes");
 
 /**
- * Per-job room order for the J15.
+ * Room order and per-room settings (room_cfg) for the J15.
  *
  * The robot ignores the order of the rooms in a room clean (0x03) and sorts them by each room's stored `cleanSeq`
- * instead, with 0 meaning that the robot decides. So, for a job with a custom order, the selected rooms get
- * cleanSeq 1, 2, 3, ... in the clicked order before the job is started, and 0 again once the job is over.
- * That leaves the robot in a known state after every job, even if Valetudo is restarted in between: the rooms still
- * to be reset are remembered and reset as soon as the robot is at rest.
+ * instead, with 0 meaning that the robot decides.
+ *
+ * The saved order, set on the room cleaning settings page, is kept in Valetudo's configuration: the listed rooms get
+ * cleanSeq 1, 2, 3, ... and all others 0. For a job with a custom order, the selected rooms get cleanSeq 1, 2, 3, ...
+ * in the clicked order before the job is started, and their saved values again once the job is over.
+ * The rooms still to be reset are remembered, so that also happens after a restart, as soon as the robot is at rest.
  *
  * `cleanSeq` is written with 0x2B (record version 2), which overwrites every field of the room, so each record carries
  * the room's current values from room_cfg for everything else. The robot saves room_cfg itself; nothing here writes it.
@@ -30,7 +32,7 @@ class MideaRoomOrderManager {
         this.robot = options.robot;
         this.enabled = this.robot.config.get("embedded") === true;
 
-        /** @type {{disabled: string|null, toReset: Array<number>}} */
+        /** @type {{disabled: string|null, toReset: Array<number>, savedOrder?: Array<number>}} */
         this.state = {disabled: null, toReset: []};
         this.awaitingJobStart = false;
         this.awaitingJobStartTimeout = undefined;
@@ -44,7 +46,10 @@ class MideaRoomOrderManager {
             this.state = Object.assign(this.state, this.store.get());
 
             if (this.state.toReset.length > 0) {
-                Logger.info(`Room order: rooms [${this.state.toReset.join(", ")}] still need their cleanSeq reset to 0`);
+                Logger.info(`Room order: rooms [${this.state.toReset.join(", ")}] still need their cleanSeq reset`);
+            }
+            if (!Array.isArray(this.state.savedOrder)) {
+                this.importSavedOrder();
             }
 
             this.robot.onStateAttributesUpdated(() => {
@@ -76,10 +81,10 @@ class MideaRoomOrderManager {
             }
         }
 
-        // The selected rooms in clicked order, and rooms left over from an earlier job back to 0
+        // The selected rooms in clicked order, and rooms left over from an earlier job back to their saved value
         const desired = {};
         for (const id of this.state.toReset) {
-            desired[id] = 0;
+            desired[id] = this.getSavedSeq(id);
         }
         roomIds.forEach((id, i) => {
             desired[id] = i + 1;
@@ -118,7 +123,7 @@ class MideaRoomOrderManager {
     }
 
     /**
-     * Sets cleanSeq back to 0 for the rooms an earlier job changed
+     * Sets cleanSeq back to the saved value for the rooms an earlier job changed
      *
      * @returns {Promise<void>}
      */
@@ -131,14 +136,16 @@ class MideaRoomOrderManager {
         try {
             const rooms = this.readRooms();
             const changes = this.state.toReset.filter(id => {
-                return rooms[id] && rooms[id].cleanSeq !== 0;
+                return rooms[id] && rooms[id].cleanSeq !== this.getSavedSeq(id);
             });
 
-            Logger.info(`Room order: job over, resetting cleanSeq to 0 for rooms [${changes.join(", ")}]`);
+            Logger.info(`Room order: job over, resetting cleanSeq for rooms [${changes.map(id => {
+                return `${id} ${rooms[id].cleanSeq}->${this.getSavedSeq(id)}`;
+            }).join(", ")}]`);
 
             if (changes.length > 0) {
                 await this.writeAndVerify(changes.map(id => {
-                    return Object.assign({}, rooms[id], {cleanSeq: 0});
+                    return Object.assign({}, rooms[id], {cleanSeq: this.getSavedSeq(id)});
                 }));
             }
 
@@ -184,7 +191,74 @@ class MideaRoomOrderManager {
     }
 
     /**
+     * @returns {Array<number>} the rooms with a saved order, in that order
+     */
+    getSavedOrder() {
+        return this.state.savedOrder ?? [];
+    }
+
+    /**
+     * @param {Array<number>} roomIds
+     */
+    setSavedOrder(roomIds) {
+        this.updateState({savedOrder: roomIds});
+    }
+
+    /**
+     * @param {number} roomId
+     * @returns {number} the cleanSeq the room should have outside of jobs with a custom order
+     */
+    getSavedSeq(roomId) {
+        return this.getSavedOrder().indexOf(roomId) + 1;
+    }
+
+    /**
+     * @returns {boolean} whether a job with a custom order still has to be reset
+     */
+    isJobOrderPending() {
+        return this.state.toReset.length > 0;
+    }
+
+    /**
+     * Takes the robot's current order as the saved order, so that rooms ordered elsewhere keep their order
+     *
      * @private
+     */
+    importSavedOrder() {
+        let rooms;
+        try {
+            rooms = this.readRooms();
+        } catch (e) {
+            Logger.warn("Room order: could not read the current order", e);
+
+            return;
+        }
+
+        const savedOrder = Object.values(rooms).filter(room => {
+            return room.cleanSeq > 0 && !this.state.toReset.includes(room.id);
+        }).sort((a, b) => {
+            return a.cleanSeq - b.cleanSeq;
+        }).map(room => {
+            return room.id;
+        });
+
+        Logger.info(`Room order: taking the robot's current order as the saved order: [${savedOrder.join(", ")}]`);
+
+        this.updateState({savedOrder: savedOrder});
+    }
+
+    assertEnabled() {
+        if (!this.enabled) {
+            throw new Error("Only possible when embedded");
+        }
+        if (this.state.disabled) {
+            throw new Error(`Writing room settings is switched off: ${this.state.disabled}`);
+        }
+    }
+
+    /**
+     * Writes the given room_cfg room entries with 0x2B and checks that the robot stored them as sent
+     *
      * @param {Array<object>} wanted room_cfg room entries with the values they should end up with
      * @returns {Promise<void>}
      */
@@ -283,7 +357,6 @@ class MideaRoomOrderManager {
     }
 
     /**
-     * @private
      * @param {string} [filePath]
      * @returns {{[roomId: string]: object}}
      */
@@ -314,6 +387,23 @@ class MideaRoomOrderManager {
         this.store.set(this.state);
     }
 }
+
+/** @type {WeakMap<object, MideaRoomOrderManager>} */
+const INSTANCES = new WeakMap();
+
+/**
+ * The room order and the room settings page share one instance per robot
+ *
+ * @param {import("./MideaValetudoRobot")} robot
+ * @returns {MideaRoomOrderManager}
+ */
+MideaRoomOrderManager.forRobot = (robot) => {
+    if (!INSTANCES.has(robot)) {
+        INSTANCES.set(robot, new MideaRoomOrderManager({robot: robot}));
+    }
+
+    return INSTANCES.get(robot);
+};
 
 /**
  * @param {object} room
@@ -356,5 +446,8 @@ const STORE_KEY = "roomOrder";
 // Same file MideaMapHacksProvider reads the room names from
 const ROOM_CFG_PATH = "/oem/slam/room_cfg02.settings";
 const ROOM_CFG_OTHER_PATH = "/oem/slam/room_cfg01.settings";
+
+MideaRoomOrderManager.FAN_SPEED_TO_WIRE = FAN_SPEED_TO_WIRE;
+MideaRoomOrderManager.ROUTE_TYPE_TO_WIRE = ROUTE_TYPE_TO_WIRE;
 
 module.exports = MideaRoomOrderManager;
