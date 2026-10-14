@@ -155,7 +155,7 @@ const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detec
 // cm. Curtains are drapes that move around, and the robot only treats them differently inside the rectangle,
 // so they get a generous width
 const ANNOTATION_WIDTH = Object.freeze({
-    [ValetudoMapAnnotation.TYPE.CURTAIN]: 50,
+    [ValetudoMapAnnotation.TYPE.CURTAIN]: 40,
     [ValetudoMapAnnotation.TYPE.THRESHOLD]: 10
 });
 
