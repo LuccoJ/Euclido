@@ -20,10 +20,12 @@ import {
     Tune as SegmentCleaningSettingsIcon
 } from "@mui/icons-material";
 import {
+    MapSegmentCleaningSettings,
     MapSegmentCleaningSettingsEntry,
     MapSegmentCleaningSettingsProperties,
     PresetValue,
     RawMapLayerType,
+    sendMapSegmentCleaningSettingsOnLeave,
     useMapSegmentCleaningSettingsMutation,
     useMapSegmentCleaningSettingsPropertiesQuery,
     useMapSegmentCleaningSettingsQuery,
@@ -309,21 +311,26 @@ const SegmentCleaningSettings = (): React.ReactElement => {
         };
     }, [modified, saving, version, order, entries, saveSettings]);
 
-    // Leaving the page before the last change got saved
+    // Leaving the page (or closing it) before the last change got saved saves it right away
+    const unsavedSettings = React.useRef<MapSegmentCleaningSettings | null>(null);
     React.useEffect(() => {
-        if (!modified) {
-            return;
-        }
+        unsavedSettings.current = modified ? {order: order, segments: Object.values(entries)} : null;
+    }, [modified, order, entries]);
 
-        const onBeforeUnload = (e: BeforeUnloadEvent) => {
-            e.preventDefault();
+    React.useEffect(() => {
+        const saveNow = () => {
+            if (unsavedSettings.current !== null && latestVersion.current !== savedVersion.current) {
+                sendMapSegmentCleaningSettingsOnLeave(unsavedSettings.current);
+                savedVersion.current = latestVersion.current;
+            }
         };
-        window.addEventListener("beforeunload", onBeforeUnload);
+        window.addEventListener("pagehide", saveNow);
 
         return () => {
-            window.removeEventListener("beforeunload", onBeforeUnload);
+            window.removeEventListener("pagehide", saveNow);
+            saveNow();
         };
-    }, [modified]);
+    }, []);
 
     const content = React.useMemo(() => {
         if (settingsError) {

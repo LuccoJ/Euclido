@@ -413,6 +413,18 @@ export const sendMapSegmentCleaningSettings = async (settings: MapSegmentCleanin
     await valetudoAPI.put(`/robot/capabilities/${Capability.MapSegmentCleaningSettings}`, settings);
 };
 
+// For saving while the page is being left or closed: unlike a normal request, a keepalive one isn't cancelled then
+export const sendMapSegmentCleaningSettingsOnLeave = (settings: MapSegmentCleaningSettings): void => {
+    fetch(`${valetudoAPI.defaults.baseURL}/robot/capabilities/${Capability.MapSegmentCleaningSettings}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(settings),
+        keepalive: true
+    }).catch(() => {
+        /* intentional */
+    });
+};
+
 export const fetchMapSegmentMaterialControlProperties = async (): Promise<MapSegmentMaterialControlProperties> => {
     return valetudoAPI
         .get<MapSegmentMaterialControlProperties>(
