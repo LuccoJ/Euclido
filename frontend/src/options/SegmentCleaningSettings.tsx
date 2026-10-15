@@ -1,13 +1,10 @@
 import React from "react";
 import {
     Box,
-    Button,
     Chip,
-    FormControl,
     FormControlLabel,
     Grid2,
     IconButton,
-    InputLabel,
     MenuItem,
     Paper,
     Select,
@@ -15,8 +12,11 @@ import {
     Typography
 } from "@mui/material";
 import {
+    AppRegistration as OperationModeIcon,
     ArrowDownward as MoveDownIcon,
     ArrowUpward as MoveUpIcon,
+    Repeat as PassesIcon,
+    Route as RouteIcon,
     Tune as SegmentCleaningSettingsIcon
 } from "@mui/icons-material";
 import {
@@ -32,6 +32,7 @@ import {
 import PaperContainer from "../components/PaperContainer";
 import DetailPageHeaderRow from "../components/DetailPageHeaderRow";
 import {presetFriendlyNames} from "../presetUtils";
+import {FanSpeedMediumIcon, WaterGradeLowIcon} from "../components/CustomIcons";
 import {SegmentCleaningSettingsHelp} from "./res/SegmentCleaningSettingsHelp";
 
 const routeFriendlyNames: Record<string, string> = {
@@ -40,6 +41,8 @@ const routeFriendlyNames: Record<string, string> = {
     "intensive": "Intensive",
     "deep": "Deep"
 };
+
+const AUTOSAVE_DELAY = 1000; // ms
 
 const getLabel = (value: string, friendlyNames: Record<string, string>): string => {
     const raw = /^raw_(\d+)$/.exec(value);
@@ -52,6 +55,7 @@ const getLabel = (value: string, friendlyNames: Record<string, string>): string 
 
 const SettingSelect = (props: {
     label: string,
+    icon: React.ReactElement,
     value: string,
     options: Array<string>,
     friendlyNames: Record<string, string>,
@@ -61,10 +65,15 @@ const SettingSelect = (props: {
     const options = props.options.includes(props.value) ? props.options : [props.value, ...props.options];
 
     return (
-        <FormControl variant="standard" sx={{minWidth: "8rem"}}>
-            <InputLabel>{props.label}</InputLabel>
+        <Box sx={{display: "flex", alignItems: "center", gap: "0.25rem"}} title={props.label}>
+            {props.icon}
             <Select
+                variant="standard"
+                disableUnderline
+                size="small"
                 value={props.value}
+                inputProps={{"aria-label": props.label}}
+                sx={{fontSize: "0.875rem"}}
                 onChange={(e) => {
                     props.onChange(e.target.value);
                 }}
@@ -79,7 +88,7 @@ const SettingSelect = (props: {
                     })
                 }
             </Select>
-        </FormControl>
+        </Box>
     );
 };
 
@@ -100,101 +109,106 @@ const SegmentCard = (props: {
     }
 
     return (
-        <Paper sx={{boxShadow: 3, padding: "1rem"}}>
-            <Grid2 container alignItems="center" spacing={1}>
-                <Grid2>
+        <Paper sx={{boxShadow: 3, padding: "0.5rem 1rem"}}>
+            {/* One line where there is room for it. Otherwise the settings go on a second line, but the room's
+                name and its place in the order always stay together */}
+            <Box sx={{display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: "1.5rem", rowGap: "0.25rem"}}>
+                <Box sx={{display: "flex", alignItems: "center", gap: "0.5rem", flex: "1 0 auto"}}>
                     <Chip
                         label={position !== undefined ? position + 1 : "–"}
                         color={position !== undefined ? "primary" : "default"}
                         size="small"
                     />
-                </Grid2>
-                <Grid2 sx={{flexGrow: 1}}>
-                    <Typography>{props.name}</Typography>
-                </Grid2>
-                <Grid2>
-                    <IconButton
-                        size="small"
-                        disabled={position === undefined || position === 0}
-                        onClick={() => {
-                            props.onMove(-1);
+                    <Typography sx={{flexGrow: 1, whiteSpace: "nowrap"}}>{props.name}</Typography>
+                    <Box sx={{display: "flex", alignItems: "center", whiteSpace: "nowrap"}}>
+                        <IconButton
+                            size="small"
+                            disabled={position === undefined || position === 0}
+                            onClick={() => {
+                                props.onMove(-1);
+                            }}
+                            title="Clean earlier"
+                        >
+                            <MoveUpIcon fontSize="small"/>
+                        </IconButton>
+                        <IconButton
+                            size="small"
+                            disabled={position === undefined || position === props.orderLength - 1}
+                            onClick={() => {
+                                props.onMove(1);
+                            }}
+                            title="Clean later"
+                        >
+                            <MoveDownIcon fontSize="small"/>
+                        </IconButton>
+                        <FormControlLabel
+                            sx={{marginLeft: "0.25rem", marginRight: 0}}
+                            control={
+                                <Switch
+                                    size="small"
+                                    checked={position !== undefined}
+                                    onChange={(e) => {
+                                        props.onOrderedChange(e.target.checked);
+                                    }}
+                                />
+                            }
+                            label={<Typography variant="body2">In order</Typography>}
+                        />
+                    </Box>
+                </Box>
+                <Box sx={{display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: "1rem"}}>
+                    <SettingSelect
+                        label="Passes"
+                        icon={<PassesIcon fontSize="small"/>}
+                        value={`${entry.iterations}`}
+                        options={iterationOptions}
+                        friendlyNames={{}}
+                        onChange={(value) => {
+                            props.onChange({...entry, iterations: parseInt(value)});
                         }}
-                        title="Clean earlier"
-                    >
-                        <MoveUpIcon/>
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        disabled={position === undefined || position === props.orderLength - 1}
-                        onClick={() => {
-                            props.onMove(1);
-                        }}
-                        title="Clean later"
-                    >
-                        <MoveDownIcon/>
-                    </IconButton>
-                    <FormControlLabel
-                        sx={{marginLeft: "0.5rem", marginRight: 0}}
-                        control={
-                            <Switch
-                                size="small"
-                                checked={position !== undefined}
-                                onChange={(e) => {
-                                    props.onOrderedChange(e.target.checked);
-                                }}
-                            />
-                        }
-                        label="In order"
                     />
-                </Grid2>
-            </Grid2>
-            <Grid2 container spacing={2} sx={{marginTop: "0.5rem"}}>
-                <SettingSelect
-                    label="Passes"
-                    value={`${entry.iterations}`}
-                    options={iterationOptions}
-                    friendlyNames={{}}
-                    onChange={(value) => {
-                        props.onChange({...entry, iterations: parseInt(value)});
-                    }}
-                />
-                <SettingSelect
-                    label="Mode"
-                    value={entry.operationMode}
-                    options={properties.operationModes}
-                    friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
-                    onChange={(value) => {
-                        props.onChange({...entry, operationMode: value});
-                    }}
-                />
-                <SettingSelect
-                    label="Fan speed"
-                    value={entry.fanSpeed}
-                    options={properties.fanSpeeds}
-                    friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
-                    onChange={(value) => {
-                        props.onChange({...entry, fanSpeed: value});
-                    }}
-                />
-                <SettingSelect
-                    label="Water usage"
-                    value={entry.waterGrade}
-                    options={properties.waterGrades}
-                    friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
-                    onChange={(value) => {
-                        props.onChange({...entry, waterGrade: value});
-                    }}
-                />
-                <SettingSelect
-                    label="Route"
-                    value={entry.cleanRoute}
-                    options={properties.cleanRoutes}
-                    friendlyNames={routeFriendlyNames}
-                    onChange={(value) => {
-                        props.onChange({...entry, cleanRoute: value});
-                    }}
-                />
-            </Grid2>
+                    <SettingSelect
+                        label="Mode"
+                        icon={<OperationModeIcon fontSize="small"/>}
+                        value={entry.operationMode}
+                        options={properties.operationModes}
+                        friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
+                        onChange={(value) => {
+                            props.onChange({...entry, operationMode: value});
+                        }}
+                    />
+                    <SettingSelect
+                        label="Fan speed"
+                        icon={<FanSpeedMediumIcon fontSize="small"/>}
+                        value={entry.fanSpeed}
+                        options={properties.fanSpeeds}
+                        friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
+                        onChange={(value) => {
+                            props.onChange({...entry, fanSpeed: value});
+                        }}
+                    />
+                    <SettingSelect
+                        label="Water usage"
+                        icon={<WaterGradeLowIcon fontSize="small"/>}
+                        value={entry.waterGrade}
+                        options={properties.waterGrades}
+                        friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
+                        onChange={(value) => {
+                            props.onChange({...entry, waterGrade: value});
+                        }}
+                    />
+                    <SettingSelect
+                        label="Route"
+                        icon={<RouteIcon fontSize="small"/>}
+                        value={entry.cleanRoute}
+                        options={properties.cleanRoutes}
+                        friendlyNames={routeFriendlyNames}
+                        onChange={(value) => {
+                            props.onChange({...entry, cleanRoute: value});
+                        }}
+                    />
+                </Box>
+            </Box>
         </Paper>
     );
 };
@@ -214,6 +228,17 @@ const SegmentCleaningSettings = (): React.ReactElement => {
     const [order, setOrder] = React.useState<Array<string>>([]);
     const [entries, setEntries] = React.useState<Record<string, MapSegmentCleaningSettingsEntry>>({});
     const [modified, setModified] = React.useState(false);
+    // Changes are saved on their own a moment after the last one. Each change bumps the version, so a save that
+    // finishes while newer changes are waiting doesn't mark them as saved
+    const [version, setVersion] = React.useState(0);
+    const latestVersion = React.useRef(0);
+    const savedVersion = React.useRef(0);
+
+    const markChanged = React.useCallback(() => {
+        latestVersion.current++;
+        setVersion(latestVersion.current);
+        setModified(true);
+    }, []);
 
     React.useEffect(() => {
         if (settings && !modified) {
@@ -253,6 +278,53 @@ const SegmentCleaningSettings = (): React.ReactElement => {
         }), ...unordered];
     }, [entries, order, getName]);
 
+    React.useEffect(() => {
+        if (!modified || saving || version === savedVersion.current) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            const versionBeingSaved = version;
+
+            saveSettings(
+                {
+                    order: order,
+                    segments: Object.values(entries)
+                },
+                {
+                    onSettled: () => {
+                        savedVersion.current = versionBeingSaved;
+
+                        // Newer changes get their own save once this one is done
+                        if (latestVersion.current === versionBeingSaved) {
+                            setModified(false);
+                        }
+                    }
+                }
+            );
+        }, AUTOSAVE_DELAY);
+
+        return () => {
+            clearTimeout(timeout);
+        };
+    }, [modified, saving, version, order, entries, saveSettings]);
+
+    // Leaving the page before the last change got saved
+    React.useEffect(() => {
+        if (!modified) {
+            return;
+        }
+
+        const onBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+        };
+        window.addEventListener("beforeunload", onBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", onBeforeUnload);
+        };
+    }, [modified]);
+
     const content = React.useMemo(() => {
         if (settingsError) {
             return (
@@ -279,7 +351,7 @@ const SegmentCleaningSettings = (): React.ReactElement => {
                         properties={properties}
                         onChange={(entry) => {
                             setEntries({...entries, [id]: entry});
-                            setModified(true);
+                            markChanged();
                         }}
                         onMove={(delta) => {
                             const newOrder = [...order];
@@ -287,19 +359,19 @@ const SegmentCleaningSettings = (): React.ReactElement => {
                             newOrder.splice(position + delta, 0, id);
 
                             setOrder(newOrder);
-                            setModified(true);
+                            markChanged();
                         }}
                         onOrderedChange={(ordered) => {
                             setOrder(ordered ? [...order, id] : order.filter(o => {
                                 return o !== id;
                             }));
-                            setModified(true);
+                            markChanged();
                         }}
                     />
                 </Grid2>
             );
         });
-    }, [settingsError, settingsPending, properties, sortedIds, order, entries, getName]);
+    }, [settingsError, settingsPending, properties, sortedIds, order, entries, getName, markChanged]);
 
     return (
         <PaperContainer>
@@ -310,6 +382,7 @@ const SegmentCleaningSettings = (): React.ReactElement => {
                         icon={<SegmentCleaningSettingsIcon/>}
                         helpText={SegmentCleaningSettingsHelp}
                         onRefreshClick={() => {
+                            savedVersion.current = latestVersion.current;
                             setModified(false);
                             refetchSettings().catch(() => {
                                 /* intentional */
@@ -318,44 +391,23 @@ const SegmentCleaningSettings = (): React.ReactElement => {
                         isRefreshing={settingsFetching}
                     />
 
-                    <Typography variant="body2" sx={{marginTop: "1rem", marginBottom: "1rem"}}>
+                    <Typography variant="body2" sx={{marginTop: "1rem"}}>
                         The order applies to every cleanup of several rooms. The other settings only apply in the
-                        Personalized operation mode.
+                        Personalized operation mode. Changes are saved automatically.
+                    </Typography>
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        component="div"
+                        sx={{marginBottom: "0.5rem", minHeight: "1.5em"}}
+                    >
+                        {saving ? "Saving…" : (modified ? "Unsaved changes" : "")}
                     </Typography>
 
                     <Grid2 container direction="column">
                         {content}
                     </Grid2>
 
-                    <Grid2 container justifyContent="flex-end" spacing={1}>
-                        <Button
-                            disabled={!modified || saving}
-                            onClick={() => {
-                                setModified(false);
-                            }}
-                        >
-                            Discard
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            disabled={!modified || saving}
-                            onClick={() => {
-                                saveSettings(
-                                    {
-                                        order: order,
-                                        segments: Object.values(entries)
-                                    },
-                                    {
-                                        onSettled: () => {
-                                            setModified(false);
-                                        }
-                                    }
-                                );
-                            }}
-                        >
-                            Save
-                        </Button>
-                    </Grid2>
                 </Box>
             </Grid2>
         </PaperContainer>
