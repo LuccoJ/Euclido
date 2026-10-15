@@ -88,6 +88,21 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
      * @returns {Promise<void>}
      */
     async sendAnnotations(setting, action, records) {
+        // One frame can't be longer than 255 bytes, which fits 12 records. The robot adds or deletes by id,
+        // so a longer list goes out in several frames
+        for (let i = 0; i < records.length; i += RECORDS_PER_FRAME) {
+            await this.sendAnnotationFrame(setting, action, records.slice(i, i + RECORDS_PER_FRAME));
+        }
+    }
+
+    /**
+     * @private
+     * @param {number} setting
+     * @param {number} action
+     * @param {Array<import("../MideaMapParser").MideaAnnotationRecord>} records
+     * @returns {Promise<void>}
+     */
+    async sendAnnotationFrame(setting, action, records) {
         const payload = Buffer.alloc(2 + records.length * RECORD_LENGTH);
 
         payload[0] = action;
@@ -153,6 +168,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 }
 
 const RECORD_LENGTH = 20;
+const RECORDS_PER_FRAME = 10;
 const MAX_PER_TYPE = 32;
 const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detected ones
 // cm. Curtains are drapes that move around, and the robot only treats them differently inside the rectangle,
