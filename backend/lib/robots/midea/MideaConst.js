@@ -90,6 +90,20 @@ const AI_OBSTACLE_IDS = Object.freeze({
 
     "99": "Unknown Obstacle",
 
+    // Scene objects. Furniture and doors the robot recognizes for its scene and room detection
+    "1000": "Door",
+    "1001": "Toilet",
+    "1002": "TV",
+    "1003": "Bed",
+    "1004": "Sofa",
+    "1005": "Dining table",
+    "1006": "Cabinet",
+    "1007": "Refrigerator",
+    "1008": "Cooker hood",
+    "1009": "Shaded door",
+    "1010": "Door leaf",
+    "1011": "Sliding door",
+
     "4001": "Grain Stain",
     "4002": "Dust Stain",
     "4003": "Liquid Stain",
