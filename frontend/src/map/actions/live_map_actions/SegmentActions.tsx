@@ -1,4 +1,12 @@
-import {Capability, useCleanSegmentsMutation, useMapSegmentationPropertiesQuery, useRobotStatusQuery} from "../../../api";
+import {
+    Capability,
+    capabilityToPresetType,
+    RobotAttributeClass,
+    useCleanSegmentsMutation,
+    useMapSegmentationPropertiesQuery,
+    useRobotAttributeQuery,
+    useRobotStatusQuery
+} from "../../../api";
 import React from "react";
 import {Box, Button, CircularProgress, Container, Grid2, Typography} from "@mui/material";
 import {ActionButton} from "../../Styled";
@@ -34,6 +42,13 @@ const SegmentActions = (
     const {data: status} = useRobotStatusQuery((state) => {
         return state.value;
     });
+    // In the personalized operation mode, every room is cleaned as often as its own settings say
+    const {data: personalized} = useRobotAttributeQuery(RobotAttributeClass.PresetSelectionState, (attributes) => {
+        return attributes.some((attribute) => {
+            return attribute.type === capabilityToPresetType[Capability.OperationModeControl] &&
+                (attribute.value as string) === "personalized";
+        });
+    });
     const {
         mutate: executeSegmentAction,
         isPending: segmentActionExecuting
@@ -51,21 +66,21 @@ const SegmentActions = (
 
         executeSegmentAction({
             segment_ids: segments,
-            iterations: iterationCount,
+            iterations: personalized ? 1 : iterationCount,
             customOrder: mapSegmentationProperties?.customOrderSupport
         });
-    }, [canClean, didSelectSegments, executeSegmentAction, segments, iterationCount, mapSegmentationProperties]);
+    }, [canClean, didSelectSegments, executeSegmentAction, segments, iterationCount, personalized, mapSegmentationProperties]);
 
     const handleLongClick = React.useCallback(() => {
         setIntegrationHelpDialogPayload(JSON.stringify({
             action: "start_segment_action",
             segment_ids: segments,
-            iterations: iterationCount ?? 1,
+            iterations: personalized ? 1 : (iterationCount ?? 1),
             customOrder: mapSegmentationProperties?.customOrderSupport ?? false
         }, null, 2));
 
         setIntegrationHelpDialogOpen(true);
-    }, [segments, iterationCount, mapSegmentationProperties]);
+    }, [segments, iterationCount, personalized, mapSegmentationProperties]);
 
     const setupClickHandlers = useLongPress(
         handleLongClick,
@@ -145,7 +160,7 @@ const SegmentActions = (
                     </ActionButton>
                 </Grid2>
                 {
-                    mapSegmentationProperties.iterationCount.max > 1 &&
+                    mapSegmentationProperties.iterationCount.max > 1 && !personalized &&
                     <Grid2>
                         <ActionButton
                             color="inherit"
