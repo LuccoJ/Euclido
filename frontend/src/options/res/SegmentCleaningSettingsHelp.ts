@@ -15,6 +15,7 @@ the order set here is restored.
 ### Cleaning settings
 
 Passes, mode, fan speed, water usage and route only take effect in the **Personalized** operation mode.
+In each room's row they come in that order, each behind its own icon. Changes are saved on their own a second after the last one.
 In every other mode, the robot uses the global settings for all rooms.
 
 What a room is made of (its floor material) is set in the segment management instead.

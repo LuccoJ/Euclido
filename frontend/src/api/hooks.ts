@@ -664,8 +664,9 @@ export const useMapSegmentCleaningSettingsMutation = () => {
     return useMutation({
         mutationFn: sendMapSegmentCleaningSettings,
         onError: useOnCommandError(Capability.MapSegmentCleaningSettings),
-        onSuccess: () => {
-            refetchSettings().catch(() => {/*intentional*/});
+        onSuccess: async () => {
+            // Waited for, so that the page shows the saved values as soon as the save is done
+            await refetchSettings().catch(() => {/*intentional*/});
         }
     });
 };
