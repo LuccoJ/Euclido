@@ -13,6 +13,21 @@ class MideaMapParser {
     constructor(options) {
         this.mapHacksProvider = options.mapHacksProvider;
 
+        /**
+         * Curtains and door sills as last reported by the robot, in robot map coordinates.
+         * Kept separately from the parsed entities so that they survive map resets; the robot sends them again on map load.
+         *
+         * @type {{curtains: Array<MideaAnnotationRecord>, doorSills: Array<MideaAnnotationRecord>}}
+         */
+        this.annotations = {curtains: [], doorSills: []};
+
+        /**
+         * Last raw value of map updates that are only logged for now, to log each one once when it changes
+         *
+         * @type {{[type: string]: string}}
+         */
+        this.lastLoggedUpdates = {};
+
         this.reset();
     }
 
@@ -111,7 +126,20 @@ class MideaMapParser {
                 await this.handleUserDefinedCarpetUpdate(data);
                 break;
 
+            case "displayed_curtain":
+                this.logUpdateOnChange(type, data);
+                this.handleAnnotationUpdate("curtains", data, false);
+                break;
+            case "displayed_door_sill":
+                this.logUpdateOnChange(type, data);
+                this.handleAnnotationUpdate("doorSills", data, true);
+                break;
             case "threshold_area":
+            case "user_deleted_detected_curtain":
+            case "user_deleted_detected_door_sill":
+                // Ignored for now, but logged to learn their format
+                this.logUpdateOnChange(type, data);
+                break;
             case "points":
             case "bridge_data":
             case "backup_map":
@@ -119,10 +147,6 @@ class MideaMapParser {
             case "stain_area":
             case "partition":
             case "adjacent":
-            case "user_deleted_detected_curtain":
-            case "displayed_curtain":
-            case "user_deleted_detected_door_sill":
-            case "displayed_door_sill":
             case "detect_file_segment_info":
             case "imu_file_segment_info":
                 // Ignored for now
@@ -137,8 +161,104 @@ class MideaMapParser {
         }
     }
 
+    /**
+     * @private
+     * @param {string} type
+     * @param {any} data
+     */
+    logUpdateOnChange(type, data) {
+        const raw = Buffer.isBuffer(data) ? data.toString("hex") : (typeof data === "string" ? data : JSON.stringify(data));
+
+        if (this.lastLoggedUpdates[type] !== raw) {
+            this.lastLoggedUpdates[type] = raw;
+
+            Logger.info(`Map update '${type}' (${typeof data}${Buffer.isBuffer(data) ? ", buffer" : ""}): ${raw?.slice(0, 2000)}`);
+        }
+    }
+
+    /**
+     * Format: "id state is_ai" (door sills: "id type state is_ai"), then the four corners as "x y" pairs,
+     * repeated for each item. An empty string means none.
+     *
+     * @param {"curtains"|"doorSills"} key
+     * @param {any} data
+     * @param {boolean} hasType
+     */
+    handleAnnotationUpdate(key, data, hasType) {
+        if (typeof data !== "string") {
+            Logger.warn(`Unexpected ${key} data`, data);
+
+            return;
+        }
+
+        const values = data.trim() === "" ? [] : data.trim().split(/\s+/).map(v => parseInt(v, 10));
+        const recordLength = (hasType ? 4 : 3) + 8;
+
+        if (values.length % recordLength !== 0 || values.some(v => isNaN(v))) {
+            Logger.warn(`Unexpected ${key} data format: '${data}'`);
+
+            return;
+        }
+
+        const records = [];
+        for (let i = 0; i < values.length; i += recordLength) {
+            const record = values.slice(i, i + recordLength);
+            const header = hasType ? record.slice(0, 4) : [record[0], 0, record[1], record[2]];
+            const coordinates = record.slice(recordLength - 8);
+
+            records.push({
+                id: header[0],
+                type: header[1],
+                state: header[2],
+                isAi: header[3] !== 0,
+                corners: [0, 2, 4, 6].map(j => {
+                    return {x: coordinates[j], y: coordinates[j + 1]};
+                })
+            });
+        }
+
+        this.annotations[key] = records;
+    }
+
+    /**
+     * Turns a reported rectangle back into the line it was drawn from. The robot keeps the corners in the order they were
+     * sent, and MideaMapAnnotationsCapability sends the two corners on one side of the line first, so the line runs
+     * between the middles of the sides c3-c0 and c1-c2. Their lengths can't be used for that, since a short line
+     * gives a rectangle that is wider than it is long.
+     *
+     * @private
+     * @param {MideaAnnotationRecord} record
+     * @param {string} type
+     * @returns {import("../../entities/map/entities/LineMapEntity")}
+     */
+    annotationRecordToEntity(record, type) {
+        const [c0, c1, c2, c3] = record.corners.map(c => {
+            return this.convertToValetudoCoordinates(c.x, c.y);
+        });
+        const middle = (a, b) => {
+            return {x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2)};
+        };
+
+        const pA = middle(c3, c0);
+        const pB = middle(c1, c2);
+
+        return new mapEntities.LineMapEntity({
+            points: [pA.x, pA.y, pB.x, pB.y],
+            type: type
+        });
+    }
+
     getCurrentMap() {
-        let entities = [...this.entities];
+        // Only the user-defined ones. AI-detected ones would otherwise come back as user-defined after the next edit
+        let entities = [
+            ...this.entities,
+            ...this.annotations.curtains.filter(r => !r.isAi).map(r => {
+                return this.annotationRecordToEntity(r, mapEntities.LineMapEntity.TYPE.CURTAIN);
+            }),
+            ...this.annotations.doorSills.filter(r => !r.isAi).map(r => {
+                return this.annotationRecordToEntity(r, mapEntities.LineMapEntity.TYPE.THRESHOLD);
+            })
+        ];
 
         if (this.dockPositionValid) {
             const dockCoords = this.convertToValetudoCoordinates(this.dockPosition.x, this.dockPosition.y);
@@ -943,5 +1063,14 @@ const FLOOR_MATERIAL_MAPPING = Object.freeze({
     2: mapEntities.MapLayer.MATERIAL.WOOD,
     0: mapEntities.MapLayer.MATERIAL.GENERIC
 });
+
+/**
+ * @typedef {object} MideaAnnotationRecord
+ * @property {number} id
+ * @property {number} type door sills only: 0 passable, 1 not passable
+ * @property {number} state
+ * @property {boolean} isAi
+ * @property {Array<{x: number, y: number}>} corners in robot map coordinates, cyclic order
+ */
 
 module.exports = MideaMapParser;
