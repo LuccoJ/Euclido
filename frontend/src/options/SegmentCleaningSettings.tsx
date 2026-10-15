@@ -2,8 +2,7 @@ import React from "react";
 import {
     Box,
     Chip,
-    FormControlLabel,
-    Grid2,
+        Grid2,
     IconButton,
     MenuItem,
     Paper,
@@ -49,7 +48,9 @@ const AUTOSAVE_DELAY = 1000; // ms
 const getLabel = (value: string, friendlyNames: Record<string, string>): string => {
     const raw = /^raw_(\d+)$/.exec(value);
     if (raw) {
-        return `Robot's own value (${raw[1]})`;
+        // A value the robot set itself, outside of the scale Valetudo offers. For water usage, the robot's 2 measured
+        // as pump step 20 of 30, between Medium (15) and High (22)
+        return "Default";
     }
 
     return friendlyNames[value] ?? value;
@@ -61,13 +62,17 @@ const SettingSelect = (props: {
     value: string,
     options: Array<string>,
     friendlyNames: Record<string, string>,
+    gridColumn?: {xs: string, sm: string},
     onChange: (value: string) => void
 }): React.ReactElement => {
     // A value the robot has stored that isn't one of the known options can be kept, but not chosen again
     const options = props.options.includes(props.value) ? props.options : [props.value, ...props.options];
 
     return (
-        <Box sx={{display: "flex", alignItems: "center", gap: "0.25rem"}} title={props.label}>
+        <Box
+            sx={{display: "flex", alignItems: "center", gap: "0.25rem", minWidth: 0, gridColumn: props.gridColumn}}
+            title={props.label}
+        >
             {props.icon}
             <Select
                 variant="standard"
@@ -75,7 +80,7 @@ const SettingSelect = (props: {
                 size="small"
                 value={props.value}
                 inputProps={{"aria-label": props.label}}
-                sx={{fontSize: "0.875rem"}}
+                sx={{fontSize: "0.875rem", flex: 1, minWidth: 0}}
                 onChange={(e) => {
                     props.onChange(e.target.value);
                 }}
@@ -112,17 +117,25 @@ const SegmentCard = (props: {
 
     return (
         <Paper sx={{boxShadow: 3, padding: "0.5rem 1rem"}}>
-            {/* One line where there is room for it. Otherwise the settings go on a second line, but the room's
-                name and its place in the order always stay together */}
-            <Box sx={{display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: "1.5rem", rowGap: "0.25rem"}}>
-                <Box sx={{display: "flex", alignItems: "center", gap: "0.5rem", flex: "1 0 auto"}}>
+            {/* On wide screens, one line per room. Otherwise the room and its place in the order come first and the
+                settings below them. The settings have fixed columns, so they line up from one room to the next */}
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: {xs: "column", md: "row"},
+                    alignItems: {xs: "stretch", md: "center"},
+                    columnGap: "1.5rem",
+                    rowGap: "0.25rem"
+                }}
+            >
+                <Box sx={{display: "flex", alignItems: "center", gap: "0.5rem", flex: 1, minWidth: 0}}>
                     <Chip
                         label={position !== undefined ? position + 1 : "–"}
                         color={position !== undefined ? "primary" : "default"}
                         size="small"
                     />
-                    <Typography sx={{flexGrow: 1, whiteSpace: "nowrap"}}>{props.name}</Typography>
-                    <Box sx={{display: "flex", alignItems: "center", whiteSpace: "nowrap"}}>
+                    <Typography noWrap sx={{flex: 1, minWidth: 0}} title={props.name}>{props.name}</Typography>
+                    <Box sx={{display: "flex", alignItems: "center", flexShrink: 0}}>
                         <IconButton
                             size="small"
                             disabled={position === undefined || position === 0}
@@ -143,22 +156,37 @@ const SegmentCard = (props: {
                         >
                             <MoveDownIcon fontSize="small"/>
                         </IconButton>
-                        <FormControlLabel
-                            sx={{marginLeft: "0.25rem", marginRight: 0}}
-                            control={
-                                <Switch
-                                    size="small"
-                                    checked={position !== undefined}
-                                    onChange={(e) => {
-                                        props.onOrderedChange(e.target.checked);
-                                    }}
-                                />
-                            }
-                            label={<Typography variant="body2">In order</Typography>}
+                        <Switch
+                            size="small"
+                            checked={position !== undefined}
+                            onChange={(e) => {
+                                props.onOrderedChange(e.target.checked);
+                            }}
+                            inputProps={{"aria-label": "In order"}}
+                            title="In order"
                         />
+                        <Typography
+                            variant="body2"
+                            sx={{display: {xs: "none", sm: "block"}, whiteSpace: "nowrap"}}
+                        >
+                            In order
+                        </Typography>
                     </Box>
                 </Box>
-                <Box sx={{display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: "1rem"}}>
+                <Box
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                            // Passes on its own narrow column, water and route below mode and fan
+                            xs: "3.5rem repeat(2, minmax(0, 1fr))",
+                            sm: "3.5rem repeat(4, minmax(0, 1fr))",
+                            md: "3.5rem 7rem 6.5rem 6.5rem 7.5rem"
+                        },
+                        columnGap: "1rem",
+                        rowGap: "0.25rem",
+                        flexShrink: 0
+                    }}
+                >
                     <SettingSelect
                         label="Passes"
                         icon={<PassesIcon fontSize="small"/>}
@@ -193,6 +221,7 @@ const SegmentCard = (props: {
                         label="Water usage"
                         icon={<WaterGradeLowIcon fontSize="small"/>}
                         value={entry.waterGrade}
+                        gridColumn={{xs: "2", sm: "auto"}}
                         options={properties.waterGrades}
                         friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
                         onChange={(value) => {
@@ -203,6 +232,7 @@ const SegmentCard = (props: {
                         label="Route"
                         icon={<RouteIcon fontSize="small"/>}
                         value={entry.cleanRoute}
+                        gridColumn={{xs: "3", sm: "auto"}}
                         options={properties.cleanRoutes}
                         friendlyNames={routeFriendlyNames}
                         onChange={(value) => {
