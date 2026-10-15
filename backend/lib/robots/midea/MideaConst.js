@@ -53,6 +53,8 @@ tkciowVpUEiXK0tg/t8EgHj+sW9vUqX6ovKDx5Hy2nczd2CruRxHUieSQKX+zajv
 -----END CERTIFICATE-----
 `;
 
+// The firmware's own object types (clean_robot::semantic_slam::SemanticType). Each robot's AI models only report some
+// of them, so the ones marked "not seen" may only show up on other models of the family.
 const AI_OBSTACLE_IDS = Object.freeze({
     "1": "Shoes",
     "2": "Trash can",
@@ -67,8 +69,8 @@ const AI_OBSTACLE_IDS = Object.freeze({
     "11": "Liquid Stain",
     "12": "Solid Stain",
     "13": "Mixed Solid and Liquid Stain",
-    "14": "Bridge",
-    "15": "Person",
+    "14": "Bridge", // Not seen on the J15 Pro Ultra so far
+    "15": "Person", // Not seen on the J15 Pro Ultra so far
     "16": "Cat",
     "17": "Dog",
     "18": "Pedestal",
@@ -76,13 +78,13 @@ const AI_OBSTACLE_IDS = Object.freeze({
     "20": "Floor mirror",
     "21": "Threshold",
     "22": "Stuck Hazard / Base",
-    "23": "Curtain",
+    "23": "Curtain", // Not seen on the J15 Pro Ultra so far
     "24": "Power strip",
     "25": "Basin",
-    "26": "Cat face",
-    "27": "Dog face",
-    "28": "Toilet",
-    "29": "Robot vacuum",
+    "26": "Cat face", // Not seen on the J15 Pro Ultra so far
+    "27": "Dog face", // Not seen on the J15 Pro Ultra so far
+    "28": "Toilet", // Not seen on the J15 Pro Ultra so far
+    "29": "Robot vacuum", // Not seen on the J15 Pro Ultra so far
     "30": "Bucket",
     "31": "Plastic bag",
     "32": "Pet supplies",
