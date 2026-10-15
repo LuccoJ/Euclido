@@ -24,7 +24,8 @@ const {DUMMY_CLIENT_CERT, DUMMY_CLIENT_KEY} = require("./MideaConst");
 const CA_KEY_PATH = "/etc/ssl/valetudo/ca.key";
 const CA_CERT_PATH = "/etc/ssl/valetudo/ca.pem";
 const OBSTACLE_SOUND_DIRECTORIES = ["/userdata/sounds/objects", "/oem/sound/objects"];
-const OBSTACLE_SOUND_MIN_INTERVAL = 3000; // ms
+const OBSTACLE_SOUND_MIN_INTERVAL = 3000; // ms, between any two sounds
+const OBSTACLE_SOUND_SAME_NAME_INTERVAL = 15000; // ms, before the same obstacle is announced again
 const BIND_IP = "127.0.13.37";
 
 /**
@@ -69,6 +70,8 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.mapHacksProvider = new MideaMapHacksProvider({robot: this});
         this.mapParser = new MideaMapParser({mapHacksProvider: this.mapHacksProvider});
         this.lastObstacleSoundTimestamp = 0;
+        /** @type {Map<string, number>} */
+        this.lastObstacleSoundTimestampByName = new Map();
         if (this.config.get("embedded") === true) {
             this.mapParser.onNewObstacle = (name) => {
                 this.playObstacleSound(name);
@@ -496,7 +499,10 @@ class MideaValetudoRobot extends ValetudoRobot {
      */
     playObstacleSound(name) {
         const now = Date.now();
-        if (now - this.lastObstacleSoundTimestamp < OBSTACLE_SOUND_MIN_INTERVAL) {
+        if (
+            now - this.lastObstacleSoundTimestamp < OBSTACLE_SOUND_MIN_INTERVAL ||
+            now - (this.lastObstacleSoundTimestampByName.get(name) ?? 0) < OBSTACLE_SOUND_SAME_NAME_INTERVAL
+        ) {
             return;
         }
 
@@ -520,6 +526,7 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
 
         this.lastObstacleSoundTimestamp = now;
+        this.lastObstacleSoundTimestampByName.set(name, now);
         Logger.info(`Playing ${file} for a newly detected obstacle`);
 
         execFile("mp3play.sh", [file], (err) => {
