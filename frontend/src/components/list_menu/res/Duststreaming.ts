@@ -1,53 +1,25 @@
 export const DuststreamingLecture = `
-Hey,
+Camera streaming lets you see live through the robot's camera, from anywhere on your network.
 
-Quick pause for a second.
+Please use it with respect for other people's privacy:
 
-You're about to enable a feature that is really cool, but also fundamentally changes your whole threat model.<br/>
-And not just for you but **also(!)** for the people that live with you or might visit you.
-
-Where previously a vacuum robot was just a vacuum robot, it can now act as a hidden spy cam, leaving bystanders with absolutely no way of knowing they might be recorded.
-
-This is bad for third-parties like your partner or visiting friends, because privacy is a fundamental human right. Disregarding it - even just through lack of care - may result in loss of trust, loss of faith and all the downstream consequences that follow.
-Additionally, it is simply bad for you too, because it might affect you in the same way, as any network connected device might at one point be controlled by a possibly hostile third-party.
-
-Therefore, anyone visiting your space **needs** to be aware that someone or something may be watching them through the robot.
-This is an ethical requirement, and, depending on where you live, it might also be a legal requirement.
-
-Because you are affected in the exact same way, you need to stay aware of this too.
-You will, however, eventually, forget that that is the case, and you should plan for that likely inevitable outcome.
-
-It might make sense to play around with this feature for a while, have some fun and then just disable it again instead of letting the capability linger unused, ready to be misused.
-While doing so, you will see just how inconspicuous it is, and just how much these bots can see.
-
-In a better world, vendors would build robots with cameras that have hardwired activity LEDs. And, ideally, they would work fully offline.
-
-<br/>
-
-**Note**:
-
-This feature comes with an unauthenticated remote killswitch, enabling weird internet vigilantes to do damage control while doomscrolling accidentally exposed IoT on shodan. That however only somewhat helps and only does so against outside threats, which are the far less likely failure mode here.
-
-It should go without saying that surveillance fundamentally cannot fix a lack of trust, even though security vendors would love to make you believe otherwise.
-More cameras do not make your home more secure and they certainly can't fix relationships either.
-
-- Do not unilaterally decide to enable this in secret.
-- Do not ask for consent in a way engineered so that saying yes is the only easy option.
-- Do not place the burden of refusal on the other party.
-- Do not take lack of complaining as consent.
-
-Essentially, resist the defaults.<br/>
-Be the antithesis to current market trends: make opting out and saying no entirely frictionless.
-
-We do have to live in this world, but we do not have to be part of it.<br/>
-Now go have some ethical™ fun.
+- Let the people who live with you or visit you know that the robot can stream video, and ask them before you use it.
+- Depending on where you live, recording people without their knowledge or consent may be illegal. Make sure you comply with the laws that apply to you.
+- Turn it off again when you don't need it.
 `;
 
 export const DuststreamingInstallInstructions = (binaryPath: string | undefined): string => {
     return `
-The video capture, processing and encoding part of the camera streaming feature lives in the gstreamer-based [duststreamer](https://github.com/hypfer/duststreamer).
-That is yet again another statically linked single binary to be dropped onto the robot - and also to be yeeted away to make camera streaming technically impossible again.
+The camera streaming itself is done by a separate program, [duststreamer](https://github.com/hypfer/duststreamer),
+which isn't included and has to be put on the robot once.
 
-To complete the setup, place an executable \`duststreamer\` binary at \`${binaryPath}\` and refresh.
+1. Download the duststreamer binary for your robot's CPU from the [duststreamer releases](https://github.com/hypfer/duststreamer/releases).
+   Robots like the Eureka J15 series need the \`aarch64\` one.
+2. Copy it onto the robot as \`${binaryPath}\`, for example with
+   \`scp duststreamer root@<robot IP>:${binaryPath}\`.
+3. Make it executable on the robot with \`chmod +x ${binaryPath}\`.
+4. Come back here and refresh the page.
+
+To make camera streaming impossible again, simply delete that file.
 `;
 };

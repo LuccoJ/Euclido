@@ -35,7 +35,6 @@ import {
     Wysiwyg as SystemInformationIcon,
     Info as AboutIcon,
     Help as HelpIcon,
-    SmartToy as AiIcon,
     SvgIconComponent
 } from "@mui/icons-material";
 import {Link, useLocation} from "react-router-dom";
@@ -265,12 +264,6 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
         menuText: "Euclido"
     },
     {
-        kind: "MenuSubEntry",
-        route: "/options/valetudo/analytics",
-        title: "Analytics",
-        parentRoute: "/options/valetudo"
-    },
-    {
         kind: "Subheader",
         title: "Misc"
     },
@@ -301,13 +294,6 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
         title: "System Information",
         menuIcon: SystemInformationIcon,
         menuText: "System Information"
-    },
-    {
-        kind: "MenuEntry",
-        route: "/valetudo/ai",
-        title: "AI Assistant",
-        menuIcon: AiIcon,
-        menuText: "AI Assistant"
     },
     {
         kind: "MenuEntry",

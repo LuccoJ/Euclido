@@ -3,7 +3,6 @@ import {
     RestartAlt as ConfigRestoreIcon,
     SystemUpdateAlt as UpdaterIcon,
     Badge as FriendlyNameIcon,
-    Equalizer as StatisticsIcon,
 } from "@mui/icons-material";
 import {ListMenu} from "../components/list_menu/ListMenu";
 import PaperContainer from "../components/PaperContainer";
@@ -24,7 +23,6 @@ import { TextEditModalListMenuItem } from "../components/list_menu/TextEditModal
 import { DuststreamingListMenuItem } from "../components/list_menu/DuststreamingListMenuItem";
 import { ActivationListMenuItem } from "./ValetudoActivation";
 import {isAprilFools} from "../utils";
-import {LinkListMenuItem} from "../components/list_menu/LinkListMenuItem";
 
 
 const ConfigRestoreButtonListMenuItem = (): React.ReactElement => {
@@ -145,13 +143,6 @@ const ValetudoOptions = (): React.ReactElement => {
             <SpacerListMenuItem key={"spacer0"}/>,
             <FriendlyNameEditModalListMenuItem key={"friendlyName"}/>,
             <UpdateProviderSelectListMenuItem key={"updateProviderSelect"}/>,
-            <LinkListMenuItem
-                key={"analytics"}
-                url="/options/valetudo/analytics"
-                primaryLabel="Analytics"
-                secondaryLabel="Learn how we use your data"
-                icon={<StatisticsIcon />}
-            />,
         ];
 
         if (duststreamingCapabilitySupported) {
