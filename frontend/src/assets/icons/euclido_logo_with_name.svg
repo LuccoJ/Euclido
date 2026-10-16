@@ -1,14 +1,9 @@
 <svg width="420" height="100" viewBox="0 0 420 100" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="Euclido">
     <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
-        <circle cx="38" cy="54" r="24"/>
-        <circle cx="62" cy="54" r="24"/>
-        <path d="M38 54 L62 54 L50 33.215 Z"/>
+        <circle cx="50" cy="50" r="34"/>
+        <path d="M50.00 16.00 L79.44 67.00 L20.56 67.00 Z"/>
     </g>
-    <g fill="currentColor">
-        <circle cx="38" cy="54" r="2.5"/>
-        <circle cx="62" cy="54" r="2.5"/>
-        <circle cx="50" cy="33.215" r="2.5"/>
-    </g>
+    <circle cx="50" cy="50" r="3" fill="currentColor"/>
     <text x="110" y="74" fill="currentColor" font-size="58" font-weight="300" letter-spacing="4"
           font-family="'Cormorant Garamond', 'EB Garamond', Garamond, 'Palatino Linotype', Palatino, Georgia, serif">Euclido</text>
 </svg>

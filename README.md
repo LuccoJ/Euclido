@@ -12,7 +12,6 @@ The rest of this file is Valetudo's own README.
 ---
 
 <div align="center">
-    <img src="https://github.com/Hypfer/Valetudo/blob/master/assets/logo/valetudo_logo_with_name.svg" width="800" alt="valetudo">
     <p align="center"><h2>Free your vacuum from the cloud</h2></p>
 </div>
 
@@ -50,22 +49,6 @@ and also the docs in general at [https://valetudo.cloud](https://valetudo.cloud)
 There, you will find a list of [supported robots](https://valetudo.cloud/pages/general/supported-robots/).
 
 If you're looking for something less opinionated that also achieves "cloud-free modern vacuum robot connected to home assistant", check out [Roborock Local Server](https://github.com/Python-roborock/local_roborock_server) by [Luke Lashley](https://github.com/Lash-L).
-
-## Screenshots
-
-### Phone/Mobile
-<img width="360" src="https://github.com/user-attachments/assets/21b6cb92-43e8-4c49-b7f4-e15bedaab094" /> <img width="360" src="https://github.com/user-attachments/assets/e4b32931-1116-4d19-bece-e48746a89664" />
-
-<img width="360" src="https://github.com/user-attachments/assets/4fdad83d-3df1-4d24-929b-004ce6b3bff0" /> <img width="360" src="https://github.com/user-attachments/assets/422d54c8-6546-4616-9cd6-c1239be78c32" />
-
-### Tablet/Desktop
-
-<img width="1024" src="https://github.com/user-attachments/assets/28e7dea0-db0a-482b-92ba-8e9774b2416f" />
-
-<img width="1024" src="https://github.com/user-attachments/assets/f9217069-ee10-42f4-8897-0c90703201b7" />
-
-<img width="1024" src="https://github.com/user-attachments/assets/d7281e75-32c7-4a1e-a10b-95aef3b06a78" />
-
 
 ## Valetudo is a garden
 This project is the hobby of some random guy on the internet. There is no intent to commercialize it, grow it
@@ -118,7 +101,3 @@ For privacy reasons, caller ID suppression via prefixing with `#31#` is advised,
 ## Contributing
 
 Make sure to familiarize yourself with the [./CONTRIBUTING.md](./CONTRIBUTING.md)
-
-## Stars
-
-[<img src="assets/misc/star-history.svg" alt="Stars">](https://en.wikipedia.org/wiki/Lists_of_stars)
