@@ -131,7 +131,7 @@ const WelcomeDialog: FunctionComponent<{open: boolean, hide: () => void}> = ({
                     }
                     <br/>
                     <Typography>
-                        While watching your robot zip around, you might want to <Link href="https://github.com/sponsors/Hypfer" target="_blank" rel="noopener">consider donating</Link>.
+                        While watching your robot zip around, you might want to <Link href="https://dontvacuum.me/" target="_blank" rel="noopener">consider supporting Dennis Giese</Link>, whose work made rooting your robot possible.
                         If you&apos;d rather decide later, the donation link can also be found hiding unobtrusively at the bottom of the sidebar menu.
                         <br/><br/>
                         Now, please enjoy your cloud-free robot :)

@@ -532,11 +532,11 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                         <ListItemIcon>
                             <DocsIcon/>
                         </ListItemIcon>
-                        <ListItemText primary="Docs"/>
+                        <ListItemText primary="Docs (Valetudo)"/>
                     </ListItemButton>
                     <ListItemButton
                         component="a"
-                        href="https://github.com/Hypfer/Valetudo"
+                        href="https://github.com/LuccoJ/Euclido"
                         target="_blank"
                         rel="noopener"
                         onClick={(e) => e.stopPropagation()}
@@ -544,11 +544,11 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                         <ListItemIcon>
                             <GithubIcon/>
                         </ListItemIcon>
-                        <ListItemText primary="Hypfer/Valetudo"/>
+                        <ListItemText primary="LuccoJ/Euclido"/>
                     </ListItemButton>
                     <ListItemButton
                         component="a"
-                        href="https://github.com/sponsors/Hypfer"
+                        href="https://dontvacuum.me/"
                         target="_blank"
                         rel="noopener"
                         onClick={(e) => e.stopPropagation()}
