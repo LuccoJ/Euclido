@@ -169,9 +169,6 @@ const SegmentActions = (
                             color="inherit"
                             size="medium"
                             variant="extended"
-                            style={{
-                                textTransform: "initial"
-                            }}
                             onClick={() => {
                                 navigate("/robot/room_settings");
                             }}

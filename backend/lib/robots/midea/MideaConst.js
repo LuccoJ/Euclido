@@ -53,6 +53,8 @@ tkciowVpUEiXK0tg/t8EgHj+sW9vUqX6ovKDx5Hy2nczd2CruRxHUieSQKX+zajv
 -----END CERTIFICATE-----
 `;
 
+// The firmware's own object types (clean_robot::semantic_slam::SemanticType). Each robot's AI models only report some
+// of them, so the ones marked "not seen" may only show up on other models of the family.
 const AI_OBSTACLE_IDS = Object.freeze({
     "1": "Shoes",
     "2": "Trash can",
@@ -63,23 +65,46 @@ const AI_OBSTACLE_IDS = Object.freeze({
     "7": "Electric wire",
     "8": "Charging base",
     "9": "Feces",
+    "10": "Mat",
     "11": "Liquid Stain",
     "12": "Solid Stain",
     "13": "Mixed Solid and Liquid Stain",
-    "16": "Pet",
-    "17": "Pet",
+    "14": "Bridge", // Not seen on the J15 Pro Ultra so far
+    "15": "Person", // Not seen on the J15 Pro Ultra so far
+    "16": "Cat",
+    "17": "Dog",
     "18": "Pedestal",
-    "19": "Fall Hazard",
+    "19": "Fallen person",
     "20": "Floor mirror",
+    "21": "Threshold",
     "22": "Stuck Hazard / Base",
+    "23": "Curtain", // Not seen on the J15 Pro Ultra so far
     "24": "Power strip",
-    "25": "Obstacle",
-    "30": "Obstacle",
-    "31": "Obstacle",
+    "25": "Basin",
+    "26": "Cat face", // Not seen on the J15 Pro Ultra so far
+    "27": "Dog face", // Not seen on the J15 Pro Ultra so far
+    "28": "Toilet", // Not seen on the J15 Pro Ultra so far
+    "29": "Robot vacuum", // Not seen on the J15 Pro Ultra so far
+    "30": "Bucket",
+    "31": "Plastic bag",
     "32": "Pet supplies",
-    "33": "Obstacle",
+    "33": "Bottle",
 
     "99": "Unknown Obstacle",
+
+    // Scene objects. Furniture and doors the robot recognizes for its scene and room detection
+    "1000": "Door",
+    "1001": "Toilet",
+    "1002": "TV",
+    "1003": "Bed",
+    "1004": "Sofa",
+    "1005": "Dining table",
+    "1006": "Cabinet",
+    "1007": "Refrigerator",
+    "1008": "Cooker hood",
+    "1009": "Shaded door",
+    "1010": "Door leaf",
+    "1011": "Sliding door",
 
     "4001": "Grain Stain",
     "4002": "Dust Stain",

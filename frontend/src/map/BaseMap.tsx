@@ -514,6 +514,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
         this.touchHandlingState.lastX = x;
         this.touchHandlingState.lastY = y;
         this.touchHandlingState.dragStart = this.ctxWrapper.mapPointToCurrentTransform(this.touchHandlingState.lastX, this.touchHandlingState.lastY);
+        this.touchHandlingState.dragTarget = undefined;
         this.activeTouchEvent = true;
     }
 
@@ -530,7 +531,16 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
             const currentPixelSize = this.structureManager.getPixelSize();
             const invertedCurrentTransform = this.ctxWrapper.getTransform().invertSelf();
 
-            const wasHandled = this.structureManager.getClientStructures().some(structure => {
+            // A drag stays with whatever it started on: the structure that took its first move, or the map.
+            // Otherwise, dragging one structure across another active one hands the drag over to that one
+            const dragTarget = this.touchHandlingState.dragTarget;
+            const candidates = dragTarget === undefined ?
+                this.structureManager.getClientStructures() :
+                this.structureManager.getClientStructures().filter(structure => {
+                    return structure === dragTarget;
+                });
+
+            const wasHandled = candidates.some(structure => {
                 const result = structure.translate(
                     this.touchHandlingState.dragStart.matrixTransform(invertedCurrentTransform),
                     {x: oldX, y: oldY},
@@ -541,6 +551,8 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
                 );
 
                 if (result.stopPropagation) {
+                    this.touchHandlingState.dragTarget = structure;
+
                     if (result.deleteMe === true) {
                         this.structureManager.removeMapStructure(structure);
                     }
@@ -560,6 +572,10 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
                 return;
             }
 
+            if (this.touchHandlingState.dragTarget === undefined) {
+                this.touchHandlingState.dragTarget = null;
+            }
+
             // If no location stopped event handling -> pan the whole map
             const pt = this.ctxWrapper.mapPointToCurrentTransform(this.touchHandlingState.lastX, this.touchHandlingState.lastY);
             this.ctxWrapper.translate(pt.x - this.touchHandlingState.dragStart.x, pt.y - this.touchHandlingState.dragStart.y);
@@ -570,6 +586,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
     protected endTranslate(evt: PanEndTouchHandlerEvent | PinchEndTouchHandlerEvent) : void {
         this.activeTouchEvent = false;
         this.touchHandlingState.dragStart = null;
+        this.touchHandlingState.dragTarget = undefined;
 
 
         this.structureManager.getClientStructures().forEach(structure => {
@@ -597,6 +614,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
         this.touchHandlingState.lastX = x;
         this.touchHandlingState.lastY = y;
         this.touchHandlingState.dragStart = this.ctxWrapper.mapPointToCurrentTransform(this.touchHandlingState.lastX, this.touchHandlingState.lastY);
+        this.touchHandlingState.dragTarget = undefined;
         this.activeTouchEvent = true;
     }
 
