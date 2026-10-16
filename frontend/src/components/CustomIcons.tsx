@@ -23,12 +23,14 @@ export const SwaggerUIIcon = createSvgIcon(
 );
 
 
-// Euclid's Elements, book I, proposition 1: two circles and the equilateral triangle they construct
+// A circle with the equilateral triangle inscribed in it and its centre
 export const ValetudoMonochromeIcon = createSvgIcon(
-    <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
-        <circle cx="9" cy="13" r="6"/>
-        <circle cx="15" cy="13" r="6"/>
-        <path d="M9 13 L15 13 L12 7.8 Z"/>
+    <g>
+        <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3 L19.79 16.5 L4.21 16.5 Z"/>
+        </g>
+        <circle cx="12" cy="12" r="1.3" fill="currentColor"/>
     </g>,
     "euclido"
 );
