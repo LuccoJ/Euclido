@@ -128,13 +128,13 @@ const AuthSettings = (): React.ReactElement => {
                 }}
             >
                 <Typography color="info">
-                    Valetudo will by default try to block access from public-routable IP addresses
+                    Euclido will by default try to block access from public-routable IP addresses
                     for your safety and convenience.
                     <br/>
-                    If you want to allow external access to your Valetudo instance, consider using a VPN such as
+                    If you want to allow external access to your Euclido instance, consider using a VPN such as
                     WireGuard or OpenVPN to ensure the safety of your network.
                     <br/><br/>
-                    If you don&apos;t want to use a VPN, usage of a reverse proxy in front of Valetudo and all of your
+                    If you don&apos;t want to use a VPN, usage of a reverse proxy in front of Euclido and all of your
                     other IoT and network services (e.g. Home Assistant, Jellyfin) is strongly recommended.
                     A proper Webserver (e.g. nginx, Apache) is engineered and hardened to be public-facing.
                     Additionally, a setup like that provides you with central access logs and the ability to implement a central auth.

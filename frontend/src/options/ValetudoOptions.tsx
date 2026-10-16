@@ -36,12 +36,12 @@ const ConfigRestoreButtonListMenuItem = (): React.ReactElement => {
     return (
         <ButtonListMenuItem
             primaryLabel="Restore Default Configuration"
-            secondaryLabel="This will only affect Valetudo"
+            secondaryLabel="This will only affect Euclido"
             icon={<ConfigRestoreIcon/>}
             buttonLabel="Go"
             buttonColor={"error"}
             confirmationDialog={{
-                title: "Restore default Valetudo configuration?",
+                title: "Restore default Euclido configuration?",
                 body: "Are you sure that you want to restore the default configuration? This will not affect Wi-Fi settings, Map data etc."
             }}
             action={() => {
@@ -178,8 +178,8 @@ const ValetudoOptions = (): React.ReactElement => {
     return (
         <PaperContainer>
             <ListMenu
-                primaryHeader={"Valetudo Options"}
-                secondaryHeader={"Tunables and actions provided by Valetudo"}
+                primaryHeader={"Euclido Options"}
+                secondaryHeader={"Tunables and actions provided by Euclido"}
                 listItems={listItems}
             />
         </PaperContainer>

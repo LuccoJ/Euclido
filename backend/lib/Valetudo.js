@@ -59,7 +59,7 @@ class Valetudo {
             }
         });
 
-        Logger.info(`Starting Valetudo ${Tools.GET_VALETUDO_VERSION()}`);
+        Logger.info(`Starting Euclido (based on Valetudo) ${Tools.GET_VALETUDO_VERSION()}`);
         Logger.info(`Commit ID: ${Tools.GET_COMMIT_ID()}`);
         Logger.info(`Configuration file: ${this.config.location}`);
         Logger.info(`Logfile: ${Logger.getLogFilePath()}`);

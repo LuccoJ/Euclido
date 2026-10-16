@@ -228,7 +228,7 @@ const ProvisioningPage = (): React.ReactElement => {
         }
 
         const items: Array<[header: string, body: string]> = [
-            ["Valetudo", version.release],
+            ["Euclido", version.release],
             ["Manufacturer", robotInformation.manufacturer],
             ["Model", robotInformation.modelName]
         ];
@@ -286,7 +286,7 @@ const ProvisioningPage = (): React.ReactElement => {
                     }}
                     align="center"
                 >
-                    Please join the robot to your Wi-Fi network to start using Valetudo
+                    Please join the robot to your Wi-Fi network to start using Euclido
                 </Typography>
                 <Divider/>
 

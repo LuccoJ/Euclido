@@ -711,8 +711,8 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
 
-        const line1Text = "Activate Valetudo";
-        const line2Text = "Go to Settings to activate Valetudo.";
+        const line1Text = "Activate Euclido";
+        const line2Text = "Go to Settings to activate Euclido.";
 
         const line1FontSize = 24;
         const line2FontSize = 14;

@@ -260,9 +260,9 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     {
         kind: "MenuEntry",
         route: "/options/valetudo",
-        title: "Valetudo Options",
+        title: "Euclido Options",
         menuIcon: ValetudoMonochromeIcon,
-        menuText: "Valetudo"
+        menuText: "Euclido"
     },
     {
         kind: "MenuSubEntry",
@@ -319,9 +319,9 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     {
         kind: "MenuEntry",
         route: "/valetudo/about",
-        title: "About Valetudo",
+        title: "About Euclido",
         menuIcon: AboutIcon,
-        menuText: "About Valetudo"
+        menuText: "About Euclido"
     },
 ];
 
@@ -360,9 +360,9 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
         });
 
         if (ret !== "") {
-            document.title = `Valetudo - ${ret}`;
+            document.title = `Euclido - ${ret}`;
         } else {
-            document.title = "Valetudo";
+            document.title = "Euclido";
         }
 
         return currentMenuEntry.title;

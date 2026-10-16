@@ -64,7 +64,7 @@ const WelcomeDialog: FunctionComponent<{open: boolean, hide: () => void}> = ({
             open={open}
         >
             <DialogTitle>
-                Welcome to Valetudo
+                Welcome to Euclido
             </DialogTitle>
             <DialogContent>
                 <DialogContentText
@@ -74,7 +74,7 @@ const WelcomeDialog: FunctionComponent<{open: boolean, hide: () => void}> = ({
                     component="span"
                 >
                     <Typography>
-                        It looks like it might be the first time that you&apos;re using Valetudo on this robot.
+                        It looks like it might be the first time that you&apos;re using Euclido on this robot.
                     </Typography>
                     <br/>
                     <Typography>

@@ -113,7 +113,7 @@ class MapNodeMqttHandle extends NodeMqttHandle {
                         return this.getMapData(true);
                     },
                     helpText: "This handle is added automatically if Home Assistant autodiscovery is enabled. It " +
-                        "provides a map embedded in a PNG image that recommends installing the Valetudo Lovelace card."
+                        "provides a map embedded in a PNG image that recommends installing the Valetudo Lovelace card (which works with Euclido)."
                 }).also((prop) => {
                     prop.attachHomeAssistantComponent(
                         new InLineHassComponent({

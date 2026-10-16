@@ -153,7 +153,7 @@ const PresetSelectionControl = (props: PresetSelectionProps): React.ReactElement
                 {
                     preset === undefined &&
                     <Typography variant="caption" color="text.secondary">
-                        The robot reports a setting Valetudo doesn&apos;t know. Pick one to switch to it.
+                        The robot reports a setting Euclido doesn&apos;t know. Pick one to switch to it.
                     </Typography>
                 }
             </Box>
