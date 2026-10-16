@@ -61,6 +61,8 @@ class MideaJ15ProUltraValetudoRobot extends MideaModernValetudoRobot {
         this.registerCapability(new LinuxDuststreamingCapability({
             robot: this,
             platform: LinuxDuststreamingCapability.PLATFORM.MIDEA_RK3566,
+            // 30 fps were hard to watch smoothly. 20 is believed to be the rate the robot itself uses for its camera
+            framerate: 20,
             device: "/dev/video5",
             dimensions: {
                 width: 640,

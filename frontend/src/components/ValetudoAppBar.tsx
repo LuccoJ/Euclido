@@ -5,13 +5,11 @@ import {
     Drawer,
     IconButton,
     List,
-    ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
     ListSubheader,
     PaletteMode,
-    Switch,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -19,7 +17,6 @@ import React from "react";
 import {
     AccessTime as TimeIcon,
     Equalizer as StatisticsIcon,
-    DarkMode as DarkModeIcon,
     Map as MapManagementIcon,
     Home as HomeIcon,
     Article as LogIcon,
@@ -478,24 +475,6 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                     })}
 
                     <Divider/>
-                    <ListItem
-                        onClick={(e) => e.stopPropagation()}
-                        sx={{
-                            userSelect: "none"
-                        }}
-                    >
-                        <ListItemIcon>
-                            <DarkModeIcon/>
-                        </ListItemIcon>
-                        <ListItemText primary="Dark mode"/>
-                        <Switch
-                            edge="end"
-                            onChange={(e) => {
-                                setPaletteMode(e.target.checked ? "dark" : "light");
-                            }}
-                            checked={paletteMode === "dark"}
-                        />
-                    </ListItem>
 
 
                     <ListSubheader
@@ -561,7 +540,7 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                 </List>
             </Box>
         );
-    }, [currentLocation, paletteMode, setPaletteMode, robotCapabilities, duststreamingEnabled]);
+    }, [currentLocation, robotCapabilities, duststreamingEnabled]);
 
     const toolbarContent = React.useMemo(() => {
         switch (currentMenuEntry.kind) {
