@@ -5,7 +5,6 @@ import CapabilitiesProvider from "./CapabilitiesProvider";
 import {SnackbarProvider} from "notistack";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
-import {useLocalStorage} from "./hooks";
 import "@fontsource/ibm-plex-sans/300.css";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/500.css";
@@ -17,7 +16,11 @@ const queryClient = new QueryClient();
 
 const App = (): React.ReactElement => {
     const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-    const [paletteMode, setPaletteMode] = useLocalStorage<PaletteMode>("palette-mode", prefersDarkMode ? "dark" : "light");
+    // The theme follows the browser's (and so usually the system's) light or dark setting
+    const paletteMode: PaletteMode = prefersDarkMode ? "dark" : "light";
+    const setPaletteMode = React.useCallback((_newMode: PaletteMode) => {
+        /* intentional */
+    }, []);
 
     const theme = React.useMemo(
         () => {
