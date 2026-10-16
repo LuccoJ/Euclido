@@ -1,5 +1,5 @@
-import SplashLogo from "../assets/icons/valetudo_splash.svg?react";
-import {CircularProgress, Grid2} from "@mui/material";
+import SplashLogo from "../assets/icons/euclido_splash.svg?react";
+import {CircularProgress, Grid2, Typography} from "@mui/material";
 import React from "react";
 
 const ValetudoSplash = (): React.ReactElement => {
@@ -31,6 +31,11 @@ const ValetudoSplash = (): React.ReactElement => {
                         display: "block"
                     }}
                 />
+            </Grid2>
+            <Grid2 sx={{marginTop: "0.5em"}}>
+                <Typography variant="caption" color="text.secondary" sx={{fontStyle: "italic"}}>
+                    … which couldn&apos;t exist without Valetudo
+                </Typography>
             </Grid2>
             <Grid2
                 sx={{marginTop: "3em"}}

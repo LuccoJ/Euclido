@@ -22,7 +22,7 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import Logo from "./assets/icons/valetudo_logo_with_name.svg?react";
+import Logo from "./assets/icons/euclido_logo_with_name.svg?react";
 import React from "react";
 import {
     Refresh as RefreshIcon,

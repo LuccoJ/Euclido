@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Box } from "@mui/material";
-import SplashLogo from "../assets/icons/valetudo_splash.svg?react";
+import SplashLogo from "../assets/icons/euclido_splash.svg?react";
 
 type Size = { width: number; height: number };
 
