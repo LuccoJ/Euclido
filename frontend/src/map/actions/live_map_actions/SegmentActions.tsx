@@ -15,8 +15,10 @@ import {useLongPress} from "use-long-press";
 import {IterationsIcon} from "../../../assets/icon_components/IterationsIcon";
 import {
     Clear as ClearIcon,
-    PlayArrow as GoIcon
+    PlayArrow as GoIcon,
+    Tune as RoomSettingsIcon
 } from "@mui/icons-material";
+import {useNavigate} from "react-router-dom";
 
 interface SegmentActionsProperties {
     segments: string[];
@@ -29,6 +31,7 @@ const SegmentActions = (
 ): React.ReactElement => {
     const {segments, onClear} = props;
     const [iterationCount, setIterationCount] = React.useState(1);
+    const navigate = useNavigate();
     const [integrationHelpDialogOpen, setIntegrationHelpDialogOpen] = React.useState(false);
     const [integrationHelpDialogPayload, setIntegrationHelpDialogPayload] = React.useState("");
 
@@ -159,6 +162,26 @@ const SegmentActions = (
                         )}
                     </ActionButton>
                 </Grid2>
+                {
+                    personalized &&
+                    <Grid2>
+                        <ActionButton
+                            color="inherit"
+                            size="medium"
+                            variant="extended"
+                            style={{
+                                textTransform: "initial"
+                            }}
+                            onClick={() => {
+                                navigate("/robot/room_settings");
+                            }}
+                            title="Each room is cleaned with its own settings"
+                        >
+                            <RoomSettingsIcon style={{marginRight: "0.25rem", marginLeft: "-0.25rem"}}/>
+                            Room settings
+                        </ActionButton>
+                    </Grid2>
+                }
                 {
                     mapSegmentationProperties.iterationCount.max > 1 && !personalized &&
                     <Grid2>

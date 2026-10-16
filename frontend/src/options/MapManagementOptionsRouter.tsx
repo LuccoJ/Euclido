@@ -7,7 +7,6 @@ import {Capability, useDuststreamingConfigurationQuery} from "../api";
 import React from "react";
 import RobotCoverageMapPage from "../map/RobotCoverageMapPage";
 import SpectatorMapPage from "../map/SpectatorMapPage";
-import SegmentCleaningSettings from "./SegmentCleaningSettings";
 
 const OptionsRouter = (): React.ReactElement => {
     const [
@@ -17,7 +16,6 @@ const OptionsRouter = (): React.ReactElement => {
         mapSegmentRenameCapabilitySupported,
 
         mapAnnotationsCapabilitySupported,
-        mapSegmentCleaningSettingsCapabilitySupported,
 
         duststreamingSupported,
     ] = useCapabilitiesSupported(
@@ -27,7 +25,6 @@ const OptionsRouter = (): React.ReactElement => {
         Capability.MapSegmentRename,
 
         Capability.MapAnnotations,
-        Capability.MapSegmentCleaningSettings,
 
         Capability.Duststreaming
     );
@@ -72,14 +69,6 @@ const OptionsRouter = (): React.ReactElement => {
                             mode={"annotations"}
                         />
                     }
-                />
-            }
-
-            {
-                mapSegmentCleaningSettingsCapabilitySupported &&
-                <Route
-                    path={"segment_cleaning_settings"}
-                    element={<SegmentCleaningSettings/>}
                 />
             }
 

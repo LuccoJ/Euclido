@@ -35,6 +35,7 @@ import {
     Wysiwyg as SystemInformationIcon,
     Info as AboutIcon,
     Help as HelpIcon,
+    Tune as SegmentCleaningSettingsIcon,
     SmartToy as AiIcon,
     SvgIconComponent
 } from "@mui/icons-material";
@@ -137,6 +138,17 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     },
     {
         kind: "MenuEntry",
+        route: "/robot/room_settings",
+        title: "Room Settings",
+        menuIcon: SegmentCleaningSettingsIcon,
+        menuText: "Room Settings",
+        requiredCapabilities: {
+            capabilities: [Capability.MapSegmentCleaningSettings],
+            type: "allof"
+        }
+    },
+    {
+        kind: "MenuEntry",
         route: "/robot/camera",
         title: "Camera",
         menuIcon: CameraIcon,
@@ -175,12 +187,6 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
         kind: "MenuSubEntry",
         route: "/options/map_management/segments",
         title: "Segment Management",
-        parentRoute: "/options/map_management"
-    },
-    {
-        kind: "MenuSubEntry",
-        route: "/options/map_management/segment_cleaning_settings",
-        title: "Personalized Room Cleaning Settings",
         parentRoute: "/options/map_management"
     },
     {

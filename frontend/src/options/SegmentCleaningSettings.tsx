@@ -45,11 +45,16 @@ const routeFriendlyNames: Record<string, string> = {
 
 const AUTOSAVE_DELAY = 1000; // ms
 
+// "Vacuum & Mop" gets cut off to look like "Vacuum" in the narrow column. Next to Vacuum and Mop in the list, Both is clear
+const operationModeFriendlyNames: Record<string, string> = {
+    ...(presetFriendlyNames as Record<PresetValue, string>),
+    "vacuum_and_mop": "Both"
+};
+
 const getLabel = (value: string, friendlyNames: Record<string, string>): string => {
     const raw = /^raw_(\d+)$/.exec(value);
     if (raw) {
-        // A value the robot set itself, outside of the scale Valetudo offers. For water usage, the robot's 2 measured
-        // as pump step 20 of 30, between Medium (15) and High (22)
+        // A value the robot set itself, outside of the scale offered here
         return "Default";
     }
 
@@ -202,7 +207,7 @@ const SegmentCard = (props: {
                         icon={<OperationModeIcon fontSize="small"/>}
                         value={entry.operationMode}
                         options={properties.operationModes}
-                        friendlyNames={presetFriendlyNames as Record<PresetValue, string>}
+                        friendlyNames={operationModeFriendlyNames}
                         onChange={(value) => {
                             props.onChange({...entry, operationMode: value});
                         }}
@@ -428,17 +433,9 @@ const SegmentCleaningSettings = (): React.ReactElement => {
                         isRefreshing={settingsFetching}
                     />
 
-                    <Typography variant="body2" sx={{marginTop: "1rem"}}>
+                    <Typography variant="body2" sx={{marginTop: "1rem", marginBottom: "1rem"}}>
                         The order applies to every cleanup of several rooms. The other settings only apply in the
                         Personalized operation mode. Changes are saved automatically.
-                    </Typography>
-                    <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        component="div"
-                        sx={{marginBottom: "0.5rem", minHeight: "1.5em"}}
-                    >
-                        {saving ? "Saving…" : (modified ? "Unsaved changes" : "")}
                     </Typography>
 
                     <Grid2 container direction="column">

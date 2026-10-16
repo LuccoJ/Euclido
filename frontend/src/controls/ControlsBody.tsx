@@ -12,7 +12,6 @@ import CurrentStatistics from "./CurrentStatistics";
 import Attachments from "./Attachments";
 import {FanSpeedMediumIcon, WaterGradeLowIcon} from "../components/CustomIcons";
 import React from "react";
-import PersonalizedRoomSettingsLink from "./PersonalizedRoomSettingsLink";
 
 
 const ControlsBody = (): React.ReactElement => {
@@ -58,7 +57,6 @@ const ControlsBody = (): React.ReactElement => {
                     }
                 />
             )}
-            {operationMode && <PersonalizedRoomSettingsLink/>}
 
             {fanSpeed && (
                 <PresetSelectionControl

@@ -41,7 +41,9 @@ class MideaMapSegmentCleaningSettingsCapability extends MapSegmentCleaningSettin
                     iterations: room.cleanCount,
                     operationMode: findKey(OPERATION_MODES, room.vacuum_mop_mode) ?? `raw_${room.vacuum_mop_mode}`,
                     fanSpeed: findKey(FAN_SPEEDS, room.fanSpeed) ?? `raw_${room.fanSpeed}`,
-                    waterGrade: findKey(this.robot.waterGrades, room.infinite_water_speed) ?? `raw_${room.infinite_water_speed}`,
+                    waterGrade: room.infinite_water_speed === ROBOT_DEFAULT_ROOM_WATER ?
+                        "high" :
+                        (findKey(this.robot.waterGrades, room.infinite_water_speed) ?? `raw_${room.infinite_water_speed}`),
                     cleanRoute: findKey(CLEAN_ROUTES, room.route_type) ?? `raw_${room.route_type}`
                 };
             })
@@ -98,7 +100,10 @@ class MideaMapSegmentCleaningSettingsCapability extends MapSegmentCleaningSettin
                 wanted.cleanCount = entry.iterations;
                 wanted.vacuum_mop_mode = toStoredValue(OPERATION_MODES, entry.operationMode, room.vacuum_mop_mode);
                 wanted.fanSpeed = toStoredValue(FAN_SPEEDS, entry.fanSpeed, room.fanSpeed);
-                wanted.infinite_water_speed = toStoredValue(this.robot.waterGrades, entry.waterGrade, room.infinite_water_speed);
+                // A room left at the robot's own default stays at it as long as it is shown as High
+                wanted.infinite_water_speed = entry.waterGrade === "high" && room.infinite_water_speed === ROBOT_DEFAULT_ROOM_WATER ?
+                    ROBOT_DEFAULT_ROOM_WATER :
+                    toStoredValue(this.robot.waterGrades, entry.waterGrade, room.infinite_water_speed);
                 wanted.route_type = toStoredValue(CLEAN_ROUTES, entry.cleanRoute, room.route_type);
             }
 
@@ -166,6 +171,10 @@ function toStoredValue(table, name, currentValue) {
 
     throw new Error(`Invalid value: ${name}`);
 }
+
+// The water usage the robot gives new rooms itself. It measured as pump step 20 of 30, close to High (22), so it is
+// shown as High
+const ROBOT_DEFAULT_ROOM_WATER = 2;
 
 // Values as stored in room_cfg. MideaRoomOrderManager translates them for the wire where needed
 const OPERATION_MODES = Object.freeze({
