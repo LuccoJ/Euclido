@@ -152,7 +152,7 @@ const UpdaterStateComponent : React.FunctionComponent<{ state: UpdaterState | un
                             defaultExpanded={true}
                         >
                             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                                <Typography>Changelog for Valetudo {state.version}</Typography>
+                                <Typography>Changelog for Euclido {state.version}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Box style={{width:"100%", paddingLeft: "1rem", paddingRight:"1rem"}}>
@@ -171,8 +171,8 @@ const UpdaterStateComponent : React.FunctionComponent<{ state: UpdaterState | un
                 case "ValetudoUpdaterIdleState":
                     return (
                         <Typography>
-                            You are currently running Valetudo {state.currentVersion}.<br/>
-                            There may be newer versions of Valetudo available.
+                            You are currently running Euclido {state.currentVersion}.<br/>
+                            There may be newer versions of Euclido available.
                         </Typography>
                     );
                 case "ValetudoUpdaterApplyPendingState":
@@ -181,7 +181,7 @@ const UpdaterStateComponent : React.FunctionComponent<{ state: UpdaterState | un
                     );
                 case "ValetudoUpdaterDisabledState":
                     return (
-                        <Typography>The Updater was disabled in the Valetudo config.</Typography>
+                        <Typography>The Updater was disabled in the Euclido config.</Typography>
                     );
                 case "ValetudoUpdaterNoUpdateRequiredState":
                     return (
@@ -189,7 +189,7 @@ const UpdaterStateComponent : React.FunctionComponent<{ state: UpdaterState | un
                             <Typography
                                 sx={{textAlign:"center", paddingBottom: "2rem"}}
                             >
-                                You are already running the latest version of Valetudo ({state.currentVersion})
+                                You are already running the latest version of Euclido ({state.currentVersion})
                             </Typography>
                             {
                                 state.changelog &&
@@ -198,7 +198,7 @@ const UpdaterStateComponent : React.FunctionComponent<{ state: UpdaterState | un
                                 >
                                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                                         <Typography sx={{ wordBreak: "break-all" }}>
-                                            Changelog for Valetudo {state.currentVersion}
+                                            Changelog for Euclido {state.currentVersion}
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
@@ -330,7 +330,7 @@ const DownloadUpdateControls: React.FunctionComponent<{
                 title="Download Update?"
                 text={(
                     <>
-                        Do you want to download the displayed Valetudo update?<br/>
+                        Do you want to download the displayed Euclido update?<br/>
                         Please make sure to fully read the provided changelog as it may contain breaking changes as well as other relevant information.
                     </>
                 )}

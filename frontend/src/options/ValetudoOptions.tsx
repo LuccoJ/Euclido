@@ -3,7 +3,6 @@ import {
     RestartAlt as ConfigRestoreIcon,
     SystemUpdateAlt as UpdaterIcon,
     Badge as FriendlyNameIcon,
-    Equalizer as StatisticsIcon,
 } from "@mui/icons-material";
 import {ListMenu} from "../components/list_menu/ListMenu";
 import PaperContainer from "../components/PaperContainer";
@@ -24,7 +23,6 @@ import { TextEditModalListMenuItem } from "../components/list_menu/TextEditModal
 import { DuststreamingListMenuItem } from "../components/list_menu/DuststreamingListMenuItem";
 import { ActivationListMenuItem } from "./ValetudoActivation";
 import {isAprilFools} from "../utils";
-import {LinkListMenuItem} from "../components/list_menu/LinkListMenuItem";
 
 
 const ConfigRestoreButtonListMenuItem = (): React.ReactElement => {
@@ -36,12 +34,12 @@ const ConfigRestoreButtonListMenuItem = (): React.ReactElement => {
     return (
         <ButtonListMenuItem
             primaryLabel="Restore Default Configuration"
-            secondaryLabel="This will only affect Valetudo"
+            secondaryLabel="This will only affect Euclido"
             icon={<ConfigRestoreIcon/>}
             buttonLabel="Go"
             buttonColor={"error"}
             confirmationDialog={{
-                title: "Restore default Valetudo configuration?",
+                title: "Restore default Euclido configuration?",
                 body: "Are you sure that you want to restore the default configuration? This will not affect Wi-Fi settings, Map data etc."
             }}
             action={() => {
@@ -95,11 +93,8 @@ const FriendlyNameEditModalListMenuItem = (): React.ReactElement => {
     );
 };
 
+// Euclido only has nightly builds for now
 const updateProviders : Array<SelectListMenuItemOption> = [
-    {
-        value: "github",
-        label: "Release"
-    },
     {
         value: "github_nightly",
         label: "Nightly"
@@ -108,7 +103,6 @@ const updateProviders : Array<SelectListMenuItemOption> = [
 
 const UpdateProviderSelectListMenuItem = (): React.ReactElement => {
     const {
-        data: storedConfiguration,
         isPending: configurationPending,
         isError: configurationError,
     } = useUpdaterConfigurationQuery();
@@ -117,7 +111,7 @@ const UpdateProviderSelectListMenuItem = (): React.ReactElement => {
 
     const disabled = configurationPending || configurationUpdating || configurationError;
 
-    const currentValue = updateProviders.find(provider => provider.value === storedConfiguration?.updateProvider) ?? {value: "", label: ""};
+    const currentValue = updateProviders[0];
 
     return (
         <SelectListMenuItem
@@ -149,13 +143,6 @@ const ValetudoOptions = (): React.ReactElement => {
             <SpacerListMenuItem key={"spacer0"}/>,
             <FriendlyNameEditModalListMenuItem key={"friendlyName"}/>,
             <UpdateProviderSelectListMenuItem key={"updateProviderSelect"}/>,
-            <LinkListMenuItem
-                key={"analytics"}
-                url="/options/valetudo/analytics"
-                primaryLabel="Analytics"
-                secondaryLabel="Learn how we use your data"
-                icon={<StatisticsIcon />}
-            />,
         ];
 
         if (duststreamingCapabilitySupported) {
@@ -178,8 +165,8 @@ const ValetudoOptions = (): React.ReactElement => {
     return (
         <PaperContainer>
             <ListMenu
-                primaryHeader={"Valetudo Options"}
-                secondaryHeader={"Tunables and actions provided by Valetudo"}
+                primaryHeader={"Euclido Options"}
+                secondaryHeader={"Tunables and actions provided by Euclido"}
                 listItems={listItems}
             />
         </PaperContainer>

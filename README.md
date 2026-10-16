@@ -1,3 +1,16 @@
+# Euclido
+
+Euclido is a fork of [Valetudo](https://github.com/Hypfer/Valetudo), the cloud replacement for vacuum robots,
+with additions for Eureka (Midea) robots such as the J15 series: personalized room settings and room order,
+curtains and thresholds, more obstacle types and other conveniences.
+
+It is not made or supported by the Valetudo project, so please don't report problems with Euclido there.
+Euclido couldn't exist without Valetudo, nor without [Dennis Giese](https://dontvacuum.me/), who makes rooting these robots possible.
+
+The rest of this file is Valetudo's own README.
+
+---
+
 <div align="center">
     <img src="https://github.com/Hypfer/Valetudo/blob/master/assets/logo/valetudo_logo_with_name.svg" width="800" alt="valetudo">
     <p align="center"><h2>Free your vacuum from the cloud</h2></p>

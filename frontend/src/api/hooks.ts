@@ -1030,7 +1030,7 @@ export const useValetudoEventsInteraction = () => {
         mutationFn: (interaction: ValetudoEventInteractionContext) => {
             return sendValetudoEventInteraction(interaction).then(fetchValetudoEvents);
         },
-        onError: useOnSettingsChangeError("Valetudo Events")
+        onError: useOnSettingsChangeError("Euclido Events")
     });
 };
 
@@ -1607,7 +1607,7 @@ export const useValetudoCustomizationsMutation = () => {
         mutationFn: (configuration: ValetudoCustomizations) => {
             return sendValetudoCustomizations(configuration).then(fetchValetudoCustomizations);
         },
-        onError: useOnSettingsChangeError("Valetudo Customizations")
+        onError: useOnSettingsChangeError("Euclido Customizations")
     });
 };
 

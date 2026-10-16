@@ -61,7 +61,7 @@ const SystemRuntimeInfo = (): React.ReactElement => {
         }
 
         const topItems: Array<[header: string, body: string]> = [
-            ["Valetudo uptime", convertSecondsToHumans(systemRuntimeInfo.uptime)],
+            ["Euclido uptime", convertSecondsToHumans(systemRuntimeInfo.uptime)],
             ["UID", String(systemRuntimeInfo.uid)],
             ["GID", String(systemRuntimeInfo.gid)],
             ["PID", String(systemRuntimeInfo.pid)],
@@ -305,7 +305,7 @@ const SystemInformation = (): React.ReactElement => {
                 body: robotInformation?.modelName
             },
             {
-                header: "Valetudo Implementation",
+                header: "Euclido Implementation",
                 body: robotInformation?.implementation
             },
             {
@@ -382,13 +382,13 @@ const SystemInformation = (): React.ReactElement => {
                                     color: palette.green
                                 },
                                 {
-                                    label: "Valetudo",
+                                    label: "Euclido",
                                     value: systemHostInfo.mem.valetudo_current,
                                     valueLabel: `${((systemHostInfo.mem.valetudo_current) / 1024 / 1024).toFixed(2)} MiB`,
                                     color: palette.red
                                 },
                                 {
-                                    label: "Valetudo (Max)",
+                                    label: "Euclido (Max)",
                                     value: systemHostInfo.mem.valetudo_max - systemHostInfo.mem.valetudo_current,
                                     valueLabel: `${((systemHostInfo.mem.valetudo_max) / 1024 / 1024).toFixed(2)} MiB`,
                                     color: palette.teal
@@ -463,7 +463,7 @@ const SystemInformation = (): React.ReactElement => {
                     >
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Valetudo
+                                Euclido
                             </Typography>
                             <Divider/>
                             {valetudoInformationView}

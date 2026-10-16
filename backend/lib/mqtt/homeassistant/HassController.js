@@ -76,7 +76,7 @@ class HassController {
      */
     getAutoconfDeviceBoilerplate() {
         return {
-            manufacturer: "Valetudo",
+            manufacturer: "Euclido",
             model: `${this.robot.getManufacturer()} ${this.robot.getModelName()}`,
             name: this.friendlyName,
             identifiers: [this.identifier],

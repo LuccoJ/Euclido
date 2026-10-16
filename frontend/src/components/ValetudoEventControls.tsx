@@ -208,7 +208,7 @@ const ValetudoUpdatedEventControl: FunctionComponent<ValetudoEventRenderProps> =
                 <Stack>
                     <EventTimestamp timestamp={event.timestamp}/>
                     <Typography color={color} style={textStyle} sx={{mr: 1}}>
-                        Valetudo was successfully updated from &apos;{event.previousVersion ?? "unknown"}&apos; to &apos;{event.newVersion ?? "unknown"}&apos;.
+                        Euclido was successfully updated from &apos;{event.previousVersion ?? "unknown"}&apos; to &apos;{event.newVersion ?? "unknown"}&apos;.
                     </Typography>
                 </Stack>
                 <Button
@@ -238,7 +238,7 @@ const ValetudoRuntimeErrorEventControl: FunctionComponent<ValetudoEventRenderPro
                 <Stack>
                     <EventTimestamp timestamp={event.timestamp}/>
                     <Typography color={color} style={textStyle} sx={{mr: 1}}>
-                        Valetudo ran into a problem and reincarnated itself. This should never happen.<br/><br/>
+                        Euclido ran into a problem and reincarnated itself. This should never happen.<br/><br/>
                         {event.description ? event.description: `Reason: ${event.reason}`}
                     </Typography>
                 </Stack>
