@@ -95,11 +95,8 @@ const FriendlyNameEditModalListMenuItem = (): React.ReactElement => {
     );
 };
 
+// Euclido only has nightly builds for now
 const updateProviders : Array<SelectListMenuItemOption> = [
-    {
-        value: "github",
-        label: "Release"
-    },
     {
         value: "github_nightly",
         label: "Nightly"
@@ -108,7 +105,6 @@ const updateProviders : Array<SelectListMenuItemOption> = [
 
 const UpdateProviderSelectListMenuItem = (): React.ReactElement => {
     const {
-        data: storedConfiguration,
         isPending: configurationPending,
         isError: configurationError,
     } = useUpdaterConfigurationQuery();
@@ -117,7 +113,7 @@ const UpdateProviderSelectListMenuItem = (): React.ReactElement => {
 
     const disabled = configurationPending || configurationUpdating || configurationError;
 
-    const currentValue = updateProviders.find(provider => provider.value === storedConfiguration?.updateProvider) ?? {value: "", label: ""};
+    const currentValue = updateProviders[0];
 
     return (
         <SelectListMenuItem

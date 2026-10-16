@@ -46,9 +46,9 @@ class Updater {
         this.cleanupHandler();
 
         switch (updaterConfig.updateProvider.type) {
+            // Euclido only has nightly builds for now. Configurations still set to the release channel get them too,
+            // instead of being updated to an upstream Valetudo release
             case GithubValetudoUpdateProvider.TYPE:
-                this.updateProvider = new GithubValetudoUpdateProvider();
-                break;
             case GithubValetudoNightlyUpdateProvider.TYPE:
                 this.updateProvider = new GithubValetudoNightlyUpdateProvider();
                 break;
