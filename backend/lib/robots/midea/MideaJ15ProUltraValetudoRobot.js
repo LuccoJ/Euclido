@@ -40,6 +40,7 @@ class MideaJ15ProUltraValetudoRobot extends MideaModernValetudoRobot {
             capabilities.MideaCollisionAvoidantNavigationControlCapability,
             capabilities.MideaCarpetModeControlCapabilityV3,
             capabilities.MideaMapSegmentMaterialControlCapability,
+            capabilities.MideaMapSegmentCleaningSettingsCapability,
             capabilities.MideaMapAnnotationsCapability,
             capabilities.MideaCleanRouteControlCapability,
             capabilities.MideaMopDockMopDryingTimeControlCapability,
@@ -60,6 +61,8 @@ class MideaJ15ProUltraValetudoRobot extends MideaModernValetudoRobot {
         this.registerCapability(new LinuxDuststreamingCapability({
             robot: this,
             platform: LinuxDuststreamingCapability.PLATFORM.MIDEA_RK3566,
+            // 30 fps were hard to watch smoothly. 24 is the lowest rate duststreamer's MPEG-1 encoder accepts
+            framerate: 24,
             device: "/dev/video5",
             dimensions: {
                 width: 640,

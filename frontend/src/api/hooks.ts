@@ -141,6 +141,9 @@ import {
     fetchMopDockMopAutoDryingControlState,
     sendMopDockMopAutoDryingControlState,
     fetchMapSegmentMaterialControlProperties,
+    fetchMapSegmentCleaningSettings,
+    fetchMapSegmentCleaningSettingsProperties,
+    sendMapSegmentCleaningSettings,
     sendSetSegmentMaterialCommand,
     fetchFloorMaterialDirectionAwareNavigationControlState,
     sendFloorMaterialDirectionAwareNavigationControlState,
@@ -270,6 +273,8 @@ enum QueryKey {
     MopExtensionFurnitureLegHandlingControl = "mop_extension_furniture_leg_handling_control",
     MopDockMopAutoDryingControl = "mop_dock_mop_auto_drying_control",
     MapSegmentMaterialControlProperties = "map_segment_material_control_properties",
+    MapSegmentCleaningSettings = "map_segment_cleaning_settings",
+    MapSegmentCleaningSettingsProperties = "map_segment_cleaning_settings_properties",
     FloorMaterialDirectionAwareNavigationControl = "floor_material_direction_aware_navigation_control",
     CleanRouteControl = "clean_route_control",
     CleanRouteControlProperties = "clean_route_control_properties",
@@ -632,6 +637,37 @@ export const useRenameSegmentMutation = (
             });
             await options?.onSuccess?.(data, ...args);
         },
+    });
+};
+
+export const useMapSegmentCleaningSettingsQuery = () => {
+    return useQuery({
+        queryKey: [QueryKey.MapSegmentCleaningSettings],
+        queryFn: fetchMapSegmentCleaningSettings
+    });
+};
+
+export const useMapSegmentCleaningSettingsPropertiesQuery = () => {
+    return useQuery({
+        queryKey: [QueryKey.MapSegmentCleaningSettingsProperties],
+        queryFn: fetchMapSegmentCleaningSettingsProperties,
+
+        staleTime: Infinity
+    });
+};
+
+export const useMapSegmentCleaningSettingsMutation = () => {
+    const {
+        refetch: refetchSettings,
+    } = useMapSegmentCleaningSettingsQuery();
+
+    return useMutation({
+        mutationFn: sendMapSegmentCleaningSettings,
+        onError: useOnCommandError(Capability.MapSegmentCleaningSettings),
+        onSuccess: async () => {
+            // Waited for, so that the page shows the saved values as soon as the save is done
+            await refetchSettings().catch(() => {/*intentional*/});
+        }
     });
 };
 

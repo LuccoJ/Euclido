@@ -1,0 +1,180 @@
+{
+  "/api/v2/robot/capabilities/MapSegmentCleaningSettingsCapability": {
+    "get": {
+      "tags": [
+        "MapSegmentCleaningSettingsCapability"
+      ],
+      "summary": "Get the cleaning order and the cleaning settings of each segment",
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "order",
+                  "segments"
+                ],
+                "properties": {
+                  "order": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Segment ids in cleaning order. Segments that aren't listed are left to the robot"
+                  },
+                  "segments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "iterations": {
+                          "type": "number"
+                        },
+                        "operationMode": {
+                          "type": "string"
+                        },
+                        "fanSpeed": {
+                          "type": "string"
+                        },
+                        "waterGrade": {
+                          "type": "string"
+                        },
+                        "cleanRoute": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "put": {
+      "tags": [
+        "MapSegmentCleaningSettingsCapability"
+      ],
+      "summary": "Set the cleaning order and the cleaning settings of segments",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "order",
+                "segments"
+              ],
+              "properties": {
+                "order": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Segment ids in cleaning order. Segments that aren't listed are left to the robot"
+                },
+                "segments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "iterations": {
+                        "type": "number"
+                      },
+                      "operationMode": {
+                        "type": "string"
+                      },
+                      "fanSpeed": {
+                        "type": "string"
+                      },
+                      "waterGrade": {
+                        "type": "string"
+                      },
+                      "cleanRoute": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/200"
+        },
+        "400": {
+          "$ref": "#/components/responses/400"
+        }
+      }
+    }
+  },
+  "/api/v2/robot/capabilities/MapSegmentCleaningSettingsCapability/properties": {
+    "get": {
+      "tags": [
+        "MapSegmentCleaningSettingsCapability"
+      ],
+      "summary": "Get various capability-related properties",
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "iterationCount": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "operationModes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "fanSpeeds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "waterGrades": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "cleanRoutes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,12 @@
-import {Capability, useCleanSegmentsMutation, useMapSegmentationPropertiesQuery, useRobotStatusQuery} from "../../../api";
+import {
+    Capability,
+    capabilityToPresetType,
+    RobotAttributeClass,
+    useCleanSegmentsMutation,
+    useMapSegmentationPropertiesQuery,
+    useRobotAttributeQuery,
+    useRobotStatusQuery
+} from "../../../api";
 import React from "react";
 import {Box, Button, CircularProgress, Container, Grid2, Typography} from "@mui/material";
 import {ActionButton} from "../../Styled";
@@ -7,8 +15,10 @@ import {useLongPress} from "use-long-press";
 import {IterationsIcon} from "../../../assets/icon_components/IterationsIcon";
 import {
     Clear as ClearIcon,
-    PlayArrow as GoIcon
+    PlayArrow as GoIcon,
+    Tune as RoomSettingsIcon
 } from "@mui/icons-material";
+import {useNavigate} from "react-router-dom";
 
 interface SegmentActionsProperties {
     segments: string[];
@@ -21,6 +31,7 @@ const SegmentActions = (
 ): React.ReactElement => {
     const {segments, onClear} = props;
     const [iterationCount, setIterationCount] = React.useState(1);
+    const navigate = useNavigate();
     const [integrationHelpDialogOpen, setIntegrationHelpDialogOpen] = React.useState(false);
     const [integrationHelpDialogPayload, setIntegrationHelpDialogPayload] = React.useState("");
 
@@ -33,6 +44,13 @@ const SegmentActions = (
     } = useMapSegmentationPropertiesQuery();
     const {data: status} = useRobotStatusQuery((state) => {
         return state.value;
+    });
+    // In the personalized operation mode, every room is cleaned as often as its own settings say
+    const {data: personalized} = useRobotAttributeQuery(RobotAttributeClass.PresetSelectionState, (attributes) => {
+        return attributes.some((attribute) => {
+            return attribute.type === capabilityToPresetType[Capability.OperationModeControl] &&
+                (attribute.value as string) === "personalized";
+        });
     });
     const {
         mutate: executeSegmentAction,
@@ -51,21 +69,21 @@ const SegmentActions = (
 
         executeSegmentAction({
             segment_ids: segments,
-            iterations: iterationCount,
+            iterations: personalized ? 1 : iterationCount,
             customOrder: mapSegmentationProperties?.customOrderSupport
         });
-    }, [canClean, didSelectSegments, executeSegmentAction, segments, iterationCount, mapSegmentationProperties]);
+    }, [canClean, didSelectSegments, executeSegmentAction, segments, iterationCount, personalized, mapSegmentationProperties]);
 
     const handleLongClick = React.useCallback(() => {
         setIntegrationHelpDialogPayload(JSON.stringify({
             action: "start_segment_action",
             segment_ids: segments,
-            iterations: iterationCount ?? 1,
+            iterations: personalized ? 1 : (iterationCount ?? 1),
             customOrder: mapSegmentationProperties?.customOrderSupport ?? false
         }, null, 2));
 
         setIntegrationHelpDialogOpen(true);
-    }, [segments, iterationCount, mapSegmentationProperties]);
+    }, [segments, iterationCount, personalized, mapSegmentationProperties]);
 
     const setupClickHandlers = useLongPress(
         handleLongClick,
@@ -145,7 +163,24 @@ const SegmentActions = (
                     </ActionButton>
                 </Grid2>
                 {
-                    mapSegmentationProperties.iterationCount.max > 1 &&
+                    personalized &&
+                    <Grid2>
+                        <ActionButton
+                            color="inherit"
+                            size="medium"
+                            variant="extended"
+                            onClick={() => {
+                                navigate("/robot/room_settings");
+                            }}
+                            title="Each room is cleaned with its own settings"
+                        >
+                            <RoomSettingsIcon style={{marginRight: "0.25rem", marginLeft: "-0.25rem"}}/>
+                            Room settings
+                        </ActionButton>
+                    </Grid2>
+                }
+                {
+                    mapSegmentationProperties.iterationCount.max > 1 && !personalized &&
                     <Grid2>
                         <ActionButton
                             color="inherit"
