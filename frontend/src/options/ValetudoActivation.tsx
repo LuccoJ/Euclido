@@ -533,8 +533,8 @@ export const ActivationListMenuItem = (): React.ReactElement => {
     return (
         <>
             <ButtonListMenuItem
-                primaryLabel="Valetudo Activation"
-                secondaryLabel={isActivated ? "Activated with a digital license" : "Valetudo is not activated"}
+                primaryLabel="Euclido Activation"
+                secondaryLabel={isActivated ? "Activated with a digital license" : "Euclido is not activated"}
                 icon={isActivated ? <VerifiedIcon sx={{color: valetudoColors.green}}/> : <UnverifiedIcon/>}
                 buttonLabel={isActivated ? "Details" : "Activate"}
                 action={() => setOpen(true)}
@@ -543,7 +543,7 @@ export const ActivationListMenuItem = (): React.ReactElement => {
 
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
                 <DialogTitle>
-                    {isActivated ? "Valetudo Genuine Advantage" : "Activation Required"}
+                    {isActivated ? "Euclido Genuine Advantage" : "Activation Required"}
                 </DialogTitle>
                 <DialogContent>
                     <Box sx={{display: "flex", flexDirection: "column", gap: 2, mt: 1}}>
@@ -554,7 +554,7 @@ export const ActivationListMenuItem = (): React.ReactElement => {
                                     <Typography variant="h6">Licensed Product</Typography>
                                 </Box>
                                 <DialogContentText>
-                                    Valetudo is activated with a digital license.
+                                    Euclido is activated with a digital license.
                                 </DialogContentText>
 
                                 <Box sx={{
@@ -586,10 +586,10 @@ export const ActivationListMenuItem = (): React.ReactElement => {
                             <>
                                 <Box>
                                     <DialogContentText sx={{ color: "text.primary", fontWeight: 500 }}>
-                                        Your Evaluation License for Valetudo has expired.
+                                        Your Evaluation License for Euclido has expired.
                                     </DialogContentText>
                                     <DialogContentText sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                        Continued use of this software requires a valid <strong>Valetudo</strong> subscription.
+                                        Continued use of this software requires a valid <strong>Euclido</strong> subscription.
                                     </DialogContentText>
                                 </Box>
 
@@ -606,7 +606,7 @@ export const ActivationListMenuItem = (): React.ReactElement => {
                                         {">"} Cloud Activation
                                     </Typography>
                                     <Typography variant="caption" display="block" sx={{mb: 2, color: theme.palette.text.secondary, fontFamily: "monospace"}}>
-                                        Automatically fetch a license from the Valetudo Licensing Server.<br/>
+                                        Automatically fetch a license from the Euclido Licensing Server.<br/>
                                         Requires an active internet connection.
                                     </Typography>
 
@@ -617,7 +617,7 @@ export const ActivationListMenuItem = (): React.ReactElement => {
                                             startIcon={<CloudSync />}
                                             onClick={handleCloudSync}
                                         >
-                                            Activate Valetudo now
+                                            Activate Euclido now
                                         </Button>
                                     )}
                                     {cloudStatus === "connecting" && (

@@ -133,7 +133,7 @@ const Timers = (): React.ReactElement => {
                             <Typography
                                 sx={{padding:"1rem", textAlign: "center", marginTop: "10vh", marginBottom: "5vh"}}
                             >
-                                You currently don&apos;t have any timers configured in Valetudo.
+                                You currently don&apos;t have any timers configured in Euclido.
                             </Typography>
                     }
                 </Grid2>

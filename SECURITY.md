@@ -24,7 +24,6 @@ That doesn't mean that there couldn't be any mistakes, of course.
 For those, just talk like a normal person that wants to contribute to the betterment of the world (and not their personal brand).
 Then stuff should work out hassle-free.
 
-Further reading: [./CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md (not the TLD))
 
 ### Why does this file exist?
 

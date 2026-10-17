@@ -254,7 +254,7 @@ const NTPConnectivity = (): React.ReactElement => {
                 }}
             >
                 <Typography color="info">
-                    Valetudo needs a synchronized clock for timers to work and the log timestamps to make sense.
+                    Euclido needs a synchronized clock for timers to work and the log timestamps to make sense.
                     Additionally, anything using TLS (e.g. the inbuilt Updater) also requires the correct current time to work.
                 </Typography>
             </InfoBox>

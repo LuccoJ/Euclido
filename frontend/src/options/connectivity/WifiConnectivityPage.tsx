@@ -273,7 +273,7 @@ const WifiConnectivity = (): React.ReactElement => {
                     }}
                 >
                     <Typography color="info">
-                        To connect your robot to a different Wi-Fi network, you need to do a Wi-Fi reset and then configure the new one using Valetudo.
+                        To connect your robot to a different Wi-Fi network, you need to do a Wi-Fi reset and then configure the new one using Euclido.
                         For most Xiaomi-ecosystem-style robots, this means pressing and holding the two outer buttons
                         (usually &quot;Home&quot; and &quot;Spot Clean&quot; or &quot;Home&quot; and &quot;Power&quot; if there are just two) until the robot talks to you.
                         <br/><br/>

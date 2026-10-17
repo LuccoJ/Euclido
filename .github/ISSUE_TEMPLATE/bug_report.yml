@@ -1,5 +1,5 @@
 name: Bug Report
-description: Please only open a bug report when you're sure that it is in fact a bug in Valetudo
+description: Please only open a bug report when you're sure that it is in fact a bug in Euclido
 labels: ["bug"]
 body:
   - type: markdown
@@ -15,7 +15,7 @@ body:
         
         1. Genuinely and indisputably erroneous
         2. Reproducible
-        3. Clearly caused/controlled by Valetudo and **not** the vendor firmware
+        3. Clearly caused/controlled by Euclido and **not** the vendor firmware
         
         If something just doesn't behave like you'd expect it to, that is a support request.
         
@@ -56,7 +56,7 @@ body:
   - type: input
     id: valetudo-version
     attributes:
-      label: Please enter the Valetudo version you're using
+      label: Please enter the Euclido version you're using
     validations:
       required: true
 

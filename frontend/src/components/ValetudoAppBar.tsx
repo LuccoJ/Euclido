@@ -33,7 +33,6 @@ import {
     Info as AboutIcon,
     Help as HelpIcon,
     Tune as SegmentCleaningSettingsIcon,
-    SmartToy as AiIcon,
     SvgIconComponent
 } from "@mui/icons-material";
 import {Link, useLocation} from "react-router-dom";
@@ -269,15 +268,9 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     {
         kind: "MenuEntry",
         route: "/options/valetudo",
-        title: "Valetudo Options",
+        title: "Euclido Options",
         menuIcon: ValetudoMonochromeIcon,
-        menuText: "Valetudo"
-    },
-    {
-        kind: "MenuSubEntry",
-        route: "/options/valetudo/analytics",
-        title: "Analytics",
-        parentRoute: "/options/valetudo"
+        menuText: "Euclido"
     },
     {
         kind: "Subheader",
@@ -313,13 +306,6 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     },
     {
         kind: "MenuEntry",
-        route: "/valetudo/ai",
-        title: "AI Assistant",
-        menuIcon: AiIcon,
-        menuText: "AI Assistant"
-    },
-    {
-        kind: "MenuEntry",
         route: "/valetudo/help",
         title: "General Help",
         menuIcon: HelpIcon,
@@ -328,9 +314,9 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
     {
         kind: "MenuEntry",
         route: "/valetudo/about",
-        title: "About Valetudo",
+        title: "About Euclido",
         menuIcon: AboutIcon,
-        menuText: "About Valetudo"
+        menuText: "About Euclido"
     },
 ];
 
@@ -369,9 +355,9 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
         });
 
         if (ret !== "") {
-            document.title = `Valetudo - ${ret}`;
+            document.title = `Euclido - ${ret}`;
         } else {
-            document.title = "Valetudo";
+            document.title = "Euclido";
         }
 
         return currentMenuEntry.title;
@@ -523,11 +509,11 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                         <ListItemIcon>
                             <DocsIcon/>
                         </ListItemIcon>
-                        <ListItemText primary="Docs"/>
+                        <ListItemText primary="Docs (Valetudo)"/>
                     </ListItemButton>
                     <ListItemButton
                         component="a"
-                        href="https://github.com/Hypfer/Valetudo"
+                        href="https://github.com/LuccoJ/Euclido"
                         target="_blank"
                         rel="noopener"
                         onClick={(e) => e.stopPropagation()}
@@ -535,11 +521,11 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                         <ListItemIcon>
                             <GithubIcon/>
                         </ListItemIcon>
-                        <ListItemText primary="Hypfer/Valetudo"/>
+                        <ListItemText primary="LuccoJ/Euclido"/>
                     </ListItemButton>
                     <ListItemButton
                         component="a"
-                        href="https://github.com/sponsors/Hypfer"
+                        href="https://dontvacuum.me/"
                         target="_blank"
                         rel="noopener"
                         onClick={(e) => e.stopPropagation()}

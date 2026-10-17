@@ -22,7 +22,7 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import Logo from "./assets/icons/valetudo_logo_with_name.svg?react";
+import Logo from "./assets/icons/euclido_logo_with_name.svg?react";
 import React from "react";
 import {
     Refresh as RefreshIcon,
@@ -228,7 +228,7 @@ const ProvisioningPage = (): React.ReactElement => {
         }
 
         const items: Array<[header: string, body: string]> = [
-            ["Valetudo", version.release],
+            ["Euclido", version.release],
             ["Manufacturer", robotInformation.manufacturer],
             ["Model", robotInformation.modelName]
         ];
@@ -286,7 +286,7 @@ const ProvisioningPage = (): React.ReactElement => {
                     }}
                     align="center"
                 >
-                    Please join the robot to your Wi-Fi network to start using Valetudo
+                    Please join the robot to your Wi-Fi network to start using Euclido
                 </Typography>
                 <Divider/>
 
