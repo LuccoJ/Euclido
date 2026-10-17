@@ -46,6 +46,7 @@ const options = {
             {name: "MapResetCapability", description: "Map reset capability"},
             {name: "MapSegmentEditCapability", description: "Map segment edit capability"},
             {name: "MapSegmentRenameCapability", description: "Map segment rename capability"},
+            {name: "MapSegmentCleaningSettingsCapability", description: "Map segment cleaning settings capability"},
             {name: "MapSnapshotCapability", description: "Map snapshots capability"},
             {name: "PersistentMapControlCapability", description: "Persistent map control capability"},
             {name: "SpeakerTestCapability", description: "Speaker test capability"},

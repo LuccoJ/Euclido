@@ -32,6 +32,8 @@ import {
     MapSegmentEditJoinRequestParameters,
     MapSegmentEditSplitRequestParameters,
     MapSegmentMaterialControlProperties,
+    MapSegmentCleaningSettings,
+    MapSegmentCleaningSettingsProperties,
     MapSegmentMaterialControlRequestParameters,
     MapSegmentRenameRequestParameters,
     MopDockMopDryingDuration,
@@ -387,6 +389,40 @@ export const sendSetSegmentMaterialCommand = async (parameters: MapSegmentMateri
                 throw new Error("Could not set segment material");
             }
         });
+};
+
+export const fetchMapSegmentCleaningSettings = async (): Promise<MapSegmentCleaningSettings> => {
+    return valetudoAPI
+        .get<MapSegmentCleaningSettings>(`/robot/capabilities/${Capability.MapSegmentCleaningSettings}`)
+        .then(({data}) => {
+            return data;
+        });
+};
+
+export const fetchMapSegmentCleaningSettingsProperties = async (): Promise<MapSegmentCleaningSettingsProperties> => {
+    return valetudoAPI
+        .get<MapSegmentCleaningSettingsProperties>(
+            `/robot/capabilities/${Capability.MapSegmentCleaningSettings}/properties`
+        )
+        .then(({data}) => {
+            return data;
+        });
+};
+
+export const sendMapSegmentCleaningSettings = async (settings: MapSegmentCleaningSettings): Promise<void> => {
+    await valetudoAPI.put(`/robot/capabilities/${Capability.MapSegmentCleaningSettings}`, settings);
+};
+
+// For saving while the page is being left or closed: unlike a normal request, a keepalive one isn't cancelled then
+export const sendMapSegmentCleaningSettingsOnLeave = (settings: MapSegmentCleaningSettings): void => {
+    fetch(`${valetudoAPI.defaults.baseURL}/robot/capabilities/${Capability.MapSegmentCleaningSettings}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(settings),
+        keepalive: true
+    }).catch(() => {
+        /* intentional */
+    });
 };
 
 export const fetchMapSegmentMaterialControlProperties = async (): Promise<MapSegmentMaterialControlProperties> => {

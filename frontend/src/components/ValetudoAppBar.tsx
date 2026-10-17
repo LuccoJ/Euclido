@@ -32,6 +32,7 @@ import {
     Wysiwyg as SystemInformationIcon,
     Info as AboutIcon,
     Help as HelpIcon,
+    Tune as SegmentCleaningSettingsIcon,
     SmartToy as AiIcon,
     SvgIconComponent
 } from "@mui/icons-material";
@@ -129,6 +130,17 @@ const menuTree: Array<MenuEntry | MenuSubEntry | MenuSubheader> = [
         menuText: "Statistics",
         requiredCapabilities: {
             capabilities: [Capability.TotalStatistics],
+            type: "allof"
+        }
+    },
+    {
+        kind: "MenuEntry",
+        route: "/robot/room_settings",
+        title: "Room Settings",
+        menuIcon: SegmentCleaningSettingsIcon,
+        menuText: "Room Settings",
+        requiredCapabilities: {
+            capabilities: [Capability.MapSegmentCleaningSettings],
             type: "allof"
         }
     },
