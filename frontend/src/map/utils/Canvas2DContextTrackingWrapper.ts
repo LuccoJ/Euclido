@@ -84,7 +84,7 @@ export class Canvas2DContextTrackingWrapper {
 
     getScaleFactor() {
         return {
-            scaleX: Math.sqrt(this.currentTransform.a * this.currentTransform.a + this.currentTransform.b + this.currentTransform.b),
+            scaleX: Math.sqrt(this.currentTransform.a * this.currentTransform.a + this.currentTransform.b * this.currentTransform.b),
             scaleY: Math.sqrt(this.currentTransform.c * this.currentTransform.c + this.currentTransform.d * this.currentTransform.d)
         };
     }
