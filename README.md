@@ -1,7 +1,7 @@
 # Euclido
 
 Euclido is a fork of [Valetudo](https://github.com/Hypfer/Valetudo), the cloud replacement for vacuum robots,
-with "quality of life" additions mainlty targeted at for Eureka (Midea) robots such as the J15 series:
+with "quality of life" additions mainly targeted at Eureka (Midea) robots such as the J15 series:
 personalized room settings and room order, curtains and thresholds, more obstacle types and other conveniences.
 
 It is not made or supported by the Valetudo project, so please don't report problems with Euclido there.
@@ -15,7 +15,7 @@ The rest of this file is Valetudo's own README.
     <p align="center"><h2>Free your vacuum from the cloud</h2></p>
 </div>
 
-Valetudo and consequently Euclido are a cloud replacements for vacuum robots enabling local-only operation. It is not a custom firmware.<br/>
+Valetudo, and consequently Euclido, are cloud replacements for vacuum robots enabling local-only operation. They are not custom firmware.<br/>
 Here's a diagram illustrating the core operation principle:
 
 [<img src="https://github.com/Hypfer/valetudo/raw/master/docs/pages/general/img/operation_principle.png" height=450>](https://github.com/Hypfer/valetudo/raw/master/docs/pages/general/img/operation_principle.png)
@@ -37,10 +37,6 @@ Additionally, it integrates with Home Assistant and other smarthome systems usin
 Being a generic abstraction, Valetudo won't be a "feature-complete" reimplementation of the vendor apps, as that would also
 mean inheriting all of their technical debt.
 It does however support everything you need to have a proper, modern, cloud-free robot vacuum.
-
-While being published under the Apache-2.0 license and clearly being FOSS, the governance and development model Valetudo operates under
-is to be understood as that of "Freeware with source available". It is evidently much more than that when it comes to the freedoms provided by true FOSS,
-but it is not the FOSS that only knows "community-driven" you might be used to from corporate co-option and come to expect when you read "FOSS".
 
 For more information, check out the [newcomer guide](https://valetudo.cloud/pages/general/newcomer-guide/),
 the [getting started guide](https://valetudo.cloud/pages/general/getting-started/) 
