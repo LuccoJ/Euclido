@@ -16,9 +16,18 @@ class ValetudoHelper {
         this.eventEmitter = new EventEmitter();
 
 
+        this.lastFriendlyName = this.config.get("valetudo").customizations.friendlyName;
+
         this.config.onUpdate((key) => {
             if (key === "valetudo") {
-                this.eventEmitter.emit(FRIENDLY_NAME_CHANGED);
+                // Other settings live in the same section, e.g. the map rotation. Those shouldn't restart
+                // everything that depends on the name
+                const friendlyName = this.config.get("valetudo").customizations.friendlyName;
+
+                if (friendlyName !== this.lastFriendlyName) {
+                    this.lastFriendlyName = friendlyName;
+                    this.eventEmitter.emit(FRIENDLY_NAME_CHANGED);
+                }
             }
         });
     }
