@@ -3,9 +3,7 @@ export const VoicepackHelp = `
 
 Custom voice packs are a bit more complicated as the exact format differs depending on your choice of robot.
 
-As I personally don't really care about them, this feature is a bit rough around the edges.
-For me, these things are first and foremost tools that should simply work and do so reliably.
-Thus, I'm fine with it just talking english as that's perfectly serviceable for a tool.
+This feature is a bit rough around the edges.
 
 If you want to install a custom one anyways, you will need a voicepack in the correct format as required by your
 robot hosted on some http server. Note that the official CDN is often blocked in the robots firmware meaning that just

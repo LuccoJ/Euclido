@@ -6,10 +6,9 @@ The Euclido updater is a convenience feature aiming to make life with Euclido a 
 As it is built with privacy in mind, you will have to manually click a button to make it search for newer versions of Euclido.
 No daily update check means no daily pings to some external server.
 
-By default, it's polling the GitHub API, meaning that I am not able to collect any data about you.
+It checks the builds published on GitHub, so no other server learns anything about you.
 
-**Note: The updater will always try to update you to the next chronological release. If you're multiple releases behind,
-you will have to update multiple times in a row.**
+Euclido currently only publishes nightly builds, so the updater always offers the latest one.
 
 As the updater is just a convenience feature, there might be situations in which it doesn't work. In those situations,
 you will have to do a manual update, which usually involves SSH access to the robot.
