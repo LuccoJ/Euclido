@@ -21,8 +21,6 @@ import {SelectListMenuItem, SelectListMenuItemOption} from "../components/list_m
 import {SpacerListMenuItem} from "../components/list_menu/SpacerListMenuItem";
 import { TextEditModalListMenuItem } from "../components/list_menu/TextEditModalListMenuItem";
 import { DuststreamingListMenuItem } from "../components/list_menu/DuststreamingListMenuItem";
-import { ActivationListMenuItem } from "./ValetudoActivation";
-import {isAprilFools} from "../utils";
 
 
 const ConfigRestoreButtonListMenuItem = (): React.ReactElement => {
@@ -149,13 +147,6 @@ const ValetudoOptions = (): React.ReactElement => {
             items.push(
                 <SpacerListMenuItem key={"spacer1"}/>,
                 <DuststreamingListMenuItem key={"duststreaming"}/>
-            );
-        }
-
-        if (isAprilFools) {
-            items.unshift(
-                <ActivationListMenuItem key={"activation"}/>,
-                <SpacerListMenuItem key={"spacer2"}/>
             );
         }
 
