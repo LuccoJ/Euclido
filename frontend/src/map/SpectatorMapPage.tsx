@@ -4,6 +4,7 @@ import {
     useDuststreamingConfigurationQuery,
     useDuststreamingPropertiesQuery,
     useRobotMapQuery,
+    useMapRotation,
 } from "../api";
 import React from "react";
 import {useCapabilitiesSupported} from "../CapabilitiesProvider";
@@ -119,6 +120,8 @@ const SpectatorMapPage = (): React.ReactElement => {
 
     const theme = useTheme();
 
+    const mapRotation = useMapRotation();
+
     if (mapLoadError) {
         return (
             <Container>
@@ -179,6 +182,7 @@ const SpectatorMapPage = (): React.ReactElement => {
                     <SpectatorMap
                         rawMap={mapData}
                         paletteMode={theme.palette.mode}
+                        rotation={mapRotation}
                     />
                 </Box>
                 <Box
@@ -211,6 +215,7 @@ const SpectatorMapPage = (): React.ReactElement => {
             <SpectatorMap
                 rawMap={mapData}
                 paletteMode={theme.palette.mode}
+                rotation={mapRotation}
             />
             {showCamera && duststreamingProperties && (
                 <Box

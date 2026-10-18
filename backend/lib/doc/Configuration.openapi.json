@@ -108,6 +108,11 @@
             "type": "string",
             "pattern": "^[a-zA-Z0-9 -]{0,24}$",
             "description": "An optional user-defined friendly name for the Valetudo instance"
+          },
+          "mapRotation": {
+            "type": "integer",
+            "enum": [0, 90, 180, 270],
+            "description": "How far the map is rotated clockwise when shown, in degrees. Only affects how it is displayed"
           }
         }
       },

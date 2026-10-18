@@ -6,6 +6,7 @@ import {useCapabilitiesSupported} from "../CapabilitiesProvider";
 import {Capability, useDuststreamingConfigurationQuery} from "../api";
 import React from "react";
 import RobotCoverageMapPage from "../map/RobotCoverageMapPage";
+import MapOrientationPage from "../map/MapOrientationPage";
 import SpectatorMapPage from "../map/SpectatorMapPage";
 
 const OptionsRouter = (): React.ReactElement => {
@@ -73,6 +74,7 @@ const OptionsRouter = (): React.ReactElement => {
             }
 
             <Route path={"robot_coverage"} element={<RobotCoverageMapPage/>}/>
+            <Route path={"maps"} element={<MapOrientationPage/>}/>
 
             <Route path={"spectator"} element={duststreamingPossible ? <SpectatorMapPage/> : <Navigate to="/" />}/>
 

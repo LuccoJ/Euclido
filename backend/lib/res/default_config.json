@@ -75,7 +75,8 @@
     },
     "valetudo": {
         "customizations": {
-            "friendlyName": ""
+            "friendlyName": "",
+            "mapRotation": 0
         }
     },
     "_version": ""

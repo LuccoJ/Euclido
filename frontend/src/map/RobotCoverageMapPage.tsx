@@ -1,7 +1,8 @@
 import {Box, Button, CircularProgress, styled, Typography, useTheme} from "@mui/material";
 import {
     useRobotMapQuery,
-    useRobotStatusQuery
+    useRobotStatusQuery,
+    useMapRotation,
 } from "../api";
 import RobotCoverageMap from "./RobotCoverageMap";
 import {RobotCoverageMapHelp} from "./res/RobotCoverageMapHelp";
@@ -30,6 +31,8 @@ const RobotCoverageMapPage = (): React.ReactElement => {
     } = useRobotStatusQuery();
 
     const theme = useTheme();
+
+    const mapRotation = useMapRotation();
 
     if (mapLoadError) {
         return (
@@ -72,6 +75,7 @@ const RobotCoverageMapPage = (): React.ReactElement => {
     return <RobotCoverageMap
         rawMap={mapData}
         paletteMode={theme.palette.mode}
+        rotation={mapRotation}
         helpText={RobotCoverageMapHelp}
     />;
 };
