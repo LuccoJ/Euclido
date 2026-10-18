@@ -181,7 +181,7 @@ class MideaMapParser {
         if (this.lastLoggedUpdates[type] !== raw) {
             this.lastLoggedUpdates[type] = raw;
 
-            Logger.info(`Map update '${type}' (${typeof data}${Buffer.isBuffer(data) ? ", buffer" : ""}): ${raw?.slice(0, 2000)}`);
+            Logger.debug(`Map update '${type}' (${typeof data}${Buffer.isBuffer(data) ? ", buffer" : ""}): ${raw?.slice(0, 2000)}`);
         }
     }
 

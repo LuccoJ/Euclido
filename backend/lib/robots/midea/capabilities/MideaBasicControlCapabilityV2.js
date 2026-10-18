@@ -40,7 +40,7 @@ class MideaBasicControlCapabilityV2 extends BasicControlCapability {
             )
         });
 
-        Logger.info(`Sending ${command === 6 ? "resume" : "start"}. Robot last reported operation mode ${this.robot.lastRawOperationMode}.`);
+        Logger.debug(`Sending ${command === 6 ? "resume" : "start"}. Robot last reported operation mode ${this.robot.lastRawOperationMode}.`);
 
         await this.robot.sendCommand(packet.toHexString());
         await this.robot.pollState(); // for good measure

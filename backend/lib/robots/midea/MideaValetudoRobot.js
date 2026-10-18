@@ -320,7 +320,7 @@ class MideaValetudoRobot extends ValetudoRobot {
             });
 
             if (data.mopMode !== this.lastRawOperationMode) {
-                Logger.info(`Operation mode reported by the robot changed from ${this.lastRawOperationMode} to ${data.mopMode} (${matchingOperationMode ?? "unknown"})`);
+                Logger.debug(`Operation mode reported by the robot changed from ${this.lastRawOperationMode} to ${data.mopMode} (${matchingOperationMode ?? "unknown"})`);
                 this.lastRawOperationMode = data.mopMode;
             }
 
@@ -527,7 +527,7 @@ class MideaValetudoRobot extends ValetudoRobot {
 
         this.lastObstacleSoundTimestamp = now;
         this.lastObstacleSoundTimestampByName.set(name, now);
-        Logger.info(`Playing ${file} for a newly detected obstacle`);
+        Logger.debug(`Playing ${file} for a newly detected obstacle`);
 
         execFile("mp3play.sh", [file], (err) => {
             if (err) {

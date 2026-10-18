@@ -46,7 +46,7 @@ class MideaRoomOrderManager {
             this.state = Object.assign(this.state, this.store.get());
 
             if (this.state.toReset.length > 0) {
-                Logger.info(`Room order: rooms [${this.state.toReset.join(", ")}] still need their cleanSeq reset`);
+                Logger.debug(`Room order: rooms [${this.state.toReset.join(", ")}] still need their cleanSeq reset`);
             }
             if (!Array.isArray(this.state.savedOrder)) {
                 this.importSavedOrder();
@@ -96,7 +96,7 @@ class MideaRoomOrderManager {
             return rooms[id] && rooms[id].cleanSeq !== desired[id];
         });
 
-        Logger.info(
+        Logger.debug(
             `Room order: wanted [${roomIds.join(", ")}]. Rooms to change: ` +
             (changes.map(id => {
                 return `${id} ${rooms[id].cleanSeq}->${desired[id]}`;
@@ -139,7 +139,7 @@ class MideaRoomOrderManager {
                 return rooms[id] && rooms[id].cleanSeq !== this.getSavedSeq(id);
             });
 
-            Logger.info(`Room order: job over, resetting cleanSeq for rooms [${changes.map(id => {
+            Logger.debug(`Room order: job over, resetting cleanSeq for rooms [${changes.map(id => {
                 return `${id} ${rooms[id].cleanSeq}->${this.getSavedSeq(id)}`;
             }).join(", ")}]`);
 
@@ -281,7 +281,7 @@ class MideaRoomOrderManager {
         for (const room of wanted) {
             const stored = after[room.id];
 
-            Logger.info(
+            Logger.debug(
                 `Room order: room ${room.id} after the write: ${describe(stored)}` +
                 ` (${path.basename(ROOM_CFG_OTHER_PATH)}: ${describe(otherFile[room.id])})`
             );
@@ -346,14 +346,14 @@ class MideaRoomOrderManager {
             records
         ]);
 
-        Logger.info(`Room order: sending 0x2B ${payload.toString("hex")}`);
+        Logger.debug(`Room order: sending 0x2B ${payload.toString("hex")}`);
 
         const response = await this.robot.sendCommand(new MSmartPacket({
             messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
             payload: payload
         }).toHexString());
 
-        Logger.info(`Room order: 0x2B response payload: ${response?.payload?.toString("hex")}`);
+        Logger.debug(`Room order: 0x2B response payload: ${response?.payload?.toString("hex")}`);
     }
 
     /**
