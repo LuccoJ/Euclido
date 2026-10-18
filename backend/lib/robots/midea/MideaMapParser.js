@@ -36,6 +36,8 @@ class MideaMapParser {
         this.onNewObstacle = undefined;
         /** @type {Set<string>|undefined} ids of the obstacles reported so far, undefined until the first report */
         this.knownObstacleIds = undefined;
+        /** @type {number|undefined} the robot's last known heading, for when the path doesn't show one */
+        this.lastRobotAngle = undefined;
 
         this.reset();
     }
@@ -583,13 +585,21 @@ class MideaMapParser {
                     lastPathPoints[lastPathPoints.length - 1]
                 ];
 
-                let robotAngle = 0;
-                if (lastPathPoints.length >= 4) {
-                    robotAngle = (Math.round(Math.atan2(
-                        robotPositionCoordinates[1] - lastPathPoints[lastPathPoints.length - 3],
-                        robotPositionCoordinates[0] - lastPathPoints[lastPathPoints.length - 4]
-                    ) * 180 / Math.PI) + 90) % 360; //TODO: No idea why
+                // The heading is the direction of the last step the robot actually moved. The path often ends with the
+                // same point repeated while the robot stands still, and such a zero-length step has no direction,
+                // so look further back for a point that differs. Without one, keep the last known heading.
+                // Valetudo's angle 0 points up, while atan2's 0 points right, hence the 90 degrees
+                let robotAngle = this.lastRobotAngle ?? 0;
+                for (let i = lastPathPoints.length - 4; i >= 0; i -= 2) {
+                    const dx = robotPositionCoordinates[0] - lastPathPoints[i];
+                    const dy = robotPositionCoordinates[1] - lastPathPoints[i + 1];
+
+                    if (dx !== 0 || dy !== 0) {
+                        robotAngle = (Math.round(Math.atan2(dy, dx) * 180 / Math.PI) + 90 + 360) % 360;
+                        break;
+                    }
                 }
+                this.lastRobotAngle = robotAngle;
 
                 entities.push(new mapEntities.PointMapEntity({
                     points: robotPositionCoordinates,
