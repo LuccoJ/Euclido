@@ -13,45 +13,26 @@ class MideaMapSegmentMaterialControlCapability extends MapSegmentMaterialControl
      * @returns {Promise<void>}
      */
     async setMaterial(segment, material) {
-        const segments = this.robot.state.map.getSegments();
-
-        const segmentMaterialMap = {};
-        for (const _segment of segments) {
-            segmentMaterialMap[_segment.id] = _segment.material;
+        // Only the room being changed is sent. The robot marks every room it receives as set by hand
+        // (groundMaterialIsEdited), and it only detects the floor itself for rooms that aren't
+        let rawMaterialType;
+        switch (material) {
+            case MideaMapSegmentMaterialControlCapability.MATERIAL.GENERIC:
+                rawMaterialType = 0;
+                break;
+            case MideaMapSegmentMaterialControlCapability.MATERIAL.WOOD:
+                rawMaterialType = 2;
+                break;
+            case MideaMapSegmentMaterialControlCapability.MATERIAL.TILE:
+                rawMaterialType = 3;
+                break;
         }
 
-        segmentMaterialMap[segment.id] = material;
-
-        const segmentCount = segments.length;
-
-        const payload = Buffer.alloc(1 + (segmentCount * 2));
-        payload[0] = segmentCount;
-
-        let offset = 1;
-        for (const _segment of segments) {
-            let rawMaterialType;
-            switch (segmentMaterialMap[_segment.id]) {
-                case MideaMapSegmentMaterialControlCapability.MATERIAL.GENERIC:
-                    rawMaterialType = 0;
-                    break;
-                case MideaMapSegmentMaterialControlCapability.MATERIAL.WOOD:
-                    rawMaterialType = 2;
-                    break;
-                case MideaMapSegmentMaterialControlCapability.MATERIAL.TILE:
-                    rawMaterialType = 3;
-                    break;
-            }
-
-            if (rawMaterialType === undefined) {
-                throw new Error(`Unhandled material ${segmentMaterialMap[_segment.id]}`);
-            }
-
-
-            payload[offset] = parseInt(_segment.id);
-            payload[offset+1] = rawMaterialType;
-
-            offset = offset + 2;
+        if (rawMaterialType === undefined) {
+            throw new Error(`Unhandled material ${material}`);
         }
+
+        const payload = Buffer.from([1, parseInt(segment.id), rawMaterialType]);
 
         const packet = new MSmartPacket({
             messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
