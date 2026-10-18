@@ -80,6 +80,7 @@ class MideaJ15UltraValetudoRobot extends MideaModernValetudoRobot {
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.AI_OBSTACLE_CLASSIFICATION),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.QUIET_AUTO_EMPTY),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.CLIFF_SENSORS),
+                quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.EMERGENCY_LIGHT),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.CARPET_FIRST),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.DEEP_CARPET_CLEANING),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.INCREASED_CARPET_AVOIDANCE),
