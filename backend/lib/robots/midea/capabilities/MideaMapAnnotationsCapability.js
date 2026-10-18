@@ -124,7 +124,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             });
         });
 
-        Logger.info(
+        Logger.debug(
             `Sending ${records.length} ${setting === MSmartConst.SETTING.SET_CURTAINS ? "curtain" : "threshold"}(s), ` +
             `action ${action === ACTION.SET ? "set" : "delete"}. Payload: ${payload.toString("hex")}`
         );
@@ -136,7 +136,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 
         const response = await this.robot.sendCommand(packet.toHexString());
 
-        Logger.info(`Map annotation response payload: ${response?.payload?.toString("hex")}`);
+        Logger.debug(`Map annotation response payload: ${response?.payload?.toString("hex")}`);
     }
 
     /**

@@ -320,7 +320,7 @@ class MideaValetudoRobot extends ValetudoRobot {
             });
 
             if (data.mopMode !== this.lastRawOperationMode) {
-                Logger.info(`Operation mode reported by the robot changed from ${this.lastRawOperationMode} to ${data.mopMode} (${matchingOperationMode ?? "unknown"})`);
+                Logger.debug(`Operation mode reported by the robot changed from ${this.lastRawOperationMode} to ${data.mopMode} (${matchingOperationMode ?? "unknown"})`);
                 this.lastRawOperationMode = data.mopMode;
             }
 
@@ -520,7 +520,7 @@ class MideaValetudoRobot extends ValetudoRobot {
         });
 
         if (!file) {
-            Logger.debug(`No sound file for obstacle "${name}"`);
+            Logger.info(`No sound file for obstacle "${name}"`);
 
             return;
         }
