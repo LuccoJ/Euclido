@@ -1217,7 +1217,7 @@ export const fetchValetudoCustomizations = async (): Promise<ValetudoCustomizati
         });
 };
 
-export const sendValetudoCustomizations = async (customizations: ValetudoCustomizations): Promise<void> => {
+export const sendValetudoCustomizations = async (customizations: Partial<ValetudoCustomizations>): Promise<void> => {
     return valetudoAPI
         .put("/valetudo/config/customizations", customizations)
         .then(({status}) => {

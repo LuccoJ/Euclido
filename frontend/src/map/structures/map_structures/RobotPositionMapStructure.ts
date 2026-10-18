@@ -49,7 +49,8 @@ class RobotPositionMapStructure extends MapStructure {
         const rotatedImg = rotateRobot(
             this.getOptimizedImage(img, scaledSize.width, scaledSize.height),
             scaledSize,
-            this.angle
+            // The robot's heading on the map, plus however much the map itself is rotated on screen
+            this.angle + Math.atan2(transformationMatrixToScreenSpace.b ?? 0, transformationMatrixToScreenSpace.a ?? 1) * 180 / Math.PI
         );
 
 

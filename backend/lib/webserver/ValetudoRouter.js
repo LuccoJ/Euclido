@@ -182,9 +182,17 @@ class ValetudoRouter {
         });
 
         this.router.put("/config/customizations", this.validator, (req, res) => {
-            if (typeof req.body.friendlyName === "string") {
+            const hasFriendlyName = typeof req.body.friendlyName === "string";
+            const hasMapRotation = [0, 90, 180, 270].includes(req.body.mapRotation);
+
+            if (hasFriendlyName || hasMapRotation) {
                 const valetudoConfig = this.config.get("valetudo");
-                valetudoConfig.customizations.friendlyName = req.body.friendlyName;
+                if (hasFriendlyName) {
+                    valetudoConfig.customizations.friendlyName = req.body.friendlyName;
+                }
+                if (hasMapRotation) {
+                    valetudoConfig.customizations.mapRotation = req.body.mapRotation;
+                }
                 this.config.set("valetudo", valetudoConfig);
 
                 res.sendStatus(200);

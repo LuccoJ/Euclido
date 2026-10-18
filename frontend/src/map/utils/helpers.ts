@@ -47,11 +47,12 @@ type Box = {
 }
 
 export function isInsideBox(point: PointCoordinates, box: Box) {
+    // The two corners can be in any order on screen, e.g. when the map is shown rotated
     return (
-        point.x >= box.topLeftBound.x &&
-        point.x <= box.bottomRightBound.x &&
-        point.y >= box.topLeftBound.y &&
-        point.y <= box.bottomRightBound.y
+        point.x >= Math.min(box.topLeftBound.x, box.bottomRightBound.x) &&
+        point.x <= Math.max(box.topLeftBound.x, box.bottomRightBound.x) &&
+        point.y >= Math.min(box.topLeftBound.y, box.bottomRightBound.y) &&
+        point.y <= Math.max(box.topLeftBound.y, box.bottomRightBound.y)
     );
 }
 

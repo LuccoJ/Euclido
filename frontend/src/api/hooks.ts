@@ -1623,10 +1623,19 @@ export const useValetudoCustomizationsQuery = () => {
     });
 };
 
+/**
+ * How far the map is rotated clockwise when shown, in degrees
+ */
+export const useMapRotation = (): number => {
+    const {data} = useValetudoCustomizationsQuery();
+
+    return data?.mapRotation ?? 0;
+};
+
 export const useValetudoCustomizationsMutation = () => {
     return useValetudoFetchingMutation({
         queryKey: [QueryKey.ValetudoCustomizations],
-        mutationFn: (configuration: ValetudoCustomizations) => {
+        mutationFn: (configuration: Partial<ValetudoCustomizations>) => {
             return sendValetudoCustomizations(configuration).then(fetchValetudoCustomizations);
         },
         onError: useOnSettingsChangeError("Euclido Customizations")
