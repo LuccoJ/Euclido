@@ -15,6 +15,7 @@ import {
     LayersClear as MapResetIcon,
     Dashboard as SegmentEditIcon,
     Crop as CleanupCoverageIcon,
+    ScreenRotation as MapsIcon,
     Download as ValetudoMapDownloadIcon,
     EditNote as MapAnnotationsIcon,
     Videocam as SpectatorIcon,
@@ -277,6 +278,13 @@ const MapManagement = (): React.ReactElement => {
 
     const utilityMapItems = React.useMemo(() => {
         const items = [
+            <LinkListMenuItem
+                key="maps"
+                url="/options/map_management/maps"
+                primaryLabel="Maps"
+                secondaryLabel="Turn the map to the orientation you prefer"
+                icon={<MapsIcon/>}
+            />,
             <LinkListMenuItem
                 key="robotCoverageMap"
                 url="/options/map_management/robot_coverage"

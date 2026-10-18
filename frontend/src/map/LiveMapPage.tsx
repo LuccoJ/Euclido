@@ -1,5 +1,5 @@
 import {Box, Button, CircularProgress, styled, Typography, useTheme} from "@mui/material";
-import {Capability, prefetchObstacleImagesProperties, useMapSegmentationPropertiesQuery, useRobotMapQuery} from "../api";
+import {Capability, prefetchObstacleImagesProperties, useMapSegmentationPropertiesQuery, useRobotMapQuery, useMapRotation} from "../api";
 import LiveMap from "./LiveMap";
 import {useCapabilitiesSupported} from "../CapabilitiesProvider";
 import React from "react";
@@ -55,6 +55,8 @@ const LiveMapPage = (props: Record<string, never> ): React.ReactElement => {
 
     const theme = useTheme();
 
+    const mapRotation = useMapRotation();
+
     if (mapLoadError) {
         return (
             <Container>
@@ -91,6 +93,7 @@ const LiveMapPage = (props: Record<string, never> ): React.ReactElement => {
     return <LiveMap
         rawMap={mapData}
         paletteMode={theme.palette.mode}
+        rotation={mapRotation}
         trackSegmentSelectionOrder={mapSegmentationProperties ? mapSegmentationProperties.customOrderSupport : false}
 
         supportedCapabilities={{

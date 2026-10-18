@@ -2,7 +2,8 @@ import {Box, Button, CircularProgress, styled, Typography, useTheme} from "@mui/
 import {
     Capability,
     useRobotMapQuery,
-    useRobotStatusQuery
+    useRobotStatusQuery,
+    useMapRotation,
 } from "../api";
 import {useCapabilitiesSupported} from "../CapabilitiesProvider";
 import EditMap, { mode } from "./EditMap";
@@ -55,6 +56,8 @@ const EditMapPage = (props: {
     );
 
     const theme = useTheme();
+
+    const mapRotation = useMapRotation();
     const {enqueueSnackbar} = useSnackbar();
 
     let helpText = "";
@@ -108,6 +111,7 @@ const EditMapPage = (props: {
     return <EditMap
         rawMap={mapData}
         paletteMode={theme.palette.mode}
+        rotation={mapRotation}
         mode={props.mode}
         helpText={helpText}
         robotStatus={robotStatus}

@@ -629,6 +629,7 @@ export interface RobotProperties {
 
 export interface ValetudoCustomizations {
     friendlyName: string;
+    mapRotation?: number;
 }
 
 export type CarpetSensorMode = "off" | "avoid" | "cross" | "lift" | "detach";
