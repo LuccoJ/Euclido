@@ -534,7 +534,7 @@ class MideaValetudoRobot extends ValetudoRobot {
             return sum + n;
         }, 0);
 
-        Logger.info(
+        Logger.debug(
             `Map updates in the last ${Math.round((now - stats.since) / 1000)}s: ${count} parts ` +
             `(${Object.entries(stats.parts).map(([type, n]) => {
                 return `${type}: ${n}`;
