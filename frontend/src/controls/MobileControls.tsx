@@ -1,8 +1,62 @@
-import {Box, Grid2, Icon, Paper, styled} from "@mui/material";
+import {Box, Grid2, Icon, Paper, styled, Typography} from "@mui/material";
 import ControlsBody from "./ControlsBody";
-import Logo from "../assets/icons/valetudo_logo_with_name.svg?react";
-import {ExpandLess as OpenIcon, ExpandMore as CloseIcon,} from "@mui/icons-material";
+import {
+    AppRegistration as OperationModeIcon,
+    ExpandLess as OpenIcon,
+    ExpandMore as CloseIcon,
+} from "@mui/icons-material";
 import React from "react";
+import {PresetSelectionState, RobotAttributeClass, useRobotAttributeQuery, useRobotStatusQuery} from "../api";
+import {FanSpeedMediumIcon, WaterGradeLowIcon} from "../components/CustomIcons";
+import {presetFriendlyNames} from "../presetUtils";
+
+const capitalize = (value: string): string => {
+    return value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, " ");
+};
+
+/**
+ * What the collapsed controls show: the robot's state and its current mode, fan speed and water usage.
+ * Only a reminder, tapping it opens the controls to change them
+ */
+const ControlsSummary = (): React.ReactElement => {
+    const {data: status} = useRobotStatusQuery();
+    const {data: presets} = useRobotAttributeQuery(RobotAttributeClass.PresetSelectionState);
+    const preset = (type: PresetSelectionState["type"]): string | undefined => {
+        const value = presets?.find(p => {
+            return p.type === type;
+        })?.value;
+
+        return value !== undefined ? (presetFriendlyNames[value] ?? capitalize(value)) : undefined;
+    };
+
+    const items: Array<[React.ReactElement, string | undefined]> = [
+        [<OperationModeIcon key="mode" fontSize="small"/>, preset("operation_mode")],
+        [<FanSpeedMediumIcon key="fan" fontSize="small"/>, preset("fan_speed")],
+        [<WaterGradeLowIcon key="water" fontSize="small"/>, preset("water_grade")],
+    ];
+
+    return (
+        <Box sx={{display: "flex", flexDirection: "column", justifyContent: "center", height: "100%", minWidth: 0}}>
+            <Typography variant="caption" color="text.secondary" noWrap>
+                {status ? capitalize(status.value) + (status.flag !== "none" ? ` (${capitalize(status.flag)})` : "") : ""}
+            </Typography>
+            <Box sx={{display: "flex", alignItems: "center", columnGap: "0.75rem", minWidth: 0}}>
+                {
+                    items.filter(([, value]) => {
+                        return value !== undefined;
+                    }).map(([icon, value]) => {
+                        return (
+                            <Box key={icon.key} sx={{display: "flex", alignItems: "center", gap: "0.25rem", minWidth: 0}}>
+                                {icon}
+                                <Typography variant="body2" noWrap>{value}</Typography>
+                            </Box>
+                        );
+                    })
+                }
+            </Box>
+        </Box>
+    );
+};
 
 const MobileControls: React.FunctionComponent<{ open: boolean, setOpen: (newOpen: boolean) => void }> = ({
     open,
@@ -58,13 +112,9 @@ const MobileControls: React.FunctionComponent<{ open: boolean, setOpen: (newOpen
                     setOpen(!open);
                 }}
             >
-                <Grid2>
-                    <Box px={2} pt={2} pb={1}>
-                        <Logo
-                            style={{}}
-                            width={200}
-                            height={36}
-                        />
+                <Grid2 sx={{flex: 1, minWidth: 0}}>
+                    <Box px={2} py={1} sx={{height: "100%", boxSizing: "border-box"}}>
+                        <ControlsSummary/>
                     </Box>
                 </Grid2>
                 <Grid2 sx={{

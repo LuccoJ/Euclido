@@ -17,7 +17,7 @@ class ValetudoEventsNodeMqttHandle extends NodeMqttHandle {
     constructor(options) {
         super(Object.assign(options, {
             topicName: "ValetudoEvents",
-            friendlyName: "Valetudo Events",
+            friendlyName: "Euclido Events",
             type: "Events"
         }));
 

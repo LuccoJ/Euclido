@@ -100,7 +100,7 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
                 }}
             >
                 <Typography color="info">
-                    To allow quick autodiscovery by the companion apps, Valetudo advertises its presence on your
+                    To allow quick autodiscovery by the companion apps, Euclido advertises its presence on your
                     local network using mDNS/Bonjour and SSDP/UPnP.
                     It is not recommended to disable this feature, as it will break those companion apps.
                     <br/><br/>
@@ -108,7 +108,7 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
                     the moment they don&apos;t anymore. They&apos;re using Multicast broadcasts, which, by-default, cannot traverse
                     subnet boundaries. It is also a networking feature obscure enough to still sometimes be broken
                     by bad Wi-Fi driver or OS updates, misconfiguration or just broken hardware in general.<br/>
-                    They are, however, optional, as you just need to know the IP of the robot to talk with Valetudo.
+                    They are, however, optional, as you just need to know the IP of the robot to talk with Euclido.
                     You can get that from your router&apos;s webinterface and then e.g., create a browser bookmark for it.
                 </Typography>
             </InfoBox>

@@ -35,7 +35,7 @@ class ValetudoHelper {
         if (this.hasFriendlyName()) {
             return valetudoConfig.customizations.friendlyName;
         } else {
-            return `Valetudo ${this.robot.getModelName()} ${Tools.GET_HUMAN_READABLE_SYSTEM_ID()}`;
+            return `Euclido ${this.robot.getModelName()} ${Tools.GET_HUMAN_READABLE_SYSTEM_ID()}`;
         }
     }
 

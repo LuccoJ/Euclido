@@ -761,12 +761,12 @@ const MQTTConnectivity = (): React.ReactElement => {
                 }}
             >
                 <Typography color="info">
-                    Valetudo is developed against and tested with the Mosquitto MQTT broker.<br/>
+                    Euclido is developed against and tested with the Mosquitto MQTT broker.<br/>
                     In an ideal world, any broker would work, but in reality, some only implement subsets of the MQTT spec.
                     Thus, if you&apos;re experiencing any issues, try Mosquitto.
                     <br/>
                     Another common issue are incorrectly configured ACLs. Because the MQTT v3 protocol does not provide
-                    feedback on ACL failures, Valetudo cannot report these, meaning that things fail silently.
+                    feedback on ACL failures, Euclido cannot report these, meaning that things fail silently.
                 </Typography>
             </InfoBox>
 
