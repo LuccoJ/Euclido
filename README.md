@@ -1,8 +1,8 @@
 # Euclido
 
 Euclido is a fork of [Valetudo](https://github.com/Hypfer/Valetudo), the cloud replacement for vacuum robots,
-with additions for Eureka (Midea) robots such as the J15 series: personalized room settings and room order,
-curtains and thresholds, more obstacle types and other conveniences.
+with "quality of life" additions mainly targeted at Eureka (Midea) robots such as the J15 series:
+personalized room settings and room order, curtains and thresholds, more obstacle types and other conveniences.
 
 It is not made or supported by the Valetudo project, so please don't report problems with Euclido there.
 Euclido couldn't exist without Valetudo, nor without [Dennis Giese](https://dontvacuum.me/), who makes rooting these robots possible.
@@ -15,7 +15,7 @@ The rest of this file is Valetudo's own README.
     <p align="center"><h2>Free your vacuum from the cloud</h2></p>
 </div>
 
-Valetudo is a cloud replacement for vacuum robots enabling local-only operation. It is not a custom firmware.<br/>
+Valetudo, and consequently Euclido, are cloud replacements for vacuum robots enabling local-only operation. They are not custom firmware.<br/>
 Here's a diagram illustrating the core operation principle:
 
 [<img src="https://github.com/Hypfer/valetudo/raw/master/docs/pages/general/img/operation_principle.png" height=450>](https://github.com/Hypfer/valetudo/raw/master/docs/pages/general/img/operation_principle.png)
@@ -38,66 +38,10 @@ Being a generic abstraction, Valetudo won't be a "feature-complete" reimplementa
 mean inheriting all of their technical debt.
 It does however support everything you need to have a proper, modern, cloud-free robot vacuum.
 
-While being published under the Apache-2.0 license and clearly being FOSS, the governance and development model Valetudo operates under
-is to be understood as that of "Freeware with source available". It is evidently much more than that when it comes to the freedoms provided by true FOSS,
-but it is not the FOSS that only knows "community-driven" you might be used to from corporate co-option and come to expect when you read "FOSS".
-
 For more information, check out the [newcomer guide](https://valetudo.cloud/pages/general/newcomer-guide/),
 the [getting started guide](https://valetudo.cloud/pages/general/getting-started/) 
 and also the docs in general at [https://valetudo.cloud](https://valetudo.cloud)
 
 There, you will find a list of [supported robots](https://valetudo.cloud/pages/general/supported-robots/).
 
-If you're looking for something less opinionated that also achieves "cloud-free modern vacuum robot connected to home assistant", check out [Roborock Local Server](https://github.com/Python-roborock/local_roborock_server) by [Luke Lashley](https://github.com/Lash-L).
-
-## Valetudo is a garden
-This project is the hobby of some random guy on the internet. There is no intent to commercialize it, grow it
-or expand the target audience of it. In fact, there is intent to explicitly not do that.
-
-Think of Valetudo as a privately-owned public garden. You can visit it any time for free and enjoy it.
-You can spend time there, and you can bring an infinite amount of friends with you to enjoy it.
-You can walk the pathways built there. You can sit on some patch of grass and maybe watch a Duck or something.
-You can leave a tip in the tip jar at the entrance if you really enjoy it and want to support it flourish.
-
-You can take inspiration from it and bring that home to your own garden, giving it a personal twist and adapting it as needed.
-You can even make friendly suggestions if you have a really good idea that ties into the vision that is already there.
-
-But, at the end of the day, you must understand that it is still privately-owned. You're on someone else's property
-over which you have no power at all. You will have to show the necessary respect. And - most importantly - you need to
-understand that letting you into this garden is a gift and should be treated as such.
-
-If you don't like this garden because you don't like how it's structured, or you feel like it's missing something, or maybe
-I choose the wrong flowers to plant over there that's fine. It's just not for you then. You can leave at any time.
-
-There is simply no ground to stand on to demand change to the garden. It doesn't matter if it would attract more people
-or if all the other gardens in town are doing something in a specific way. It doesn't matter if your idea of what gardens
-even are differs.<br/>
-This at the end of the day is simply private property with free public access as a gift to everyone.
-
-When it comes to software development, _everyone_ has access to infinite plots of undeveloped land that they can claim at any time.
-Therefore, a garden being build with a specific vision does not take away the ability for anyone else to build their own garden with a different vision.
-
-## Further questions?
-
-> [!IMPORTANT]  
-> Before asking/joining/interacting, remember that you're entering a workshop that - fueled by naive optimism - was made partially accessible to the public under strict conditions.
->
-> I hang out there in my free time, and, as any human, I'd like to spend my free time pleasantly and surrounded by people that understand and respect me.
-> Contrary to e.g. your workplace, where tolerating is all that is expected of you, understanding cannot be made optional in such a space, as the economics that allow it to exist would otherwise not work out.
->
-> In layman's terms, this means that you will be banned on _sigh_. (Not a typo)
-
-1. [dust_announce - Very low frequency updates about Valetudo and Rooting](https://t.me/dust_announce)
-
-2. [Valetudo Telegram group](https://t.me/+2MsKV8kILxJhNDAy)
-
-3. [So you've been banned?](https://valetudo.cloud/pages/general/so-youve-been-banned/)
-
-Any other mediums such as IRC, Matrix or Reddit are unofficial channels not connected to the project and might contain incorrect or outdated information.
-
-The [Valetudo Premium Support System VPSS](https://github.com/Hypfer/HotlineValetudo) is available via [\+495021 / 9039940](tel:+4950219039940).<br/>
-For privacy reasons, caller ID suppression via prefixing with `#31#` is advised, but you do you.
-
-## Contributing
-
-Make sure to familiarize yourself with the [./CONTRIBUTING.md](./CONTRIBUTING.md)
+If you're looking for something else that also achieves "cloud-free modern vacuum robot connected to home assistant", check out [Roborock Local Server](https://github.com/Python-roborock/local_roborock_server) by [Luke Lashley](https://github.com/Lash-L).
