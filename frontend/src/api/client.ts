@@ -61,6 +61,7 @@ import {
     SetQuirkValueCommand,
     SimpleToggleState,
     SpeakerVolumeState,
+    EmergencyLightState,
     StatisticsProperties,
     SystemHostInfo,
     SystemRuntimeInfo,
@@ -790,6 +791,21 @@ export const sendStartMappingPass = async (): Promise<void> => {
                 throw new Error("Could not start the mapping pass");
             }
         });
+};
+
+export const fetchEmergencyLightState = async (): Promise<EmergencyLightState> => {
+    return valetudoAPI
+        .get<EmergencyLightState>(`/robot/capabilities/${Capability.EmergencyLightControl}`)
+        .then(({ data }) => {
+            return data;
+        });
+};
+
+export const sendEmergencyLightLevel = async (level: number): Promise<void> => {
+    await valetudoAPI.put(`/robot/capabilities/${Capability.EmergencyLightControl}`, {
+        action: "set_level",
+        value: level,
+    });
 };
 
 export const fetchSpeakerVolumeState = async (): Promise<SpeakerVolumeState> => {

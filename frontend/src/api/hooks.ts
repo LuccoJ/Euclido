@@ -35,6 +35,7 @@ import {
     fetchRobotInformation,
     fetchSegments,
     fetchSpeakerVolumeState,
+    fetchEmergencyLightState,
     fetchStateAttributes,
     fetchSystemHostInfo,
     fetchSystemRuntimeInfo,
@@ -72,6 +73,7 @@ import {
     sendRenameSegmentCommand,
     sendSpeakerTestCommand,
     sendSpeakerVolume,
+    sendEmergencyLightLevel,
     sendSplitSegmentCommand,
     sendStartMappingPass,
     sendTimerCreation,
@@ -220,6 +222,7 @@ enum QueryKey {
     ValetudoVersion = "valetudo_version",
     CarpetMode = "carpet_mode",
     SpeakerVolume = "speaker_volume",
+    EmergencyLight = "emergency_light",
     VoicePackManagement = "voice_pack",
     SystemHostInfo = "system_host_info",
     SystemRuntimeInfo = "system_runtime_info",
@@ -1117,6 +1120,25 @@ export const useSpeakerVolumeMutation = () => {
             return sendSpeakerVolume(volume).then(fetchSpeakerVolumeState);
         },
         onError: useOnCommandError(Capability.SpeakerVolumeControl)
+    });
+};
+
+export const useEmergencyLightStateQuery = () => {
+    return useQuery( {
+        queryKey: [QueryKey.EmergencyLight],
+        queryFn: fetchEmergencyLightState,
+
+        staleTime: Infinity
+    });
+};
+
+export const useEmergencyLightMutation = () => {
+    return useValetudoFetchingMutation({
+        queryKey: [QueryKey.EmergencyLight],
+        mutationFn: (level: number) => {
+            return sendEmergencyLightLevel(level).then(fetchEmergencyLightState);
+        },
+        onError: useOnCommandError(Capability.EmergencyLightControl)
     });
 };
 

@@ -44,6 +44,7 @@ export enum Capability {
     PersistentMapControl = "PersistentMapControlCapability",
     SpeakerTest = "SpeakerTestCapability",
     SpeakerVolumeControl = "SpeakerVolumeControlCapability",
+    EmergencyLightControl = "EmergencyLightControlCapability",
     TotalStatistics = "TotalStatisticsCapability",
     VoicePackManagement = "VoicePackManagementCapability",
     WaterUsageControl = "WaterUsageControlCapability",
@@ -459,6 +460,10 @@ export interface SimpleToggleState {
 
 export interface SpeakerVolumeState {
     volume: number;
+}
+
+export interface EmergencyLightState {
+    level: number;
 }
 
 export interface VoicePackManagementStatus {

@@ -3,12 +3,15 @@ import {
     RestartAlt as ConfigRestoreIcon,
     SystemUpdateAlt as UpdaterIcon,
     Badge as FriendlyNameIcon,
+    Highlight as EmergencyLightIcon,
 } from "@mui/icons-material";
 import {ListMenu} from "../components/list_menu/ListMenu";
 import PaperContainer from "../components/PaperContainer";
 import {
     UpdaterConfiguration,
     Capability,
+    useEmergencyLightMutation,
+    useEmergencyLightStateQuery,
     useRestoreDefaultConfigurationMutation,
     useUpdaterConfigurationMutation,
     useUpdaterConfigurationQuery,
@@ -130,9 +133,42 @@ const UpdateProviderSelectListMenuItem = (): React.ReactElement => {
     );
 };
 
+const emergencyLightLevels: Array<SelectListMenuItemOption> = [0, 25, 50, 75, 100].map(level => {
+    return {
+        value: `${level}`,
+        label: level === 0 ? "Off" : `${level}%`
+    };
+});
+
+const EmergencyLightSelectListMenuItem = (): React.ReactElement => {
+    const {data, isPending, isError} = useEmergencyLightStateQuery();
+    const {mutate: setLevel, isPending: updating} = useEmergencyLightMutation();
+
+    const currentValue = emergencyLightLevels.find(option => {
+        return option.value === `${data?.level}`;
+    }) ?? {value: `${data?.level ?? ""}`, label: data ? `${data.level}%` : ""};
+
+    return (
+        <SelectListMenuItem
+            options={emergencyLightLevels}
+            currentValue={currentValue}
+            setValue={(e) => {
+                setLevel(parseInt(e.value));
+            }}
+            disabled={isPending || updating || isError}
+            loadingOptions={false}
+            loadError={isError}
+            primaryLabel="Emergency Light"
+            secondaryLabel="Turn on the robot's light when its dock loses power"
+            icon={<EmergencyLightIcon/>}
+        />
+    );
+};
+
 const ValetudoOptions = (): React.ReactElement => {
-    const [duststreamingCapabilitySupported] = useCapabilitiesSupported(
+    const [duststreamingCapabilitySupported, emergencyLightCapabilitySupported] = useCapabilitiesSupported(
         Capability.Duststreaming,
+        Capability.EmergencyLightControl,
     );
 
     const listItems = React.useMemo(() => {
@@ -143,6 +179,10 @@ const ValetudoOptions = (): React.ReactElement => {
             <UpdateProviderSelectListMenuItem key={"updateProviderSelect"}/>,
         ];
 
+        if (emergencyLightCapabilitySupported) {
+            items.push(<EmergencyLightSelectListMenuItem key={"emergencyLight"}/>);
+        }
+
         if (duststreamingCapabilitySupported) {
             items.push(
                 <SpacerListMenuItem key={"spacer1"}/>,
@@ -151,7 +191,7 @@ const ValetudoOptions = (): React.ReactElement => {
         }
 
         return items;
-    }, [duststreamingCapabilitySupported]);
+    }, [duststreamingCapabilitySupported, emergencyLightCapabilitySupported]);
 
     return (
         <PaperContainer>

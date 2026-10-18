@@ -236,21 +236,6 @@ class MideaQuirkFactory {
                         await this.robot.sendCommand(packet.toHexString());
                     }
                 });
-            case MideaQuirkFactory.KNOWN_QUIRKS.EMERGENCY_LIGHT:
-                return new Quirk({
-                    id: id,
-                    title: "Emergency Light",
-                    description: "Turn on the camera's light when the robot leaves the dock without driving off it, as it does when the dock loses power (or when it is picked up). It turns off again with the next status change.",
-                    options: ["off", "25%", "50%", "75%", "100%"],
-                    getter: async () => {
-                        const level = this.robot.getEmergencyLightLevel();
-
-                        return level > 0 ? `${level}%` : "off";
-                    },
-                    setter: async (value) => {
-                        this.robot.setEmergencyLightLevel(value === "off" ? 0 : parseInt(value));
-                    }
-                });
             case MideaQuirkFactory.KNOWN_QUIRKS.CLIFF_SENSORS:
                 return new Quirk({
                     id: id,
@@ -822,7 +807,6 @@ MideaQuirkFactory.KNOWN_QUIRKS = {
     MOP_DOCK_SELF_CLEANING_FREQUENCY: "8aa6f147-dbcc-44f6-a9f9-2a7f4fb59c7e",
     THRESHOLD_RECOGNITION: "2fa33876-f5ad-444d-9084-d51eb7be4670",
     BRIDGE_BOOST: "17d539ff-51d3-49be-8b9e-29aa1e9c8d39",
-    EMERGENCY_LIGHT: "6b1f4d2e-8c3a-4e5b-9f7d-2a1c0e9b8d47",
 };
 
 module.exports = MideaQuirkFactory;

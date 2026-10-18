@@ -1,0 +1,83 @@
+{
+  "/api/v2/robot/capabilities/EmergencyLightControlCapability": {
+    "get": {
+      "tags": [
+        "EmergencyLightControlCapability"
+      ],
+      "summary": "Get the emergency light's brightness (0 = off)",
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "number",
+                    "description": "Percentage"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "put": {
+      "tags": [
+        "EmergencyLightControlCapability"
+      ],
+      "summary": "Set the emergency light's brightness (0 = off)",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "set_level"
+                  ]
+                },
+                "value": {
+                  "type": "number",
+                  "description": "Percentage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/200"
+        },
+        "400": {
+          "$ref": "#/components/responses/400"
+        }
+      }
+    }
+  },
+  "/api/v2/robot/capabilities/EmergencyLightControlCapability/properties": {
+    "get": {
+      "tags": [
+        "EmergencyLightControlCapability"
+      ],
+      "summary": "Get various capability-related properties",
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
