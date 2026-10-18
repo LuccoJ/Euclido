@@ -43,7 +43,7 @@ class MideaZoneCleaningCapabilityV2 extends ZoneCleaningCapability {
             )
         });
 
-        Logger.info(
+        Logger.debug(
             `Starting zone cleanup of ${options.zones.length} zone(s), iterations ${options.iterations ?? 1}. ` +
             `Robot last reported operation mode ${this.robot.lastRawOperationMode}.`
         );

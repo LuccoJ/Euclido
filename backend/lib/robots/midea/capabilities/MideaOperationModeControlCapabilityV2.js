@@ -28,7 +28,7 @@ class MideaOperationModeControlCapabilityV2 extends OperationModeControlCapabili
                 )
             });
 
-            Logger.info(`Setting operation mode to ${matchedPreset.value} (${matchedPreset.name})`);
+            Logger.debug(`Setting operation mode to ${matchedPreset.value} (${matchedPreset.name})`);
 
             const response = await this.robot.sendCommand(packet.toHexString());
 

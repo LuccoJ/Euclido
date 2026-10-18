@@ -68,7 +68,7 @@ class MideaMapSegmentationCapabilityV2 extends MapSegmentationCapability {
             )
         });
 
-        Logger.info(
+        Logger.debug(
             `Starting segment cleanup of segments [${segments.map(s => s.id).join(", ")}] ` +
             `with operation mode ${operationMode} (${OperationModeStateAttribute?.value ?? "not yet known"}), ` +
             `fan speed ${fanSpeed}, water grade ${waterGrade}, iterations ${options?.iterations ?? 1}. ` +
@@ -78,7 +78,7 @@ class MideaMapSegmentationCapabilityV2 extends MapSegmentationCapability {
 
         const response = await this.robot.sendCommand(packet.toHexString());
 
-        Logger.info(`Segment cleanup response payload: ${response?.payload?.toString("hex")}`);
+        Logger.debug(`Segment cleanup response payload: ${response?.payload?.toString("hex")}`);
     }
 
     /**
