@@ -61,9 +61,7 @@ And of course seeing value-extractive bad actors, high on winning by default usi
 That's rewarding to the underdog soul.
 
 Further reading:
-- [So you've been banned?](/pages/general/so-youve-been-banned/)
 - [Why not Valetudo?](/pages/general/why-not-valetudo/)
-- [Valetudo Code of Conduct](https://github.com/Hypfer/Valetudo/blob/master/CODE_OF_CONDUCT.md)
 
 ## Can I use Valetudo without an internet connection?
 
