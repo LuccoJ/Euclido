@@ -188,6 +188,33 @@ class MideaMapParser {
     }
 
     /**
+     * Logs which path types the track consists of, to learn what each type is used for.
+     * Lists the last pieces in order, since the most recent driving is the interesting part.
+     *
+     * @param {Array<{points: Array<number>, type: number|undefined}>} paths
+     */
+    logTrackSummary(paths) {
+        const pieces = paths.filter(p => p.type !== MideaMapParser.PATH_TYPES.HEADER && p.points.length > 0);
+        const typeName = (type) => {
+            return Object.keys(MideaMapParser.PATH_TYPES).find(k => MideaMapParser.PATH_TYPES[k] === type) ?? `unknown ${type}`;
+        };
+        const totals = {};
+
+        pieces.forEach(p => {
+            const name = typeName(p.type);
+            totals[name] = (totals[name] ?? 0) + p.points.length / 2;
+        });
+
+        const recent = pieces.slice(-12).map(p => {
+            const n = p.points.length;
+
+            return `${typeName(p.type)} ${n / 2}pt (${p.points[0]},${p.points[1]})->(${p.points[n - 2]},${p.points[n - 1]})`;
+        });
+
+        Logger.debug(`Track: ${pieces.length} pieces, points per type ${JSON.stringify(totals)}, last pieces: ${recent.join(" | ")}`);
+    }
+
+    /**
      * Format: "id state is_ai" (door sills: "id type state is_ai"), then the four corners as "x y" pairs,
      * repeated for each item. An empty string means none.
      *
@@ -554,6 +581,8 @@ class MideaMapParser {
 
         // Final path
         paths.push({ points: points, type: currentType });
+
+        this.logTrackSummary(paths);
 
 
         const entities = paths.filter(p => p.type !== 2400 && p.points.length > 0).map(path => {
