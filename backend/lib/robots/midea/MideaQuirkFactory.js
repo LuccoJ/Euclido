@@ -741,6 +741,51 @@ class MideaQuirkFactory {
                         }).toHexString());
                     }
                 });
+            case MideaQuirkFactory.KNOWN_QUIRKS.CURTAIN_RECOGNITION:
+                return new Quirk({
+                    id: id,
+                    title: "Curtain Recognition",
+                    description: "Detect curtains using the AI camera and drive through them. Untested: the firmware may have no detector for curtains on every model, so this possibly only works on the J15 Max Ultra.",
+                    options: ["off", "on"],
+                    getter: async () => {
+                        const response = await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.ACTION,
+                            payload: MSmartPacket.buildPayload(MSmartConst.ACTION.GET_STATUS)
+                        }).toHexString());
+                        const parsedResponse = BEightParser.PARSE(response);
+
+                        if (parsedResponse instanceof MSmartStatusDTO) {
+                            return parsedResponse.curtain_recognition_switch ? "on" : "off";
+                        } else {
+                            throw new Error("Invalid response from robot");
+                        }
+                    },
+                    setter: async (value) => {
+                        let val;
+
+                        switch (value) {
+                            case "off":
+                                val = 0;
+                                break;
+                            case "on":
+                                val = 1;
+                                break;
+                            default:
+                                throw new Error(`Invalid curtain recognition value: ${value}`);
+                        }
+
+                        await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
+                            payload: MSmartPacket.buildPayload(
+                                MSmartConst.SETTING.SET_VARIOUS_TOGGLES,
+                                Buffer.from([
+                                    0x3B, // curtain-detect; what the robot does with it is untested
+                                    val
+                                ])
+                            )
+                        }).toHexString());
+                    }
+                });
             case MideaQuirkFactory.KNOWN_QUIRKS.BRIDGE_BOOST:
                 return new Quirk({
                     id: id,
@@ -806,6 +851,7 @@ MideaQuirkFactory.KNOWN_QUIRKS = {
     MOP_DOCK_WATER_USAGE: "c0ccbdfe-c942-41ac-a770-ad1efdc98f8b",
     MOP_DOCK_SELF_CLEANING_FREQUENCY: "8aa6f147-dbcc-44f6-a9f9-2a7f4fb59c7e",
     THRESHOLD_RECOGNITION: "2fa33876-f5ad-444d-9084-d51eb7be4670",
+    CURTAIN_RECOGNITION: "401ad527-f4b9-41e6-99ee-007463ed3589",
     BRIDGE_BOOST: "17d539ff-51d3-49be-8b9e-29aa1e9c8d39",
 };
 
