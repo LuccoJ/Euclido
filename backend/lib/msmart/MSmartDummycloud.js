@@ -637,6 +637,12 @@ class MSmartDummycloud {
                 data: payload.data
             });
 
+            if (this.loggedTrackUploads < 10 && !payload.data?.fullTrack) {
+                // Temporary: learn where the path parts of a map session are
+                this.loggedTrackUploads++;
+                Logger.debug(`Track message without a full track: ${JSON.stringify(payload).slice(0, 800)}`);
+            }
+
             if (typeof payload.data.fullTrack === "string") {
                 this.onUpload("track", payload.data.fullTrack);
             } else {
