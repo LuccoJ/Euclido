@@ -192,8 +192,9 @@ class MideaMapParser {
      * Lists the last pieces in order, since the most recent driving is the interesting part.
      *
      * @param {Array<{points: Array<number>, type: number|undefined}>} paths
+     * @param {Buffer} payload the decompressed track, whose first bytes may tell a full path from a part
      */
-    logTrackSummary(paths) {
+    logTrackSummary(paths, payload) {
         const pieces = paths.filter(p => p.type !== MideaMapParser.PATH_TYPES.HEADER && p.points.length > 0);
         const typeName = (type) => {
             return Object.keys(MideaMapParser.PATH_TYPES).find(k => MideaMapParser.PATH_TYPES[k] === type) ?? `unknown ${type}`;
@@ -211,7 +212,7 @@ class MideaMapParser {
             return `${typeName(p.type)} ${n / 2}pt (${p.points[0]},${p.points[1]})->(${p.points[n - 2]},${p.points[n - 1]})`;
         });
 
-        Logger.debug(`Track: ${pieces.length} pieces, points per type ${JSON.stringify(totals)}, last pieces: ${recent.join(" | ")}`);
+        Logger.debug(`Track: header ${payload.subarray(0, 6).toString("hex")}, ${payload.length} bytes, ${pieces.length} pieces, points per type ${JSON.stringify(totals)}, last pieces: ${recent.join(" | ")}`);
     }
 
     /**
@@ -582,7 +583,7 @@ class MideaMapParser {
         // Final path
         paths.push({ points: points, type: currentType });
 
-        this.logTrackSummary(paths);
+        this.logTrackSummary(paths, payload);
 
 
         const entities = paths.filter(p => p.type !== 2400 && p.points.length > 0).map(path => {
