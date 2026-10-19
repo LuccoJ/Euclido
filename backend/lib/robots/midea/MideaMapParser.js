@@ -590,16 +590,25 @@ class MideaMapParser {
 
                 // The heading is the direction of the last step the robot actually moved. The path often ends with the
                 // same point repeated while the robot stands still, and such a zero-length step has no direction,
-                // so look further back for a point that differs. Without one, keep the last known heading.
+                // so look further back for a point that differs. The track is split into a new path whenever its type
+                // changes, so the last path can be a single point and the search has to continue into the earlier ones.
+                // Without any such point, keep the last known heading.
                 // Valetudo's angle 0 points up, while atan2's 0 points right, hence the 90 degrees
                 let robotAngle = this.lastRobotAngle ?? 0;
-                for (let i = lastPathPoints.length - 4; i >= 0; i -= 2) {
-                    const dx = robotPositionCoordinates[0] - lastPathPoints[i];
-                    const dy = robotPositionCoordinates[1] - lastPathPoints[i + 1];
+                let found = false;
+                for (let e = entities.length - 1; e >= 0 && !found; e--) {
+                    const points = entities[e].points;
+                    const start = e === entities.length - 1 ? points.length - 4 : points.length - 2;
 
-                    if (dx !== 0 || dy !== 0) {
-                        robotAngle = (Math.round(Math.atan2(dy, dx) * 180 / Math.PI) + 90 + 360) % 360;
-                        break;
+                    for (let i = start; i >= 0; i -= 2) {
+                        const dx = robotPositionCoordinates[0] - points[i];
+                        const dy = robotPositionCoordinates[1] - points[i + 1];
+
+                        if (dx !== 0 || dy !== 0) {
+                            robotAngle = (Math.round(Math.atan2(dy, dx) * 180 / Math.PI) + 90 + 360) % 360;
+                            found = true;
+                            break;
+                        }
                     }
                 }
                 this.lastRobotAngle = robotAngle;
