@@ -297,7 +297,10 @@ class MideaMapParser {
 
         if (this.dockPositionValid) {
             const dockCoords = this.convertToValetudoCoordinates(this.dockPosition.x, this.dockPosition.y);
-            const dockAngle = (-this.dockPosition.angle + 360) % 360;
+            // The robot reports the yaw as a signed number of degrees, counterclockwise from the x axis, which points
+            // right. Valetudo's angle 0 points up and turns clockwise
+            const rawAngle = this.dockPosition.angle > 32767 ? this.dockPosition.angle - 65536 : this.dockPosition.angle;
+            const dockAngle = (((90 - rawAngle) % 360) + 360) % 360;
 
             entities.push(new mapEntities.PointMapEntity({
                 points: [
@@ -636,6 +639,7 @@ class MideaMapParser {
      * @return {Promise<void>}
      */
     async handleDockPositionUpdate(data) {
+        this.logUpdateOnChange("dockPosition", data);
         this.dockPosition = data;
 
         // Validation that might in a super rare case fail us, but let's see
