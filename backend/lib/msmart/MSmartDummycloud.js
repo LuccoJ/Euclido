@@ -31,6 +31,7 @@ class MSmartDummycloud {
         this.dummyCloudTLSManager = options.dummyCloudTLSManager;
         this.bindIP = options.bindIP;
         this.timeout = options.timeout ?? 5000;
+        this.loggedTrackUploads = 0;
         this.onConnected = options.onConnected;
         this.onIncomingCloudMessage = options.onIncomingCloudMessage;
         this.onHttpRequest = options.onHttpRequest;
@@ -236,6 +237,12 @@ class MSmartDummycloud {
         app.post("/v1/dev2pro/m7/map/part/upload", (req, res) => {
             if (req.body) {
                 Logger.trace(`${req.url}: `, req.body);
+
+                if (req.body.mapPart === "track" && this.loggedTrackUploads < 10) {
+                    // Temporary: learn what the path parts of a map session look like
+                    this.loggedTrackUploads++;
+                    Logger.debug(`Track upload: ${JSON.stringify(req.body).slice(0, 600)}`);
+                }
 
                 this.onUpload(req.body.mapPart, req.body.data);
             }

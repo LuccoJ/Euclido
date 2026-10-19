@@ -537,6 +537,14 @@ class MideaMapParser {
     async handleTrackUpdate(data) {
         const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(data);
 
+        if (payload.length === 0) {
+            // During a map session the robot sends many of these between full paths. Keep the path and robot
+            // position that are already known instead of wiping them.
+            Logger.debug(`Empty track upload (${typeof data}, ${typeof data === "string" ? data.length : "?"} characters), keeping the current path`);
+
+            return;
+        }
+
         this.entities = this.entities.filter(e => {
             return ![
                 mapEntities.PathMapEntity.TYPE.PATH,
@@ -545,10 +553,6 @@ class MideaMapParser {
                 mapEntities.PointMapEntity.TYPE.ROBOT_POSITION
             ].includes(e.type);
         });
-
-        if (payload.length === 0) {
-            return;
-        }
 
         // First 4 payload bytes were observed to be 00 00 00 00 and 00 02 00 00
         // TODO: figure out what that means
