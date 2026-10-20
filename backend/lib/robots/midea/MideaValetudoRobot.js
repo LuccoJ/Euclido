@@ -12,6 +12,7 @@ const Logger = require("../../Logger");
 const MideaMapHacksProvider = require("./MideaMapHacksProvider");
 const MideaMapParser = require("./MideaMapParser");
 const MideaPersistentStore = require("./MideaPersistentStore");
+const MideaSmartModeRoomInfo = require("./MideaSmartModeRoomInfo");
 const MSmartDummycloud = require("../../msmart/MSmartDummycloud");
 const ValetudoRobot = require("../../core/ValetudoRobot");
 const stateAttrs = entities.state.attributes;
@@ -87,6 +88,8 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.activeMapUpdateCount = 0;
         this.mapUpdateStats = MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS();
 
+        this.smartModeRoomInfo = new MideaSmartModeRoomInfo({robot: this});
+
         this.dummycloud = new MSmartDummycloud({
             dummyCloudTLSManager: this.dummyCloudTLSManager,
             bindIP: BIND_IP,
@@ -119,6 +122,9 @@ class MideaValetudoRobot extends ValetudoRobot {
                         Logger.info(`Received unknown event. Type '${type}'. Value '${value}'`);
                 }
 
+            },
+            onRobotEvent: (req) => {
+                this.smartModeRoomInfo.onRobotEvent(req);
             }
         });
 
@@ -442,6 +448,7 @@ class MideaValetudoRobot extends ValetudoRobot {
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
      * @param {string} [options.protocol] - added to the message envelope
+     * @param {object} [options.envelope] - further fields added to the message envelope
      * @returns {Promise<import("../../msmart/MSmartPacket")>}
      */
     async sendCommand(command, options) {
