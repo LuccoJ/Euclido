@@ -1188,7 +1188,7 @@ class MideaMapParser {
 MideaMapParser.PIXEL_SIZE = 5;
 MideaMapParser.INFO_MAP_REGEX = /^info_map (?<id>\d+) (?<left>\d+) (?<bottom>\d+) (?<right>\d+) (?<top>\d+) (?<payload>[a-zA-Z0-9+=/]+)$/;
 
-MideaMapParser.INCREMENTAL_TRACK_RENDER_INTERVAL = 5000; // ms
+MideaMapParser.INCREMENTAL_TRACK_RENDER_INTERVAL = 0; // ms, 0 draws every part (about every 2s)
 
 MideaMapParser.PATH_TYPES = Object.freeze({
     "NONE": 0, // Probably not a real type?
