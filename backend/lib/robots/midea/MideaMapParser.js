@@ -41,6 +41,7 @@ class MideaMapParser {
         /** @type {Buffer|undefined} the last full track with the parts received since appended */
         this.trackPayload = undefined;
         this.lastIncrementalTrackIndex = 0;
+        this.lastIncrementalTrackRender = 0;
 
         this.reset();
     }
@@ -543,14 +544,15 @@ class MideaMapParser {
     async handleTrackUpdate(data) {
         const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(data);
 
-        if (payload.length === 0) {
-            // Keep the path and robot position that are already known instead of wiping them
+        if (payload.length < 6) {
+            // Empty, or not even one record (at the start of a job the robot sends 4 bytes). Keep the path and robot
+            // position that are already known instead of wiping them
             return;
         }
 
-        this.trackPayload = payload;
+        this.trackPayload = payload.subarray(0, payload.length - payload.length % 6);
         this.lastIncrementalTrackIndex = 0;
-        this.renderTrack(payload, true);
+        this.renderTrack(this.trackPayload, true);
     }
 
     /**
@@ -588,7 +590,14 @@ class MideaMapParser {
         }
 
         this.trackPayload = Buffer.concat([this.trackPayload, ...records]);
-        this.renderTrack(this.trackPayload, false);
+
+        // Parts arrive about every 2s, but every redraw parses the whole track again. Redrawing every few seconds is
+        // enough; the parts in between are kept and shown with the next redraw
+        const now = Date.now();
+        if (now - this.lastIncrementalTrackRender >= MideaMapParser.INCREMENTAL_TRACK_RENDER_INTERVAL) {
+            this.lastIncrementalTrackRender = now;
+            this.renderTrack(this.trackPayload, false);
+        }
     }
 
     /**
@@ -1178,6 +1187,8 @@ class MideaMapParser {
 
 MideaMapParser.PIXEL_SIZE = 5;
 MideaMapParser.INFO_MAP_REGEX = /^info_map (?<id>\d+) (?<left>\d+) (?<bottom>\d+) (?<right>\d+) (?<top>\d+) (?<payload>[a-zA-Z0-9+=/]+)$/;
+
+MideaMapParser.INCREMENTAL_TRACK_RENDER_INTERVAL = 5000; // ms
 
 MideaMapParser.PATH_TYPES = Object.freeze({
     "NONE": 0, // Probably not a real type?
