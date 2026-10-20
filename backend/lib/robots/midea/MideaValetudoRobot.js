@@ -123,8 +123,8 @@ class MideaValetudoRobot extends ValetudoRobot {
                 }
 
             },
-            onRobotEvent: (req) => {
-                this.smartModeRoomInfo.onRobotEvent(req);
+            onPartGet: (body) => {
+                return this.smartModeRoomInfo.onPartGet(body);
             }
         });
 
@@ -448,7 +448,6 @@ class MideaValetudoRobot extends ValetudoRobot {
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
      * @param {string} [options.protocol] - added to the message envelope
-     * @param {object} [options.envelope] - further fields added to the message envelope
      * @returns {Promise<import("../../msmart/MSmartPacket")>}
      */
     async sendCommand(command, options) {
