@@ -33,7 +33,7 @@ class MideaSmartModeRoomInfo {
             ` in operation mode ${this.robot.lastRawOperationMode}`
         );
 
-        if (this.robot.lastRawOperationMode !== SMART_MODE || Date.now() - this.lastSent < DEBOUNCE) {
+        if (!SEND_ROOM_INFO || this.robot.lastRawOperationMode !== SMART_MODE || Date.now() - this.lastSent < DEBOUNCE) {
             return;
         }
         this.lastSent = Date.now();
@@ -73,6 +73,8 @@ class MideaSmartModeRoomInfo {
     }
 }
 
+// Off: the message as sent crashed the robot's iot_node, which then restarts the Wi-Fi
+const SEND_ROOM_INFO = false;
 const SMART_MODE = 5;
 // Same file MideaRoomOrderManager reads
 const ROOM_CFG_PATH = "/oem/slam/room_cfg02.settings";
