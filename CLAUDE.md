@@ -10,20 +10,20 @@ Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Valetudo` (th
 - When a pull request adds a meaningful feature or fix that Euclido has and Valetudo doesn't, add it to the
   "What Euclido adds" list in `README.md`, in its own commit in the same pull request.
 - Keep documentation changes in their own commits, separate from the code.
-- Pull requests are merged without squashing when they have several meaningful commits, so that fixes stay separate.
+- Remind maintainer to merge PRs without squashing when they have several meaningful commits, so that fixes stay separate, especially ones that could be picked up by other projects individually.
 - Bring upstream changes in with a merge, never a rebase of `master`.
 
 ## Commits and code
 
-- Commit messages are descriptive. For changes that remove or replace things specific to the original project,
-  keep the wording neutral and brief.
-- Don't put model names in commits or code.
 - Keep changes mergeable with upstream: new code in new files where possible, small hooks into existing code, and no
   reformatting or renaming of upstream code.
 - Before pushing, run the same checks as CI: `npm run lint` and `npm run ts-check` for the frontend and backend
   workspaces, and `npm test --workspace=backend`. Generated files such as
   `backend/lib/robots/midea/generated/midea_protobufs.js` are excluded from linting, so lint individual files or
   the workspaces, not whole directories.
+- Commit messages are descriptive. For changes that remove or replace things specific to the original project,
+  keep the wording neutral and brief.
+- Don't put model names in commits or code.
 
 ## Robot safety (Midea)
 
