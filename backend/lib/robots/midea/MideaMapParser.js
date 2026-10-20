@@ -38,6 +38,9 @@ class MideaMapParser {
         this.knownObstacleIds = undefined;
         /** @type {number|undefined} the robot's last known heading, for when the path doesn't show one */
         this.lastRobotAngle = undefined;
+        /** @type {Buffer|undefined} the last full track with the parts received since appended */
+        this.trackPayload = undefined;
+        this.lastIncrementalTrackIndex = 0;
 
         this.reset();
     }
@@ -110,6 +113,9 @@ class MideaMapParser {
                 break;
             case "track":
                 await this.handleTrackUpdate(data);
+                break;
+            case "track_incremental":
+                await this.handleIncrementalTrackUpdate(data);
                 break;
             case "dockPosition":
                 await this.handleDockPositionUpdate(data);
@@ -538,13 +544,59 @@ class MideaMapParser {
         const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(data);
 
         if (payload.length === 0) {
-            // During a map session the robot sends many of these between full paths. Keep the path and robot
-            // position that are already known instead of wiping them.
-            Logger.debug(`Empty track upload (${typeof data}, ${typeof data === "string" ? data.length : "?"} characters), keeping the current path`);
-
+            // Keep the path and robot position that are already known instead of wiping them
             return;
         }
 
+        this.trackPayload = payload;
+        this.lastIncrementalTrackIndex = 0;
+        this.renderTrack(payload, true);
+    }
+
+    /**
+     * During a map session, the robot sends the newest part of its path about every 2s, numbered from 1.
+     * A part has the same record format as the full track and continues where the previous one ended.
+     * Appending it to the last full track keeps the path and the robot position current between the full uploads.
+     *
+     * @param {{data: string, index: number}} update
+     * @return {Promise<void>}
+     */
+    async handleIncrementalTrackUpdate(update) {
+        if (this.trackPayload === undefined) {
+            return; // A part is only useful on top of a full track
+        }
+        if (update.index !== 1 && update.index <= this.lastIncrementalTrackIndex) {
+            return; // Already applied
+        }
+
+        const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(update.data);
+        let records = [];
+        for (let offset = 0; offset + 6 <= payload.length; offset += 6) {
+            if (payload.readUInt16BE(offset + 4) !== MideaMapParser.PATH_TYPES.HEADER) {
+                records.push(payload.subarray(offset, offset + 6));
+            }
+        }
+
+        const last = this.trackPayload.subarray(this.trackPayload.length - 6);
+        if (records.length > 0 && records[0].equals(last)) {
+            records = records.slice(1);
+        }
+
+        this.lastIncrementalTrackIndex = update.index;
+        if (records.length === 0) {
+            return;
+        }
+
+        this.trackPayload = Buffer.concat([this.trackPayload, ...records]);
+        this.renderTrack(this.trackPayload, false);
+    }
+
+    /**
+     * @private
+     * @param {Buffer} payload the decompressed track
+     * @param {boolean} isFull whether this is a full track from the robot, as opposed to one with parts appended
+     */
+    renderTrack(payload, isFull) {
         this.entities = this.entities.filter(e => {
             return ![
                 mapEntities.PathMapEntity.TYPE.PATH,
@@ -587,7 +639,9 @@ class MideaMapParser {
         // Final path
         paths.push({ points: points, type: currentType });
 
-        this.logTrackSummary(paths, payload);
+        if (isFull) {
+            this.logTrackSummary(paths, payload);
+        }
 
 
         const entities = paths.filter(p => p.type !== 2400 && p.points.length > 0).map(path => {

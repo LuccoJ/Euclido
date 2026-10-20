@@ -31,7 +31,6 @@ class MSmartDummycloud {
         this.dummyCloudTLSManager = options.dummyCloudTLSManager;
         this.bindIP = options.bindIP;
         this.timeout = options.timeout ?? 5000;
-        this.loggedTrackUploads = 0;
         this.onConnected = options.onConnected;
         this.onIncomingCloudMessage = options.onIncomingCloudMessage;
         this.onHttpRequest = options.onHttpRequest;
@@ -205,12 +204,6 @@ class MSmartDummycloud {
             if (req.body) {
                 Logger.trace(`${req.url}: `, req.body);
 
-                if (req.params.part === "track" && !req.body.data && this.loggedTrackUploads < 10) {
-                    // Temporary: learn where the path parts of a map session are
-                    this.loggedTrackUploads++;
-                    Logger.debug(`Track list upload without data: ${JSON.stringify(req.body).slice(0, 800)}`);
-                }
-
                 this.onUpload(req.params.part, req.body.data); //TODO: perhaps validate types
             }
 
@@ -243,12 +236,6 @@ class MSmartDummycloud {
         app.post("/v1/dev2pro/m7/map/part/upload", (req, res) => {
             if (req.body) {
                 Logger.trace(`${req.url}: `, req.body);
-
-                if (req.body.mapPart === "track" && this.loggedTrackUploads < 10) {
-                    // Temporary: learn what the path parts of a map session look like
-                    this.loggedTrackUploads++;
-                    Logger.debug(`Track upload: ${JSON.stringify(req.body).slice(0, 600)}`);
-                }
 
                 this.onUpload(req.body.mapPart, req.body.data);
             }
@@ -643,13 +630,18 @@ class MSmartDummycloud {
                 data: payload.data
             });
 
-            if (this.loggedTrackUploads < 10 && !payload.data?.fullTrack) {
-                // Temporary: learn where the path parts of a map session are
-                this.loggedTrackUploads++;
-                Logger.debug(`Track message without a full track: ${JSON.stringify(payload).slice(0, 800)}`);
-            }
+            // During a map session, the newest part of the path arrives as incrementalTrack, numbered by incrementalIndex
+            if (typeof payload.data.incrementalTrack === "string" && payload.data.incrementalTrack !== "") {
+                this.onUpload("track_incremental", {
+                    data: payload.data.incrementalTrack,
+                    index: payload.data.incrementalIndex
+                });
+            } else if (typeof payload.data.fullTrack === "string") {
+                if (typeof payload.data.fullTrackIndex === "string" && !/^(\d+)-\1$|^$/.test(payload.data.fullTrackIndex)) {
+                    // Only "1-1" was observed so far. A full track split into several messages isn't handled yet
+                    Logger.warn(`Full track in several parts (${payload.data.fullTrackIndex}), which isn't handled yet`);
+                }
 
-            if (typeof payload.data.fullTrack === "string") {
                 this.onUpload("track", payload.data.fullTrack);
             } else {
                 Logger.warn("Unhandled track-type message");
