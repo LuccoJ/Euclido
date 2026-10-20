@@ -24,7 +24,6 @@ const {DUMMY_CLIENT_CERT, DUMMY_CLIENT_KEY} = require("./MideaConst");
 
 const CA_KEY_PATH = "/etc/ssl/valetudo/ca.key";
 const CA_CERT_PATH = "/etc/ssl/valetudo/ca.pem";
-const MAP_PUBLISH_MAX_DELAY = 5000; // ms
 const OBSTACLE_SOUND_DIRECTORIES = ["/userdata/sounds/objects", "/oem/sound/objects"];
 const OBSTACLE_SOUND_MIN_INTERVAL = 3000; // ms, between any two sounds
 const OBSTACLE_SOUND_SAME_NAME_INTERVAL = 15000; // ms, before the same obstacle is announced again
@@ -86,7 +85,6 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
         this.mapUpdateDebounceTimeout = null;
         this.activeMapUpdateCount = 0;
-        this.lastMapPublishTimestamp = 0;
         this.mapUpdateStats = MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS();
 
         this.dummycloud = new MSmartDummycloud({
@@ -547,13 +545,8 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
 
         this.mapUpdateDebounceTimeout = setTimeout(() => {
-            if (
-                this.activeMapUpdateCount > 0 &&
-                Date.now() - this.lastMapPublishTimestamp < MAP_PUBLISH_MAX_DELAY
-            ) {
-                // Don't publish yet if there are still parts of the map being parsed.
-                // On a busy robot, parts can keep arriving faster than they are parsed, so that would never happen
-                // and the map would freeze. Hence the maximum delay, after which the map is published regardless.
+            if (this.activeMapUpdateCount > 0) {
+                // Don't publish yet if there are still parts of the map being parsed
                 this.mapUpdateStats.skipped++;
 
                 return;
@@ -562,7 +555,6 @@ class MideaValetudoRobot extends ValetudoRobot {
             const newMap = this.mapParser.getCurrentMap();
             if (newMap.metaData.totalLayerArea > 0) {
                 this.state.map = newMap;
-                this.lastMapPublishTimestamp = Date.now();
                 this.mapUpdateStats.published++;
 
                 this.emitMapUpdated();
@@ -1407,7 +1399,7 @@ class MideaValetudoRobot extends ValetudoRobot {
     }
 }
 
-MideaValetudoRobot.MAP_UPLOAD_MIN_INTERVAL = 5000; // ms
+MideaValetudoRobot.MAP_UPLOAD_MIN_INTERVAL = 6000; // ms, a multiple of the robot's 2s tick
 
 MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS = () => {
     return {
