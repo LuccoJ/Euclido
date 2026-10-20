@@ -205,6 +205,12 @@ class MSmartDummycloud {
             if (req.body) {
                 Logger.trace(`${req.url}: `, req.body);
 
+                if (req.params.part === "track" && !req.body.data && this.loggedTrackUploads < 10) {
+                    // Temporary: learn where the path parts of a map session are
+                    this.loggedTrackUploads++;
+                    Logger.debug(`Track list upload without data: ${JSON.stringify(req.body).slice(0, 800)}`);
+                }
+
                 this.onUpload(req.params.part, req.body.data); //TODO: perhaps validate types
             }
 
