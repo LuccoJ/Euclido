@@ -63,7 +63,8 @@ class MideaSmartModeRoomInfo {
         });
 
         return {
-            mapId: typeof mapId === "number" ? mapId : roomCfg._mapId,
+            // The robot reads the map id as a string, and every other value as a number
+            mapId: String(typeof mapId === "number" ? mapId : roomCfg._mapId),
             roomCleanParam: roomCleanParam
         };
     }
