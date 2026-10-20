@@ -458,12 +458,67 @@ class MideaValetudoRobot extends ValetudoRobot {
     }
 
     /**
+     * During a job the robot uploads the whole map every 1-2s, and parsing one can take seconds on the robot.
+     * Identical uploads are dropped, and the rest are parsed at most every MAP_UPLOAD_MIN_INTERVAL. An upload that
+     * arrives sooner is kept and parsed when the interval is over, unless a newer one replaces it, so the map
+     * never stays behind.
+     *
+     * @private
+     * @param {any} data
+     * @return {boolean} whether the upload is skipped now
+     */
+    shouldSkipMapUpload(data) {
+        const isSame = (a, b) => {
+            return Buffer.isBuffer(a) && Buffer.isBuffer(b) ? a.equals(b) : a === b;
+        };
+
+        if (this.lastMapUploadData !== undefined && isSame(data, this.lastMapUploadData)) {
+            this.mapUpdateStats.parts["map (identical, skipped)"] = (this.mapUpdateStats.parts["map (identical, skipped)"] ?? 0) + 1;
+            this.pendingMapUpload = undefined;
+
+            return true;
+        }
+
+        const wait = (this.lastMapUploadTime ?? 0) + MideaValetudoRobot.MAP_UPLOAD_MIN_INTERVAL - Date.now();
+        if (wait > 0) {
+            this.mapUpdateStats.parts["map (postponed)"] = (this.mapUpdateStats.parts["map (postponed)"] ?? 0) + 1;
+            this.pendingMapUpload = data;
+
+            if (!this.pendingMapUploadTimeout) {
+                this.pendingMapUploadTimeout = setTimeout(() => {
+                    this.pendingMapUploadTimeout = undefined;
+                    const pending = this.pendingMapUpload;
+                    this.pendingMapUpload = undefined;
+
+                    if (pending !== undefined) {
+                        this.handleMapUpdate("map", pending).catch(err => {
+                            Logger.warn("Error while handling a postponed map update", err);
+                        });
+                    }
+                }, wait);
+            }
+
+            return true;
+        }
+
+        this.lastMapUploadData = data;
+        this.lastMapUploadTime = Date.now();
+        this.pendingMapUpload = undefined;
+
+        return false;
+    }
+
+    /**
      *
      * @param {string} type - TODO: ENUM
      * @param {any} data
      * @return {Promise<void>}
      */
     async handleMapUpdate(type, data) {
+        if (type === "map" && this.shouldSkipMapUpload(data)) {
+            return;
+        }
+
         if (this.mapUpdateDebounceTimeout) {
             clearTimeout(this.mapUpdateDebounceTimeout);
             this.mapUpdateDebounceTimeout = null;
@@ -1351,6 +1406,8 @@ class MideaValetudoRobot extends ValetudoRobot {
         );
     }
 }
+
+MideaValetudoRobot.MAP_UPLOAD_MIN_INTERVAL = 5000; // ms
 
 MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS = () => {
     return {
