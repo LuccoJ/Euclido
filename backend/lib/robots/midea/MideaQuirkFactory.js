@@ -786,6 +786,51 @@ class MideaQuirkFactory {
                         }).toHexString());
                     }
                 });
+            case MideaQuirkFactory.KNOWN_QUIRKS.ROOM_WISE_MOP_WASH:
+                return new Quirk({
+                    id: id,
+                    title: "Mop Wash After Every Room",
+                    description: "In the Smart operation mode, wash the mop pads after every room. This is the robot's dirty-water re-mop switch, which Smart mode needs to wash room by room. In other modes it may make the robot mop a room again when the water looks dirty, which is untested.",
+                    options: ["off", "on"],
+                    getter: async () => {
+                        const response = await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.ACTION,
+                            payload: MSmartPacket.buildPayload(MSmartConst.ACTION.GET_CLEANING_SETTINGS_1)
+                        }).toHexString());
+                        const parsedResponse = BEightParser.PARSE(response);
+
+                        if (parsedResponse instanceof MSmartCleaningSettings1DTO) {
+                            return parsedResponse.turbidity_re_mop_switch ? "on" : "off";
+                        } else {
+                            throw new Error("Invalid response from robot");
+                        }
+                    },
+                    setter: async (value) => {
+                        let val;
+
+                        switch (value) {
+                            case "off":
+                                val = 0;
+                                break;
+                            case "on":
+                                val = 1;
+                                break;
+                            default:
+                                throw new Error(`Invalid mop wash after every room value: ${value}`);
+                        }
+
+                        await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
+                            payload: MSmartPacket.buildPayload(
+                                MSmartConst.SETTING.SET_CLEANING_SETTINGS_1,
+                                Buffer.from([
+                                    0x07, // turbidity-remop-switch
+                                    val
+                                ])
+                            )
+                        }).toHexString());
+                    }
+                });
             case MideaQuirkFactory.KNOWN_QUIRKS.BRIDGE_BOOST:
                 return new Quirk({
                     id: id,
@@ -853,6 +898,7 @@ MideaQuirkFactory.KNOWN_QUIRKS = {
     THRESHOLD_RECOGNITION: "2fa33876-f5ad-444d-9084-d51eb7be4670",
     CURTAIN_RECOGNITION: "401ad527-f4b9-41e6-99ee-007463ed3589",
     BRIDGE_BOOST: "17d539ff-51d3-49be-8b9e-29aa1e9c8d39",
+    ROOM_WISE_MOP_WASH: "ad9be0a9-4021-4594-991b-d6aaf525f2ad",
 };
 
 module.exports = MideaQuirkFactory;
