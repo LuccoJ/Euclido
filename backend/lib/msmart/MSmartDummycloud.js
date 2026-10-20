@@ -630,7 +630,18 @@ class MSmartDummycloud {
                 data: payload.data
             });
 
-            if (typeof payload.data.fullTrack === "string") {
+            // During a map session, the newest part of the path arrives as incrementalTrack, numbered by incrementalIndex
+            if (typeof payload.data.incrementalTrack === "string" && payload.data.incrementalTrack !== "") {
+                this.onUpload("track_incremental", {
+                    data: payload.data.incrementalTrack,
+                    index: payload.data.incrementalIndex
+                });
+            } else if (typeof payload.data.fullTrack === "string") {
+                if (typeof payload.data.fullTrackIndex === "string" && !/^(\d+)-\1$|^$/.test(payload.data.fullTrackIndex)) {
+                    // Only "1-1" was observed so far. A full track split into several messages isn't handled yet
+                    Logger.warn(`Full track in several parts (${payload.data.fullTrackIndex}), which isn't handled yet`);
+                }
+
                 this.onUpload("track", payload.data.fullTrack);
             } else {
                 Logger.warn("Unhandled track-type message");
@@ -646,6 +657,7 @@ class MSmartDummycloud {
      * @param {number} [options.timeout] - milliseconds
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
+     * @param {string} [options.protocol] - added to the message envelope
      * @returns {Promise<import("./MSmartPacket")>}
      */
     sendCommand(command, options) {
@@ -672,12 +684,14 @@ class MSmartDummycloud {
      * @param {number} [options.timeout] - milliseconds
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
+     * @param {string} [options.protocol] - added to the message envelope
      * @returns {Promise<import("./MSmartPacket")>}
      */
     actualSendCommand(command, options = {}) {
         return new Promise((resolve, reject) => {
             const nonce = crypto.randomUUID();
             const payload = JSON.stringify({
+                ...(options?.protocol ? {protocol: options.protocol} : {}),
                 data: command,
                 nonce: nonce,
                 version: 1,

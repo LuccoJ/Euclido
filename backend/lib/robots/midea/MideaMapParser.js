@@ -13,6 +13,10 @@ class MideaMapParser {
     constructor(options) {
         this.mapHacksProvider = options.mapHacksProvider;
 
+        /** @type {Buffer|undefined} the last full track, with the parts received since appended */
+        this.trackPayload = undefined;
+        this.lastIncrementalTrackIndex = 0;
+
         /**
          * Curtains and door sills as last reported by the robot, in robot map coordinates.
          * Kept separately from the parsed entities so that they survive map resets; the robot sends them again on map load.
@@ -110,6 +114,9 @@ class MideaMapParser {
                 break;
             case "track":
                 await this.handleTrackUpdate(data);
+                break;
+            case "track_incremental":
+                await this.handleIncrementalTrackUpdate(data);
                 break;
             case "dockPosition":
                 await this.handleDockPositionUpdate(data);
@@ -509,6 +516,60 @@ class MideaMapParser {
     async handleTrackUpdate(data) {
         const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(data);
 
+        if (payload.length < 6) {
+            // Empty, or not even one record (at the start of a job the robot sends 4 bytes). Keep the path and robot
+            // position that are already known instead of wiping them
+            return;
+        }
+
+        this.trackPayload = payload.subarray(0, payload.length - payload.length % 6);
+        this.lastIncrementalTrackIndex = 0;
+        this.renderTrack(this.trackPayload);
+    }
+
+    /**
+     * During a map session, the robot sends the newest part of its path about every 2s, numbered from 1.
+     * A part has the same record format as the full track and continues where the previous one ended.
+     * Appending it to the last full track keeps the path and the robot position current between the full uploads.
+     *
+     * @param {{data: string, index: number}} update
+     * @return {Promise<void>}
+     */
+    async handleIncrementalTrackUpdate(update) {
+        if (this.trackPayload === undefined) {
+            return; // A part is only useful on top of a full track
+        }
+        if (update.index !== 1 && update.index <= this.lastIncrementalTrackIndex) {
+            return; // Already applied
+        }
+
+        const payload = await MideaMapParser.DECOMPRESS_PAYLOAD(update.data);
+        let records = [];
+        for (let offset = 0; offset + 6 <= payload.length; offset += 6) {
+            if (payload.readUInt16BE(offset + 4) !== MideaMapParser.PATH_TYPES.HEADER) {
+                records.push(payload.subarray(offset, offset + 6));
+            }
+        }
+
+        const last = this.trackPayload.subarray(this.trackPayload.length - 6);
+        if (records.length > 0 && records[0].equals(last)) {
+            records = records.slice(1);
+        }
+
+        this.lastIncrementalTrackIndex = update.index;
+        if (records.length === 0) {
+            return;
+        }
+
+        this.trackPayload = Buffer.concat([this.trackPayload, ...records]);
+        this.renderTrack(this.trackPayload);
+    }
+
+    /**
+     * @private
+     * @param {Buffer} payload the decompressed track, a whole number of records
+     */
+    renderTrack(payload) {
         this.entities = this.entities.filter(e => {
             return ![
                 mapEntities.PathMapEntity.TYPE.PATH,
@@ -518,9 +579,6 @@ class MideaMapParser {
             ].includes(e.type);
         });
 
-        if (payload.length === 0) {
-            return;
-        }
 
         // First 4 payload bytes were observed to be 00 00 00 00 and 00 02 00 00
         // TODO: figure out what that means

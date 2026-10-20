@@ -85,6 +85,7 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
         this.mapUpdateDebounceTimeout = null;
         this.activeMapUpdateCount = 0;
+        this.mapUpdateStats = MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS();
 
         this.dummycloud = new MSmartDummycloud({
             dummyCloudTLSManager: this.dummyCloudTLSManager,
@@ -440,6 +441,7 @@ class MideaValetudoRobot extends ValetudoRobot {
      * @param {number} [options.timeout] - milliseconds
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
+     * @param {string} [options.protocol] - added to the message envelope
      * @returns {Promise<import("../../msmart/MSmartPacket")>}
      */
     async sendCommand(command, options) {
@@ -454,12 +456,67 @@ class MideaValetudoRobot extends ValetudoRobot {
     }
 
     /**
+     * During a job the robot uploads the whole map every 1-2s, and parsing one can take seconds on the robot.
+     * Identical uploads are dropped, and the rest are parsed at most every MAP_UPLOAD_MIN_INTERVAL. An upload that
+     * arrives sooner is kept and parsed when the interval is over, unless a newer one replaces it, so the map
+     * never stays behind.
+     *
+     * @private
+     * @param {any} data
+     * @return {boolean} whether the upload is skipped now
+     */
+    shouldSkipMapUpload(data) {
+        const isSame = (a, b) => {
+            return Buffer.isBuffer(a) && Buffer.isBuffer(b) ? a.equals(b) : a === b;
+        };
+
+        if (this.lastMapUploadData !== undefined && isSame(data, this.lastMapUploadData)) {
+            this.mapUpdateStats.parts["map (identical, skipped)"] = (this.mapUpdateStats.parts["map (identical, skipped)"] ?? 0) + 1;
+            this.pendingMapUpload = undefined;
+
+            return true;
+        }
+
+        const wait = (this.lastMapUploadTime ?? 0) + MideaValetudoRobot.MAP_UPLOAD_MIN_INTERVAL - Date.now();
+        if (wait > 0) {
+            this.mapUpdateStats.parts["map (postponed)"] = (this.mapUpdateStats.parts["map (postponed)"] ?? 0) + 1;
+            this.pendingMapUpload = data;
+
+            if (!this.pendingMapUploadTimeout) {
+                this.pendingMapUploadTimeout = setTimeout(() => {
+                    this.pendingMapUploadTimeout = undefined;
+                    const pending = this.pendingMapUpload;
+                    this.pendingMapUpload = undefined;
+
+                    if (pending !== undefined) {
+                        this.handleMapUpdate("map", pending).catch(err => {
+                            Logger.warn("Error while handling a postponed map update", err);
+                        });
+                    }
+                }, wait);
+            }
+
+            return true;
+        }
+
+        this.lastMapUploadData = data;
+        this.lastMapUploadTime = Date.now();
+        this.pendingMapUpload = undefined;
+
+        return false;
+    }
+
+    /**
      *
      * @param {string} type - TODO: ENUM
      * @param {any} data
      * @return {Promise<void>}
      */
     async handleMapUpdate(type, data) {
+        if (type === "map" && this.shouldSkipMapUpload(data)) {
+            return;
+        }
+
         if (this.mapUpdateDebounceTimeout) {
             clearTimeout(this.mapUpdateDebounceTimeout);
             this.mapUpdateDebounceTimeout = null;
@@ -470,10 +527,17 @@ class MideaValetudoRobot extends ValetudoRobot {
         // might fire without everything being fully processed, leading to some elements of the map flickering in the UI
         this.activeMapUpdateCount++;
 
+        const parseStart = Date.now();
         try {
             await this.mapParser.update(type, data);
         } finally {
             this.activeMapUpdateCount--;
+
+            const parseTime = Date.now() - parseStart;
+            this.mapUpdateStats.parts[type] = (this.mapUpdateStats.parts[type] ?? 0) + 1;
+            this.mapUpdateStats.maxParseTime = Math.max(this.mapUpdateStats.maxParseTime, parseTime);
+            this.mapUpdateStats.totalParseTime += parseTime;
+            this.logMapUpdateStats();
         }
 
         if (this.mapUpdateDebounceTimeout) {
@@ -483,12 +547,15 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.mapUpdateDebounceTimeout = setTimeout(() => {
             if (this.activeMapUpdateCount > 0) {
                 // Don't publish yet if there are still parts of the map being parsed
+                this.mapUpdateStats.skipped++;
+
                 return;
             }
 
             const newMap = this.mapParser.getCurrentMap();
             if (newMap.metaData.totalLayerArea > 0) {
                 this.state.map = newMap;
+                this.mapUpdateStats.published++;
 
                 this.emitMapUpdated();
             }
@@ -597,6 +664,34 @@ class MideaValetudoRobot extends ValetudoRobot {
                 Logger.warn(`Could not play ${file}`, err);
             }
         });
+    }
+
+    /**
+     * Logs once a minute how many map updates arrived and how long parsing them took
+     *
+     * @private
+     */
+    logMapUpdateStats() {
+        const now = Date.now();
+        const stats = this.mapUpdateStats;
+
+        if (now - stats.since < 60_000) {
+            return;
+        }
+
+        const count = Object.values(stats.parts).reduce((sum, n) => {
+            return sum + n;
+        }, 0);
+
+        Logger.debug(
+            `Map updates in the last ${Math.round((now - stats.since) / 1000)}s: ${count} parts ` +
+            `(${Object.entries(stats.parts).map(([type, n]) => {
+                return `${type}: ${n}`;
+            }).join(", ")}), parsing took ${stats.totalParseTime}ms in total and ${stats.maxParseTime}ms at most. ` +
+            `Maps published: ${stats.published}, held back because parts were still being parsed: ${stats.skipped}`
+        );
+
+        this.mapUpdateStats = MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS();
     }
 
     async executeMapPoll() {
@@ -1303,6 +1398,19 @@ class MideaValetudoRobot extends ValetudoRobot {
         );
     }
 }
+
+MideaValetudoRobot.MAP_UPLOAD_MIN_INTERVAL = 6000; // ms, a multiple of the robot's 2s tick
+
+MideaValetudoRobot.EMPTY_MAP_UPDATE_STATS = () => {
+    return {
+        since: Date.now(),
+        parts: {},
+        totalParseTime: 0,
+        maxParseTime: 0,
+        published: 0,
+        skipped: 0
+    };
+};
 
 MideaValetudoRobot.FAN_SPEEDS = Object.freeze({
     //[stateAttrs.PresetSelectionStateAttribute.INTENSITY.OFF]: 0, Works on the J15PU, but not really useful here
