@@ -13,6 +13,7 @@ For Eureka (Midea) J15 robots:
 - **Personalized mode and room settings**: passes, mode, fan speed, water usage and route for each room,
   plus a cleaning order that applies to every cleanup of several rooms (Room Settings in the menu).
 - **Curtains and thresholds** as map annotations, so the robot knows where it can pass.
+- A **Curtain Recognition** switch next to the existing Threshold Recognition one (its effect on the J15 Pro Ultra is still unknown).
 - **Obstacle names** for all the object types the robot can report, and **obstacle sounds**: an MP3 of your choice
   played when a new obstacle is detected (see `docs/pages/usage/obstacle-sounds.md`).
 - **Emergency light**: the robot's camera light turns on when its dock loses power (Euclido options, off by default).
