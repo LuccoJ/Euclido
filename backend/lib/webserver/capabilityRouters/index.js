@@ -34,6 +34,7 @@ module.exports = {
     SimpleToggleCapabilityRouter: require("./SimpleToggleCapabilityRouter"),
     SpeakerTestCapabilityRouter: require("./SpeakerTestCapabilityRouter"),
     SpeakerVolumeControlCapabilityRouter: require("./SpeakerVolumeControlCapabilityRouter"),
+    EmergencyLightControlCapabilityRouter: require("./EmergencyLightControlCapabilityRouter"),
     StatisticsCapabilityRouter: require("./StatisticsCapabilityRouter"),
     VoicePackManagementCapabilityRouter: require("./VoicePackManagementCapabilityRouter"),
     WifiConfigurationCapabilityRouter: require("./WifiConfigurationCapabilityRouter"),

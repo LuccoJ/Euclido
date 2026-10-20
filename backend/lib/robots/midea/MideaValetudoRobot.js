@@ -11,6 +11,7 @@ const entities = require("../../entities");
 const Logger = require("../../Logger");
 const MideaMapHacksProvider = require("./MideaMapHacksProvider");
 const MideaMapParser = require("./MideaMapParser");
+const MideaPersistentStore = require("./MideaPersistentStore");
 const MSmartDummycloud = require("../../msmart/MSmartDummycloud");
 const ValetudoRobot = require("../../core/ValetudoRobot");
 const stateAttrs = entities.state.attributes;
@@ -26,6 +27,7 @@ const CA_CERT_PATH = "/etc/ssl/valetudo/ca.pem";
 const OBSTACLE_SOUND_DIRECTORIES = ["/userdata/sounds/objects", "/oem/sound/objects"];
 const OBSTACLE_SOUND_MIN_INTERVAL = 3000; // ms, between any two sounds
 const OBSTACLE_SOUND_SAME_NAME_INTERVAL = 15000; // ms, before the same obstacle is announced again
+const FILL_LIGHT_PATH = "/sys/devices/platform/pwm_fill_light_control/level"; // 0-255
 const BIND_IP = "127.0.13.37";
 
 /**
@@ -70,6 +72,10 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.mapHacksProvider = new MideaMapHacksProvider({robot: this});
         this.mapParser = new MideaMapParser({mapHacksProvider: this.mapHacksProvider});
         this.lastObstacleSoundTimestamp = 0;
+        // Brightness in percent for the camera's fill light when the dock seems to have lost power, 0 = off
+        this.emergencyLightStore = new MideaPersistentStore({config: this.config, key: "emergencyLight"});
+        /** @type {string|undefined} the fill light's level before the emergency light turned it on */
+        this.fillLightLevelBefore = undefined;
         /** @type {Map<string, number>} */
         this.lastObstacleSoundTimestampByName = new Map();
         if (this.config.get("embedded") === true) {
@@ -410,7 +416,9 @@ class MideaValetudoRobot extends ValetudoRobot {
                     error: statusError
                 });
 
+                const previousStatus = this.state.getFirstMatchingAttributeByConstructor(stateAttrs.StatusStateAttribute);
                 this.state.upsertFirstMatchingAttribute(newState);
+                this.updateEmergencyLight(previousStatus?.value, newState.value);
 
                 if (newState.isActiveState) {
                     this.pollMap();
@@ -497,6 +505,61 @@ class MideaValetudoRobot extends ValetudoRobot {
      * @private
      * @param {string} name
      */
+    /**
+     * @returns {number} percent, 0 = off
+     */
+    getEmergencyLightLevel() {
+        return this.emergencyLightStore.get()?.level ?? 0;
+    }
+
+    /**
+     * @param {number} level percent, 0 = off
+     */
+    setEmergencyLightLevel(level) {
+        this.emergencyLightStore.set({level: level});
+    }
+
+    /**
+     * When the robot goes from docked straight to idle, it has left the dock without driving off it: either someone
+     * picked it up or the dock lost power. Then the camera's fill light is turned on, until the status changes again.
+     *
+     * @private
+     * @param {string|undefined} previousStatus
+     * @param {string} newStatus
+     */
+    updateEmergencyLight(previousStatus, newStatus) {
+        if (previousStatus === newStatus || this.config.get("embedded") !== true) {
+            return;
+        }
+
+        const leftDockStanding = previousStatus === stateAttrs.StatusStateAttribute.VALUE.DOCKED &&
+            newStatus === stateAttrs.StatusStateAttribute.VALUE.IDLE;
+
+        if (leftDockStanding) {
+            // To see whether the robot reports a power loss differently from being picked up
+            Logger.info(`Left the dock without driving off it (raw work status ${this.ephemeralState.work_status}). The dock may have lost power.`);
+        }
+
+        const level = this.getEmergencyLightLevel();
+        if (leftDockStanding && level > 0) {
+            try {
+                this.fillLightLevelBefore = fs.readFileSync(FILL_LIGHT_PATH).toString().trim();
+                fs.writeFileSync(FILL_LIGHT_PATH, `${Math.round(level / 100 * 255)}`);
+                Logger.info(`Emergency light on at ${level}%`);
+            } catch (e) {
+                Logger.warn("Could not turn on the emergency light", e);
+            }
+        } else if (this.fillLightLevelBefore !== undefined) {
+            try {
+                fs.writeFileSync(FILL_LIGHT_PATH, this.fillLightLevelBefore);
+                Logger.info("Emergency light off");
+            } catch (e) {
+                Logger.warn("Could not turn off the emergency light", e);
+            }
+            this.fillLightLevelBefore = undefined;
+        }
+    }
+
     playObstacleSound(name) {
         const now = Date.now();
         if (
