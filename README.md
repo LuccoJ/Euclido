@@ -7,6 +7,30 @@ personalized room settings and room order, curtains and thresholds, more obstacl
 It is not made or supported by the Valetudo project, so please don't report problems with Euclido there.
 Euclido couldn't exist without Valetudo, nor without [Dennis Giese](https://dontvacuum.me/), who makes rooting these robots possible.
 
+## What Euclido adds
+
+For Eureka (Midea) J15 robots:
+- **Personalized mode and room settings**: passes, mode, fan speed, water usage and route for each room,
+  plus a cleaning order that applies to every cleanup of several rooms (Room Settings in the menu).
+- **Curtains and thresholds** as map annotations, so the robot knows where it can pass.
+- A **Curtain Recognition** switch next to the existing Threshold Recognition one (its effect on the J15 Pro Ultra is still unknown).
+- **Obstacle names** for all the object types the robot can report, and **obstacle sounds**: an MP3 of your choice
+  played when a new obstacle is detected (see `docs/pages/usage/obstacle-sounds.md`).
+- **Emergency light**: the robot's camera light turns on when its dock loses power (Euclido options, off by default).
+- Separate **Avoid** and **Cross** carpet modes, where "Avoid" can make use of "Increased carpet avoidance" (based on AI with the RGB camera rather than just the carpet sensor).
+- A manual trigger for the **dock self-cleaning**
+- fixes for collision-avoidant navigation, the operation mode shown after choosing a preset, and **automatic detection of floor materials**
+  (setting one room no longer stops the robot from detecting the others).
+- **Live path and robot position** on the J15 Pro Ultra, updated about every 2 seconds instead of every 92.
+- Camera streaming at 24 fps instead of 30 fps, although you may still have mixed luck with it on this robot's board.
+
+For all robots:
+- **Map rotation** in steps of 90°, saved per robot (Map Options → Maps).
+- On phones, the collapsed controls show the robot's state, mode, fan speed and water usage.
+- The theme follows the system's light or dark setting.
+- A fix for the map editor, where dragging one line or zone over another could move that one instead.
+- Updates from Euclido's own nightly builds.
+
 The rest of this file is Valetudo's own README.
 
 ---
