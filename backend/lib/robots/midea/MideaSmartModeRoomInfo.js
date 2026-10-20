@@ -5,12 +5,13 @@ const MideaRoomOrderManager = require("./MideaRoomOrderManager");
 /**
  * Answers the robot's request for per-room settings in the Smart operation mode (raw mode 5).
  *
- * In that mode the robot washes the mop pads after every room. When a job starts, it posts a robot event asking for
- * the settings of each room and waits a few seconds for a "roomInfo" message, then falls back to fixed defaults
- * for every room. This sends that message with each room's own settings from room_cfg.
+ * In that mode the robot washes the mop pads after every room. When a job starts, it asks for the settings of each
+ * room with a map part get for "worry_free_mode_config", and passes the "data" of the answer on to its cleaning
+ * logic. If that holds a "roomInfo" object, the robot uses it; otherwise it falls back to fixed defaults for every
+ * room. This answers with each room's own settings from room_cfg.
  *
- * Experimental: where the robot expects the "roomInfo" object is not known, so it is sent both in the data and at
- * the top level of the message.
+ * Experimental: the scale the robot expects for the values is not known. They are sent on the scales of 0x2B.
+ * The settings have no mode field, so rooms set to vacuum only are sent with water level 0.
  */
 class MideaSmartModeRoomInfo {
     /**
@@ -19,66 +20,60 @@ class MideaSmartModeRoomInfo {
      */
     constructor(options) {
         this.robot = options.robot;
-        this.lastSent = 0;
     }
 
     /**
-     * Called for every robot event the robot posts over HTTP
-     *
-     * @param {any} req
+     * @param {any} body the request body of a map part get
+     * @returns {object|undefined} the data to answer with, if this is the room settings request
      */
-    onRobotEvent(req) {
-        Logger.debug(
-            `Smart mode: robot event (${req.headers?.["content-type"]}, ${req.headers?.["content-length"]} bytes)` +
-            ` in operation mode ${this.robot.lastRawOperationMode}`
-        );
-
-        if (!SEND_ROOM_INFO || this.robot.lastRawOperationMode !== SMART_MODE || Date.now() - this.lastSent < DEBOUNCE) {
-            return;
+    onPartGet(body) {
+        if (body?.mapPart !== WORRY_FREE_MODE_CONFIG) {
+            return undefined;
         }
-        this.lastSent = Date.now();
 
-        this.send().catch(err => {
-            Logger.warn("Smart mode: sending the room settings failed", err);
-        });
+        try {
+            const roomInfo = this.buildRoomInfo(body.mapId);
+
+            Logger.debug(`Smart mode: answering the room settings request with ${JSON.stringify(roomInfo)}`);
+
+            return {roomInfo: roomInfo};
+        } catch (e) {
+            Logger.warn("Smart mode: could not build the room settings", e);
+
+            return undefined;
+        }
     }
 
     /**
      * @private
+     * @param {number} [mapId] the map id the robot asked for
+     * @returns {object}
      */
-    async send() {
+    buildRoomInfo(mapId) {
         const roomCfg = JSON.parse(fs.readFileSync(ROOM_CFG_PATH).toString());
         const roomCleanParam = (roomCfg.rooms ?? []).map(room => {
             return {
                 roomId: room.id,
                 vacuumLevel: MideaRoomOrderManager.FAN_SPEED_TO_WIRE[room.fanSpeed] ?? DEFAULT_FAN_SPEED,
-                waterLevel: room.infinite_water_speed,
+                waterLevel: room.vacuum_mop_mode === VACUUM_ONLY ? 0 : room.infinite_water_speed,
                 routePreference: MideaRoomOrderManager.ROUTE_TYPE_TO_WIRE[room.route_type] ?? DEFAULT_ROUTE_TYPE,
                 cleaningTimes: room.cleanCount,
                 cleanSeq: room.cleanSeq
             };
         });
-        const roomInfo = {
-            mapId: roomCfg._mapId,
+
+        return {
+            mapId: typeof mapId === "number" ? mapId : roomCfg._mapId,
             roomCleanParam: roomCleanParam
         };
-
-        Logger.debug(`Smart mode: sending room settings ${JSON.stringify(roomInfo)}`);
-
-        await this.robot.sendCommand({roomInfo: roomInfo}, {
-            protocol: "roomInfo",
-            envelope: {roomInfo: roomInfo},
-            fireAndForget: true
-        });
     }
 }
 
-// Off: the message as sent crashed the robot's iot_node, which then restarts the Wi-Fi
-const SEND_ROOM_INFO = false;
-const SMART_MODE = 5;
+const WORRY_FREE_MODE_CONFIG = "worry_free_mode_config";
 // Same file MideaRoomOrderManager reads
 const ROOM_CFG_PATH = "/oem/slam/room_cfg02.settings";
-const DEBOUNCE = 30 * 1000;
+// room_cfg vacuum_mop_mode of a room set to vacuum only
+const VACUUM_ONLY = 1;
 // Wire values: fan 2 = medium, route 1 = standard
 const DEFAULT_FAN_SPEED = 2;
 const DEFAULT_ROUTE_TYPE = 1;

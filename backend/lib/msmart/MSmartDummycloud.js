@@ -26,7 +26,7 @@ class MSmartDummycloud {
      * @param {(req: any, res: any) => boolean} options.onHttpRequest
      * @param {(type: string, data: any) => void} options.onUpload - TODO naming
      * @param {(type: string, value: any) => void} options.onEvent - TODO naming
-     * @param {(req: any) => void} [options.onRobotEvent] - called for each robot event posted over HTTP
+     * @param {(body: any) => (object|undefined)} [options.onPartGet] - may return the data to answer a part get with
      */
     constructor(options) {
         this.dummyCloudTLSManager = options.dummyCloudTLSManager;
@@ -37,7 +37,7 @@ class MSmartDummycloud {
         this.onHttpRequest = options.onHttpRequest;
         this.onUpload = options.onUpload;
         this.onEvent = options.onEvent;
-        this.onRobotEvent = options.onRobotEvent;
+        this.onPartGet = options.onPartGet;
         this.dummyClientCert = options.dummyClientCert;
         this.dummyClientKey = options.dummyClientKey;
 
@@ -189,7 +189,7 @@ class MSmartDummycloud {
             Logger.debug(`Handling part get for: ${req.body.mapPart}`);
             Logger.debug(req.body);
 
-            let data = {};
+            let data = this.onPartGet?.(req.body) ?? {};
             if (req.body.mapPart === "semantic_node_config") {
                 data = {
                     uploadDataPeriodInSeconds: {
@@ -466,7 +466,6 @@ class MSmartDummycloud {
         // This route receives events that might be protobufs(?) as multipart/form-data. They do seem debug-only? Not sure.
         // Let's see if we can get away without _actually_ handling them
         app.post("/v3/dev2pro/robot/event", (req, res) => {
-            this.onRobotEvent?.(req);
             res.status(200).send();
         });
 
@@ -661,7 +660,6 @@ class MSmartDummycloud {
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
      * @param {string} [options.protocol] - added to the message envelope
-     * @param {object} [options.envelope] - further fields added to the message envelope
      * @returns {Promise<import("./MSmartPacket")>}
      */
     sendCommand(command, options) {
@@ -689,7 +687,6 @@ class MSmartDummycloud {
      * @param {"device"|"ai"|"map"} [options.target] - defaults to "device"
      * @param {boolean} [options.fireAndForget]
      * @param {string} [options.protocol] - added to the message envelope
-     * @param {object} [options.envelope] - further fields added to the message envelope
      * @returns {Promise<import("./MSmartPacket")>}
      */
     actualSendCommand(command, options = {}) {
@@ -697,7 +694,6 @@ class MSmartDummycloud {
             const nonce = crypto.randomUUID();
             const payload = JSON.stringify({
                 ...(options?.protocol ? {protocol: options.protocol} : {}),
-                ...(options?.envelope ?? {}),
                 data: command,
                 nonce: nonce,
                 version: 1,
