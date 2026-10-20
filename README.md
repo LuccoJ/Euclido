@@ -17,11 +17,12 @@ For Eureka (Midea) J15 robots:
 - **Obstacle names** for all the object types the robot can report, and **obstacle sounds**: an MP3 of your choice
   played when a new obstacle is detected (see `docs/pages/usage/obstacle-sounds.md`).
 - **Emergency light**: the robot's camera light turns on when its dock loses power (Euclido options, off by default).
-- Separate **Avoid** and **Cross** carpet modes, a manual trigger for the dock's self-cleaning, and fixes for
-  collision-avoidant navigation, the operation mode shown after choosing a preset, and floor materials
+- Separate **Avoid** and **Cross** carpet modes, where "Avoid" can make use of "Increased carpet avoidance" (based on AI with the RGB camera rather than just the carpet sensor).
+- A manual trigger for the **dock self-cleaning**
+- fixes for collision-avoidant navigation, the operation mode shown after choosing a preset, and **automatic detection of floor materials**
   (setting one room no longer stops the robot from detecting the others).
-- **Live path and robot position** on the J15 Pro Ultra, updated about every 2 seconds instead of every 92 (or only at the end of a job).
-- Camera streaming at 24 fps.
+- **Live path and robot position** on the J15 Pro Ultra, updated about every 2 seconds instead of every 92.
+- Camera streaming at 24 fps instead of 30 fps, although you may still have mixed luck with it on this robot's board.
 
 For all robots:
 - **Map rotation** in steps of 90°, saved per robot (Map Options → Maps).
