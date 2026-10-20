@@ -799,7 +799,7 @@ class MideaQuirkFactory {
                 return new Quirk({
                     id: id,
                     title: "Mop Wash After Every Room",
-                    description: "In the Smart operation mode, wash the mop pads after every room. This is the robot's dirty-water re-mop switch, which Smart mode needs to wash room by room. In other modes it may make the robot mop a room again when the water looks dirty, which is untested.",
+                    description: "In the Smart operation mode, wash the mop pads after every room. This is the robot's dirty-water re-mop switch, which Smart mode needs to wash room by room. In other modes it makes the robot mop a room again when the water looks dirty, which needs a dirty-water sensor that not every model has.",
                     options: ["off", "on"],
                     getter: async () => {
                         const response = await this.robot.sendCommand(new MSmartPacket({
