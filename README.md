@@ -20,6 +20,7 @@ For Eureka (Midea) J15 robots:
 - Separate **Avoid** and **Cross** carpet modes, a manual trigger for the dock's self-cleaning, and fixes for
   collision-avoidant navigation, the operation mode shown after choosing a preset, and floor materials
   (setting one room no longer stops the robot from detecting the others).
+- **Live path and robot position** on the J15 Pro Ultra, updated about every 2 seconds instead of every 92 (or only at the end of a job).
 - Camera streaming at 24 fps.
 
 For all robots:
