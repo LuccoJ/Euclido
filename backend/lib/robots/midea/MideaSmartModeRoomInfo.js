@@ -46,7 +46,7 @@ class MideaSmartModeRoomInfo {
 
     /**
      * @private
-     * @param {number} [mapId] the map id the robot asked for
+     * @param {number} [mapId] the map id the robot asked for, only logged
      * @returns {object}
      */
     buildRoomInfo(mapId) {
@@ -62,9 +62,14 @@ class MideaSmartModeRoomInfo {
             };
         });
 
+        if (mapId !== roomCfg._mapId) {
+            Logger.debug(`Smart mode: the request names map ${mapId}, room_cfg map ${roomCfg._mapId}. Using room_cfg's.`);
+        }
+
         return {
-            // The robot reads the map id as a string, and every other value as a number
-            mapId: String(typeof mapId === "number" ? mapId : roomCfg._mapId),
+            // The robot looks the settings up by the map id in room_cfg, not the one in its request.
+            // It reads the map id as a string, and every other value as a number.
+            mapId: String(roomCfg._mapId),
             roomCleanParam: roomCleanParam
         };
     }
