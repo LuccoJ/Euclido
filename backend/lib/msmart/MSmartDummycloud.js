@@ -26,7 +26,7 @@ class MSmartDummycloud {
      * @param {(req: any, res: any) => boolean} options.onHttpRequest
      * @param {(type: string, data: any) => void} options.onUpload - TODO naming
      * @param {(type: string, value: any) => void} options.onEvent - TODO naming
-     * @param {(body: any) => (object|undefined)} [options.onPartGet] - may return the data to answer a part get with
+     * @param {(body: any) => Promise<object|undefined>} [options.onPartGet] - may return the data to answer a part get with
      */
     constructor(options) {
         this.dummyCloudTLSManager = options.dummyCloudTLSManager;
@@ -185,11 +185,11 @@ class MSmartDummycloud {
             }
         });
 
-        app.post("/v1/dev2pro/m7/map/part/get", (req, res) => {
+        app.post("/v1/dev2pro/m7/map/part/get", async (req, res) => {
             Logger.debug(`Handling part get for: ${req.body.mapPart}`);
             Logger.debug(req.body);
 
-            let data = this.onPartGet?.(req.body) ?? {};
+            let data = (await this.onPartGet?.(req.body)) ?? {};
             if (req.body.mapPart === "semantic_node_config") {
                 data = {
                     uploadDataPeriodInSeconds: {

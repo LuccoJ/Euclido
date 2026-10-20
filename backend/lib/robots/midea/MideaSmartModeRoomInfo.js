@@ -1,6 +1,10 @@
+const BEightParser = require("../../msmart/BEightParser");
 const fs = require("node:fs");
 const Logger = require("../../Logger");
 const MideaRoomOrderManager = require("./MideaRoomOrderManager");
+const MSmartConst = require("../../msmart/MSmartConst");
+const MSmartMapListDTO = require("../../msmart/dtos/MSmartMapListDTO");
+const MSmartPacket = require("../../msmart/MSmartPacket");
 
 /**
  * Answers the robot's request for per-room settings in the Smart operation mode (raw mode 5).
@@ -24,15 +28,15 @@ class MideaSmartModeRoomInfo {
 
     /**
      * @param {any} body the request body of a map part get
-     * @returns {object|undefined} the data to answer with, if this is the room settings request
+     * @returns {Promise<object|undefined>} the data to answer with, if this is the room settings request
      */
-    onPartGet(body) {
+    async onPartGet(body) {
         if (body?.mapPart !== WORRY_FREE_MODE_CONFIG) {
             return undefined;
         }
 
         try {
-            const roomInfo = this.buildRoomInfo(body.mapId);
+            const roomInfo = this.buildRoomInfo(body.mapId, await this.getCurrentMapId());
 
             Logger.debug(`Smart mode: answering the room settings request with ${JSON.stringify(roomInfo)}`);
 
@@ -45,11 +49,38 @@ class MideaSmartModeRoomInfo {
     }
 
     /**
+     * The robot looks the settings up by the id of the map it is using, which is not the one in its request
+     *
      * @private
-     * @param {number} [mapId] the map id the robot asked for, only logged
+     * @returns {Promise<number|undefined>}
+     */
+    async getCurrentMapId() {
+        try {
+            const listMapsPacket = new MSmartPacket({
+                messageType: MSmartPacket.MESSAGE_TYPE.ACTION,
+                payload: MSmartPacket.buildPayload(MSmartConst.ACTION.LIST_MAPS)
+            });
+            const response = BEightParser.PARSE(
+                await this.robot.sendCommand(listMapsPacket.toHexString(), {timeout: LIST_MAPS_TIMEOUT})
+            );
+
+            if (response instanceof MSmartMapListDTO) {
+                return response.currentMapId;
+            }
+        } catch (e) {
+            Logger.debug("Smart mode: could not get the current map id", e);
+        }
+
+        return undefined;
+    }
+
+    /**
+     * @private
+     * @param {number} requestedMapId the map id in the robot's request, only logged
+     * @param {number} [currentMapId] the map id the robot reports as current
      * @returns {object}
      */
-    buildRoomInfo(mapId) {
+    buildRoomInfo(requestedMapId, currentMapId) {
         const roomCfg = JSON.parse(fs.readFileSync(ROOM_CFG_PATH).toString());
         const roomCleanParam = (roomCfg.rooms ?? []).map(room => {
             return {
@@ -61,21 +92,24 @@ class MideaSmartModeRoomInfo {
                 cleanSeq: room.cleanSeq
             };
         });
+        const mapId = currentMapId ?? roomCfg._mapId;
 
-        if (mapId !== roomCfg._mapId) {
-            Logger.debug(`Smart mode: the request names map ${mapId}, room_cfg map ${roomCfg._mapId}. Using room_cfg's.`);
-        }
+        Logger.debug(
+            `Smart mode: map ids: requested ${requestedMapId}, current ${currentMapId}, room_cfg ${roomCfg._mapId}. ` +
+            `Using ${mapId}.`
+        );
 
         return {
-            // The robot looks the settings up by the map id in room_cfg, not the one in its request.
-            // It reads the map id as a string, and every other value as a number.
-            mapId: String(roomCfg._mapId),
+            // The robot reads the map id as a string, and every other value as a number
+            mapId: String(mapId),
             roomCleanParam: roomCleanParam
         };
     }
 }
 
 const WORRY_FREE_MODE_CONFIG = "worry_free_mode_config";
+// The robot waits a few seconds for the answer
+const LIST_MAPS_TIMEOUT = 1500;
 // Same file MideaRoomOrderManager reads
 const ROOM_CFG_PATH = "/oem/slam/room_cfg02.settings";
 // room_cfg vacuum_mop_mode of a room set to vacuum only
