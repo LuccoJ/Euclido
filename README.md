@@ -26,7 +26,8 @@ For Eureka (Midea) J15 robots:
 
 For all robots:
 - **Map rotation** in steps of 90°, saved per robot (Map Options → Maps).
-- Small **specks of floor outside the rooms** (lidar seeing through windows or reflections) are hidden from the map.
+- Small **specks of floor and wall outside the rooms** (lidar seeing through windows or reflections) are hidden
+  from the map, so they no longer shrink its default zoom.
 - On phones, the collapsed controls show the robot's state, mode, fan speed and water usage.
 - The theme follows the system's light or dark setting.
 - A fix for the map editor, where dragging one line or zone over another could move that one instead.
