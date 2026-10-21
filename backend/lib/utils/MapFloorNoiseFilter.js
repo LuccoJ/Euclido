@@ -1,11 +1,14 @@
 const MapLayer = require("../entities/map/MapLayer");
 
 /**
- * Removes small specks of floor that don't touch any segment from maps.
+ * Removes small specks of floor and wall that don't touch any room from maps.
  *
- * Lidars see through windows and get reflections, which leave streaks of floor pixels outside the rooms. A group of
- * connected floor pixels is kept if it touches a segment or is large, so that floor next to rooms (like a balcony)
- * and areas that aren't segmented yet stay. Maps without segments are left alone.
+ * Lidars see through windows and get reflections, which leave streaks of floor and stray wall pixels outside the
+ * rooms. Besides cluttering the map, they make the default zoom smaller, as the map is fitted to all of its layers.
+ *
+ * A group of connected floor pixels is kept if it touches a segment or is large, so that floor next to rooms (like a
+ * balcony) and areas that aren't segmented yet stay. Wall pixels are then kept if they touch a segment or the floor
+ * that was kept, or are a large group themselves. Maps without segments are left alone.
  */
 class MapFloorNoiseFilter {
     /**
@@ -19,114 +22,136 @@ class MapFloorNoiseFilter {
         }
         FILTERED_MAPS.add(map);
 
-        const floorIndex = map.layers.findIndex(layer => {
-            return layer.type === MapLayer.TYPE.FLOOR;
-        });
         const segments = map.layers.filter(layer => {
             return layer.type === MapLayer.TYPE.SEGMENT;
         });
-        if (floorIndex === -1 || segments.length === 0 || !(map.pixelSize > 0)) {
+        if (segments.length === 0 || !(map.pixelSize > 0)) {
             return;
-        }
-
-        const floor = map.layers[floorIndex];
-        const minX = floor.dimensions.x.min - 1;
-        const minY = floor.dimensions.y.min - 1;
-        const width = floor.dimensions.x.max - minX + 2;
-        const height = floor.dimensions.y.max - minY + 2;
-        const grid = new Uint8Array(width * height);
-
-        markRuns(grid, floor.compressedPixels, minX, minY, width, height, FLOOR);
-        for (const segment of segments) {
-            markRuns(grid, segment.compressedPixels, minX, minY, width, height, SEGMENT);
         }
 
         const minKeptPixels = Math.ceil(MIN_KEPT_AREA / (map.pixelSize * map.pixelSize));
-        const keep = new Uint8Array(width * height);
-        const visited = new Uint8Array(width * height);
-        const stack = [];
-        const component = [];
-        let removed = 0;
 
-        for (let start = 0; start < grid.length; start++) {
-            if (grid[start] !== FLOOR || visited[start]) {
-                continue;
-            }
+        filterLayerOfType(map, MapLayer.TYPE.FLOOR, segments, minKeptPixels);
 
-            let touchesSegment = false;
-            component.length = 0;
-            stack.push(start);
-            visited[start] = 1;
+        const anchors = map.layers.filter(layer => {
+            return layer.type === MapLayer.TYPE.SEGMENT || layer.type === MapLayer.TYPE.FLOOR;
+        });
+        filterLayerOfType(map, MapLayer.TYPE.WALL, anchors, minKeptPixels);
+    }
+}
 
-            while (stack.length > 0) {
-                const i = stack.pop();
-                const x = i % width;
-                const y = (i - x) / width;
+/**
+ * Drops the groups of connected pixels of the layer that touch none of the anchor layers and are small
+ *
+ * @param {import("../entities/map/ValetudoMap")} map
+ * @param {string} type
+ * @param {Array<import("../entities/map/MapLayer")>} anchors
+ * @param {number} minKeptPixels
+ */
+function filterLayerOfType(map, type, anchors, minKeptPixels) {
+    const layerIndex = map.layers.findIndex(layer => {
+        return layer.type === type;
+    });
+    if (layerIndex === -1) {
+        return;
+    }
 
-                component.push(i);
+    const layer = map.layers[layerIndex];
+    const minX = layer.dimensions.x.min - 1;
+    const minY = layer.dimensions.y.min - 1;
+    const width = layer.dimensions.x.max - minX + 2;
+    const height = layer.dimensions.y.max - minY + 2;
+    const grid = new Uint8Array(width * height);
 
-                // The grid has a border of one empty pixel around the floor, so neighbours never wrap around
-                for (let dy = -1; dy <= 1; dy++) {
-                    for (let dx = -1; dx <= 1; dx++) {
-                        if (dx === 0 && dy === 0) {
-                            continue;
+    for (const anchor of anchors) {
+        markRuns(grid, anchor.compressedPixels, minX, minY, width, height, ANCHOR);
+    }
+    markRuns(grid, layer.compressedPixels, minX, minY, width, height, PIXEL);
+
+    const keep = new Uint8Array(width * height);
+    const visited = new Uint8Array(width * height);
+    const stack = [];
+    const component = [];
+    let removed = 0;
+
+    for (let start = 0; start < grid.length; start++) {
+        if (grid[start] !== PIXEL || visited[start]) {
+            continue;
+        }
+
+        let touchesAnchor = false;
+        component.length = 0;
+        stack.push(start);
+        visited[start] = 1;
+
+        while (stack.length > 0) {
+            const i = stack.pop();
+            const x = i % width;
+            const y = (i - x) / width;
+
+            component.push(i);
+
+            // The grid has a border of one empty pixel around the layer, so neighbours never wrap around
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) {
+                        continue;
+                    }
+
+                    const n = (y + dy) * width + x + dx;
+                    if (grid[n] === PIXEL) {
+                        if (!visited[n]) {
+                            visited[n] = 1;
+                            stack.push(n);
                         }
-
-                        const n = (y + dy) * width + x + dx;
-                        if (grid[n] === FLOOR) {
-                            if (!visited[n]) {
-                                visited[n] = 1;
-                                stack.push(n);
-                            }
-                        } else if (grid[n] === SEGMENT) {
-                            touchesSegment = true;
-                        }
+                    } else if (grid[n] === ANCHOR) {
+                        touchesAnchor = true;
                     }
                 }
             }
+        }
 
-            if (touchesSegment || component.length >= minKeptPixels) {
-                for (const i of component) {
-                    keep[i] = 1;
-                }
-            } else {
-                removed += component.length;
+        if (touchesAnchor || component.length >= minKeptPixels) {
+            for (const i of component) {
+                keep[i] = 1;
             }
+        } else {
+            removed += component.length;
         }
-
-        if (removed === 0) {
-            return;
-        }
-
-        // Row by row, which is the order MapLayer.COORDINATE_TUPLE_SORT gives
-        const pixels = [];
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                if (keep[y * width + x]) {
-                    pixels.push(x + minX, y + minY);
-                }
-            }
-        }
-
-        map.metaData.totalLayerArea -= floor.metaData.area;
-
-        if (pixels.length === 0) {
-            map.layers.splice(floorIndex, 1);
-            return;
-        }
-
-        const metaData = Object.assign({}, floor.metaData);
-        delete metaData.area;
-        const filtered = new MapLayer({
-            pixels: pixels,
-            type: MapLayer.TYPE.FLOOR,
-            metaData: metaData
-        });
-        filtered.metaData.area = filtered.dimensions.pixelCount * (map.pixelSize * map.pixelSize);
-
-        map.metaData.totalLayerArea += filtered.metaData.area;
-        map.layers[floorIndex] = filtered;
     }
+
+    if (removed === 0) {
+        return;
+    }
+
+    // Row by row, which is the order MapLayer.COORDINATE_TUPLE_SORT gives
+    const pixels = [];
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (keep[y * width + x]) {
+                pixels.push(x + minX, y + minY);
+            }
+        }
+    }
+
+    map.metaData.totalLayerArea -= layer.metaData.area;
+
+    if (pixels.length === 0) {
+        map.layers.splice(layerIndex, 1);
+        return;
+    }
+
+    const metaData = Object.assign({}, layer.metaData);
+    delete metaData.area;
+    const filtered = new MapLayer({
+        pixels: pixels,
+        type: type,
+        metaData: metaData
+    });
+    filtered.metaData.area = filtered.dimensions.pixelCount * (map.pixelSize * map.pixelSize);
+
+    map.metaData.totalLayerArea += filtered.metaData.area;
+    map.layers[layerIndex] = filtered;
 }
 
 /**
@@ -153,8 +178,8 @@ function markRuns(grid, runs, minX, minY, width, height, value) {
     }
 }
 
-const FLOOR = 1;
-const SEGMENT = 2;
+const PIXEL = 1;
+const ANCHOR = 2;
 // Half a square metre, in cm²
 const MIN_KEPT_AREA = 5000;
 /** @type {WeakSet<object>} */

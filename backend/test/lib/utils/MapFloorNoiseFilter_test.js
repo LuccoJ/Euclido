@@ -58,6 +58,23 @@ describe("MapFloorNoiseFilter", () => {
         assert.strictEqual(map.metaData.totalLayerArea, 100 * 25);
     });
 
+    it("removes stray wall pixels but keeps walls around rooms", () => {
+        const map = buildMap(sortPixels(square(80, 80, 15)), true);
+        map.addLayer(new MapLayer({
+            pixels: sortPixels([...square(9, 10, 1), ...square(200, 5, 1), ...square(95, 80, 1)]),
+            type: MapLayer.TYPE.WALL
+        }));
+
+        MapFloorNoiseFilter.FILTER(map);
+
+        const walls = map.layers.find(layer => {
+            return layer.type === MapLayer.TYPE.WALL;
+        });
+        assert.strictEqual(walls.dimensions.pixelCount, 2); // next to the segment and next to the large floor
+        assert.strictEqual(walls.dimensions.x.max, 95);
+        assert.strictEqual(walls.dimensions.y.min, 10);
+    });
+
     it("leaves maps without segments alone", () => {
         const map = buildMap(sortPixels(square(50, 50, 2)), false);
 
