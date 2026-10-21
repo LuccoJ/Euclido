@@ -5,6 +5,7 @@ const CallbackAttributeSubscriber = require("../entities/CallbackAttributeSubscr
 const entities = require("../entities");
 const ErrorStateValetudoEvent = require("../valetudo_events/events/ErrorStateValetudoEvent");
 const Logger = require("../Logger");
+const MapFloorNoiseFilter = require("../utils/MapFloorNoiseFilter");
 const NotImplementedError = require("./NotImplementedError");
 const Semaphore = require("semaphore");
 const Tools = require("../utils/Tools");
@@ -323,6 +324,7 @@ class ValetudoRobot {
      * @protected
      */
     emitMapUpdated() {
+        MapFloorNoiseFilter.FILTER(this.state.map);
         this.emitStateUpdated();
 
         this.eventEmitter.emit(ValetudoRobot.EVENTS.MapUpdated);
