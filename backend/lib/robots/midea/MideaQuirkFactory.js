@@ -885,6 +885,51 @@ class MideaQuirkFactory {
                         }).toHexString());
                     }
                 });
+            case MideaQuirkFactory.KNOWN_QUIRKS.BRIDGE_CROSSING:
+                return new Quirk({
+                    id: id,
+                    title: "Bridge Crossing",
+                    description: "Experimental. Let the robot use bridges: threshold ramps it detects with its camera or that are drawn as ramps. It checks new ones by driving to them, and crosses them with a guided run.",
+                    options: ["off", "on"],
+                    getter: async () => {
+                        const response = await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.ACTION,
+                            payload: MSmartPacket.buildPayload(MSmartConst.ACTION.GET_STATUS)
+                        }).toHexString());
+                        const parsedResponse = BEightParser.PARSE(response);
+
+                        if (parsedResponse instanceof MSmartStatusDTO) {
+                            return parsedResponse.cross_bridge_switch ? "on" : "off";
+                        } else {
+                            throw new Error("Invalid response from robot");
+                        }
+                    },
+                    setter: async (value) => {
+                        let val;
+
+                        switch (value) {
+                            case "off":
+                                val = 0;
+                                break;
+                            case "on":
+                                val = 1;
+                                break;
+                            default:
+                                throw new Error(`Invalid bridge crossing value: ${value}`);
+                        }
+
+                        await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
+                            payload: MSmartPacket.buildPayload(
+                                MSmartConst.SETTING.SET_VARIOUS_TOGGLES,
+                                Buffer.from([
+                                    0x0A, // "cross-bridge" in common.settings
+                                    val
+                                ])
+                            )
+                        }).toHexString());
+                    }
+                });
             default:
                 throw new Error(`There's no quirk with id ${id}`);
         }
@@ -907,6 +952,7 @@ MideaQuirkFactory.KNOWN_QUIRKS = {
     THRESHOLD_RECOGNITION: "2fa33876-f5ad-444d-9084-d51eb7be4670",
     CURTAIN_RECOGNITION: "401ad527-f4b9-41e6-99ee-007463ed3589",
     BRIDGE_BOOST: "17d539ff-51d3-49be-8b9e-29aa1e9c8d39",
+    BRIDGE_CROSSING: "2234724c-dcca-4669-9eb4-49a989683f76",
     ROOM_WISE_MOP_WASH: "ad9be0a9-4021-4594-991b-d6aaf525f2ad",
 };
 
