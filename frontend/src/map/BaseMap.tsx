@@ -62,6 +62,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
     protected ctxWrapper!: Canvas2DContextTrackingWrapper;
     protected readonly resizeListener: () => void;
     protected readonly visibilityStateChangeListener: () => void;
+    protected readonly keyDownListener: (evt: KeyboardEvent) => void;
 
     protected drawableComponents: Array<CanvasImageSource> = [];
     protected drawableComponentsMutex: semaphore.Semaphore = semaphore(1); //Required to sync up with the render webWorker
@@ -125,6 +126,10 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
                 this.updateInternalDrawableState();
             }
         };
+
+        this.keyDownListener = (evt: KeyboardEvent) => {
+            this.onKeyDown(evt);
+        };
     }
 
     componentDidMount(): void {
@@ -137,6 +142,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
         this.registerCanvasInteractionHandlers();
         window.addEventListener("resize", this.resizeListener);
         document.addEventListener("visibilitychange", this.visibilityStateChangeListener);
+        document.addEventListener("keydown", this.keyDownListener);
 
         this.fitMapToCanvas();
 
@@ -226,6 +232,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
     componentWillUnmount(): void {
         window.removeEventListener("resize", this.resizeListener);
         document.removeEventListener("visibilitychange", this.visibilityStateChangeListener);
+        document.removeEventListener("keydown", this.keyDownListener);
 
         usePendingMapAction.setState({hasPendingMapAction: false});
     }
@@ -377,6 +384,48 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
 
     protected getCurrentViewportCenterCoordinatesInPixelSpace() : PointCoordinates {
         return this.ctxWrapper.mapPointToCurrentTransform(this.canvas.width/2, this.canvas.height/2);
+    }
+
+    /**
+     * Delete (or Backspace, as Mac laptops have no Delete key) removes the selected zone, wall, area etc.,
+     * like its remove button does
+     *
+     * @param {KeyboardEvent} evt - The key event
+     */
+    protected onKeyDown(evt: KeyboardEvent) : void {
+        if (evt.key !== "Delete" && evt.key !== "Backspace") {
+            return;
+        }
+
+        // Leave the keys alone while typing or in a dialog, e.g. when renaming a segment
+        const target = evt.target as HTMLElement | null;
+        if (
+            target instanceof HTMLElement &&
+            (
+                target.isContentEditable ||
+                ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+                target.closest("[role=\"dialog\"]") !== null
+            )
+        ) {
+            return;
+        }
+
+        const selectedStructures = this.structureManager.getClientStructures().filter(s => {
+            return s.active;
+        });
+
+        if (selectedStructures.length === 0) {
+            return;
+        }
+
+        evt.preventDefault();
+
+        selectedStructures.forEach(s => {
+            this.structureManager.removeClientStructure(s);
+        });
+
+        this.updateState();
+        this.draw();
     }
 
     protected onTap(evt: TapTouchHandlerEvent) : boolean | void {
