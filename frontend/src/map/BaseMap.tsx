@@ -379,6 +379,23 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
         return this.ctxWrapper.mapPointToCurrentTransform(this.canvas.width/2, this.canvas.height/2);
     }
 
+    /**
+     * The point at an offset from the given one, with the offset given as it should look on screen
+     * (x to the right, y down). New lines and ramps use it so they look the same whatever the map rotation
+     *
+     * @param {PointCoordinates} point - The starting point, in map space
+     * @param {number} dx - The offset to the right on screen, in map pixels
+     * @param {number} dy - The offset downwards on screen, in map pixels
+     */
+    protected offsetOnScreen(point: PointCoordinates, dx: number, dy: number) : PointCoordinates {
+        const angle = -(this.props.rotation ?? 0) * Math.PI / 180;
+
+        return {
+            x: point.x + Math.round(dx * Math.cos(angle) - dy * Math.sin(angle)),
+            y: point.y + Math.round(dx * Math.sin(angle) + dy * Math.cos(angle))
+        };
+    }
+
     protected onTap(evt: TapTouchHandlerEvent) : boolean | void {
         const currentTransform = this.ctxWrapper.getTransform();
 
