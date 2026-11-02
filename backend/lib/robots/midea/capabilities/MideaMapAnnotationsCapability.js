@@ -165,7 +165,8 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 const RECORD_LENGTH = 20;
 // A frame can't be longer than 255 bytes, which fits 12 records. A set replaces the whole list, so it can't be split
 const MAX_PER_FRAME = 12;
-const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detected ones
+// The planner keeps ids up to 100 for the ones it detects itself (it tracks which of those are taken)
+const FIRST_USER_DEFINED_ID = 101;
 // cm. Curtains are drapes that move around, and the robot only treats them differently inside the rectangle,
 // so they get a generous width
 const ANNOTATION_WIDTH = Object.freeze({
