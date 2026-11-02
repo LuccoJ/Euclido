@@ -393,12 +393,21 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
      * - Escape deselects it
      * - Tab and Shift+Tab select the next and previous one, from the top left of the screen
      * - The arrow keys move it by one map pixel, ten with Shift
+     * - Ctrl+Z (Cmd+Z on Macs) undoes the latest change, in the editors that support it
      *
      * @param {KeyboardEvent} evt - The key event
      */
     protected onKeyDown(evt: KeyboardEvent) : void {
         // Leave the keys alone while typing or in a dialog, e.g. when renaming a segment
         if (evt.altKey || isKeyForSomethingElse(evt.target)) {
+            return;
+        }
+
+        if ((evt.ctrlKey || evt.metaKey) && !evt.shiftKey && evt.key.toLowerCase() === "z") {
+            if (this.undo()) {
+                evt.preventDefault();
+            }
+
             return;
         }
 
@@ -456,6 +465,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
                 this.structureManager.removeClientStructure(s);
             });
 
+            this.onStructuresEdited();
         } else if (evt.key === "Escape") {
             selectedStructures.forEach(s => {
                 s.active = false;
@@ -469,6 +479,8 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
             selectedStructures.forEach(s => {
                 moveStructure(s, step.x * distance, step.y * distance);
             });
+
+            this.onStructuresEdited("move");
         } else {
             return;
         }
@@ -477,6 +489,24 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
 
         this.updateState();
         this.draw();
+    }
+
+    /**
+     * Called when a keyboard shortcut changed the zones, walls, areas etc. Editors that support undo use it
+     *
+     * @param {string} [kind] - What kind of change it was, for changes that should be undone together
+     */
+    protected onStructuresEdited(kind?: string) : void {
+        // This can be overridden
+    }
+
+    /**
+     * Undoes the latest change, in maps that support it
+     *
+     * @returns {boolean} Whether there was something to undo
+     */
+    protected undo() : boolean {
+        return false;
     }
 
     protected onTap(evt: TapTouchHandlerEvent) : boolean | void {

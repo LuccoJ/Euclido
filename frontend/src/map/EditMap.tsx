@@ -17,6 +17,9 @@ import ThresholdClientStructure from "./structures/client_structures/ThresholdCl
 import MapAnnotationActions from "./actions/edit_map_actions/MapAnnotationActions";
 import CurtainClientStructure from "./structures/client_structures/CurtainClientStructure";
 import RampClientStructure from "./structures/client_structures/RampClientStructure";
+import {ClientStructureUndo} from "./utils/ClientStructureUndo";
+import {PanEndTouchHandlerEvent} from "./utils/touch_handling/events/PanEndTouchHandlerEvent";
+import {PinchEndTouchHandlerEvent} from "./utils/touch_handling/events/PinchEndTouchHandlerEvent";
 
 export type mode = "segments" | "virtual_restrictions" | "annotations";
 
@@ -49,12 +52,14 @@ interface EditMapState extends MapState {
     curtains: Array<CurtainClientStructure>,
     ramps: Array<RampClientStructure>,
 
-    helpDialogOpen: boolean
+    helpDialogOpen: boolean,
+    canUndo: boolean
 }
 
 class EditMap extends BaseMap<EditMapProps, EditMapState> {
     protected pendingVirtualRestrictionsStructuresUpdate = false;
     protected pendingMapAnnotationsStructuresUpdate = false;
+    private readonly undoHistory = new ClientStructureUndo();
 
     constructor(props: EditMapProps) {
         super(props);
@@ -77,11 +82,72 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
             curtains: [],
             ramps: [],
 
-            helpDialogOpen: false
+            helpDialogOpen: false,
+            canUndo: false
         };
 
         this.updateVirtualRestrictionClientStructures(props.mode !== "virtual_restrictions");
         this.updateMapAnnotationsClientStructures(props.mode !== "annotations");
+        this.undoHistory.reset(this.structureManager.getClientStructures());
+    }
+
+    // Segments are edited on the robot right away, so there's nothing to undo there
+    private supportsUndo() : boolean {
+        return this.props.mode === "virtual_restrictions" || this.props.mode === "annotations";
+    }
+
+    private recordChange(kind?: string) : void {
+        if (!this.supportsUndo()) {
+            return;
+        }
+
+        this.undoHistory.record(this.structureManager.getClientStructures(), kind);
+
+        if (this.state.canUndo !== this.undoHistory.canUndo()) {
+            this.setState({canUndo: this.undoHistory.canUndo()});
+        }
+    }
+
+    private resetUndo() : void {
+        this.undoHistory.reset(this.structureManager.getClientStructures());
+
+        if (this.state.canUndo) {
+            this.setState({canUndo: false});
+        }
+    }
+
+    protected onStructuresEdited(kind?: string) : void {
+        this.recordChange(kind);
+    }
+
+    protected endTranslate(evt: PanEndTouchHandlerEvent | PinchEndTouchHandlerEvent) : void {
+        super.endTranslate(evt);
+
+        this.recordChange();
+    }
+
+    protected undo() : boolean {
+        if (!this.supportsUndo()) {
+            return false;
+        }
+
+        const structures = this.undoHistory.undo();
+        if (structures === null) {
+            return false;
+        }
+
+        this.structureManager.getClientStructures().forEach(s => {
+            this.structureManager.removeClientStructure(s);
+        });
+        structures.forEach(s => {
+            this.structureManager.addClientStructure(s);
+        });
+
+        this.setState({canUndo: false});
+        this.updateState();
+        this.draw();
+
+        return true;
     }
 
     protected async updateDrawableComponents(): Promise<void> {
@@ -149,6 +215,10 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
 
     protected updateState() : void {
         super.updateState();
+
+        if (!this.activeTouchEvent) {
+            this.recordChange();
+        }
 
         const segmentNames = {} as Record<string, string>;
         const segmentMaterials = {} as Record<string, RawMapLayerMaterial>;
@@ -266,6 +336,8 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
 
                 }
             });
+
+            this.resetUndo();
         }
     }
 
@@ -326,6 +398,8 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
                     }
                 }
             });
+
+            this.resetUndo();
         }
     }
 
@@ -485,6 +559,10 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
 
                         <VirtualRestrictionActions
                             robotStatus={this.props.robotStatus}
+                            canUndo={this.state.canUndo}
+                            onUndo={() => {
+                                this.undo();
+                            }}
                             virtualWalls={this.state.virtualWalls}
                             noGoAreas={this.state.noGoAreas}
                             noMopAreas={this.state.noMopAreas}
@@ -613,6 +691,10 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
 
                         <MapAnnotationActions
                             robotStatus={this.props.robotStatus}
+                            canUndo={this.state.canUndo}
+                            onUndo={() => {
+                                this.undo();
+                            }}
                             thresholds={this.state.thresholds}
                             curtains={this.state.curtains}
                             ramps={this.state.ramps}
