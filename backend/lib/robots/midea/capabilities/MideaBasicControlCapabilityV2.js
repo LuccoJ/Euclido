@@ -25,7 +25,11 @@ class MideaBasicControlCapabilityV2 extends BasicControlCapability {
 
         if (
             StatusStateAttribute &&
-            StatusStateAttribute.value === stateAttrs.StatusStateAttribute.VALUE.PAUSED
+            (
+                StatusStateAttribute.value === stateAttrs.StatusStateAttribute.VALUE.PAUSED ||
+                // e.g. docked in the middle of a job after a failed dock action, shown as "Docked - Resumable"
+                StatusStateAttribute.flag === stateAttrs.StatusStateAttribute.FLAG.RESUMABLE
+            )
         ) {
             command = 6;
         }
