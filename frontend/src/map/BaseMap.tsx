@@ -19,6 +19,7 @@ import {PinchEndTouchHandlerEvent} from "./utils/touch_handling/events/PinchEndT
 import {PointCoordinates} from "./utils/types";
 import { create } from "zustand";
 import {clampMapScalingFactorFactor, considerHiDPI} from "./utils/helpers";
+import {isKeyForSomethingElse, moveStructure, screenDirectionToMapStep, sortByScreenPosition} from "./utils/mapKeyboard";
 
 export interface MapProps {
     rawMap: RawMapData;
@@ -62,6 +63,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
     protected ctxWrapper!: Canvas2DContextTrackingWrapper;
     protected readonly resizeListener: () => void;
     protected readonly visibilityStateChangeListener: () => void;
+    protected readonly keyDownListener: (evt: KeyboardEvent) => void;
 
     protected drawableComponents: Array<CanvasImageSource> = [];
     protected drawableComponentsMutex: semaphore.Semaphore = semaphore(1); //Required to sync up with the render webWorker
@@ -125,6 +127,10 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
                 this.updateInternalDrawableState();
             }
         };
+
+        this.keyDownListener = (evt: KeyboardEvent) => {
+            this.onKeyDown(evt);
+        };
     }
 
     componentDidMount(): void {
@@ -137,6 +143,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
         this.registerCanvasInteractionHandlers();
         window.addEventListener("resize", this.resizeListener);
         document.addEventListener("visibilitychange", this.visibilityStateChangeListener);
+        document.addEventListener("keydown", this.keyDownListener);
 
         this.fitMapToCanvas();
 
@@ -226,6 +233,7 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
     componentWillUnmount(): void {
         window.removeEventListener("resize", this.resizeListener);
         document.removeEventListener("visibilitychange", this.visibilityStateChangeListener);
+        document.removeEventListener("keydown", this.keyDownListener);
 
         usePendingMapAction.setState({hasPendingMapAction: false});
     }
@@ -394,6 +402,128 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
             x: point.x + Math.round(dx * Math.cos(angle) - dy * Math.sin(angle)),
             y: point.y + Math.round(dx * Math.sin(angle) + dy * Math.cos(angle))
         };
+    }
+
+    /**
+     * Keyboard shortcuts for the selected zone, wall, area etc.:
+     * - Delete (or Backspace, as Mac laptops have no Delete key) removes it, like its remove button
+     * - Escape deselects it
+     * - Tab and Shift+Tab select the next and previous one, from the top left of the screen
+     * - The arrow keys move it by one map pixel, ten with Shift
+     * - Ctrl+Z (Cmd+Z on Macs) undoes the latest change, in the editors that support it
+     *
+     * @param {KeyboardEvent} evt - The key event
+     */
+    protected onKeyDown(evt: KeyboardEvent) : void {
+        // Leave the keys alone while typing or in a dialog, e.g. when renaming a segment
+        if (evt.altKey || isKeyForSomethingElse(evt.target)) {
+            return;
+        }
+
+        if ((evt.ctrlKey || evt.metaKey) && !evt.shiftKey && evt.key.toLowerCase() === "z") {
+            if (this.undo()) {
+                evt.preventDefault();
+            }
+
+            return;
+        }
+
+        if (evt.ctrlKey || evt.metaKey) {
+            return;
+        }
+
+        const structures = this.structureManager.getClientStructures();
+        const selectedStructures = structures.filter(s => {
+            return s.active;
+        });
+
+        // Tab only steps through the map's items while one is selected, or nothing else on the page has focus,
+        // so that it can still be used to move between buttons
+        if (
+            evt.key === "Tab" &&
+            structures.length > 0 &&
+            (selectedStructures.length > 0 || document.activeElement === document.body)
+        ) {
+            const ordered = sortByScreenPosition(structures, this.ctxWrapper.getTransform());
+            const current = selectedStructures.length > 0 ? ordered.indexOf(selectedStructures[0]) : -1;
+            let next: number;
+
+            if (current === -1) {
+                next = evt.shiftKey ? ordered.length - 1 : 0;
+            } else {
+                next = (current + (evt.shiftKey ? -1 : 1) + ordered.length) % ordered.length;
+            }
+
+            evt.preventDefault();
+
+            structures.forEach(s => {
+                s.active = s === ordered[next];
+            });
+
+            this.updateState();
+            this.draw();
+
+            return;
+        }
+
+        if (selectedStructures.length === 0) {
+            return;
+        }
+
+        const arrowDirections: Record<string, [number, number]> = {
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0],
+            ArrowUp: [0, -1],
+            ArrowDown: [0, 1]
+        };
+
+        if (evt.key === "Delete" || evt.key === "Backspace") {
+            selectedStructures.forEach(s => {
+                this.structureManager.removeClientStructure(s);
+            });
+
+            this.onStructuresEdited();
+        } else if (evt.key === "Escape") {
+            selectedStructures.forEach(s => {
+                s.active = false;
+            });
+        } else if (arrowDirections[evt.key] !== undefined) {
+            // On screen, so that the arrows go the way they point whatever the map rotation
+            const [dx, dy] = arrowDirections[evt.key];
+            const step = screenDirectionToMapStep(this.ctxWrapper.getTransform(), dx, dy);
+            const distance = evt.shiftKey ? 10 : 1;
+
+            selectedStructures.forEach(s => {
+                moveStructure(s, step.x * distance, step.y * distance);
+            });
+
+            this.onStructuresEdited("move");
+        } else {
+            return;
+        }
+
+        evt.preventDefault();
+
+        this.updateState();
+        this.draw();
+    }
+
+    /**
+     * Called when a keyboard shortcut changed the zones, walls, areas etc. Editors that support undo use it
+     *
+     * @param {string} [kind] - What kind of change it was, for changes that should be undone together
+     */
+    protected onStructuresEdited(kind?: string) : void {
+        // This can be overridden
+    }
+
+    /**
+     * Undoes the latest change, in maps that support it
+     *
+     * @returns {boolean} Whether there was something to undo
+     */
+    protected undo() : boolean {
+        return false;
     }
 
     protected onTap(evt: TapTouchHandlerEvent) : boolean | void {
