@@ -12,7 +12,9 @@ const ValetudoMapAnnotation = require("../../../entities/core/ValetudoMapAnnotat
  * becomes a rectangle of a fixed width around it.
  *
  * The robot reports what it has stored back as map updates (see MideaMapParser), and that is what the map shows.
- * On every change, the user-defined ones it reported are deleted and the new list is sent.
+ * Setting replaces the robot's whole list of that kind, so every change sends the full list in one frame: the
+ * AI-detected ones the robot reported, unchanged, and the user-defined ones. Deleting doesn't remove anything from
+ * that list (it goes to a separate list of deleted ones), so it isn't used.
  *
  * @extends MapAnnotationsCapability<import("../MideaValetudoRobot")>
  */
@@ -39,21 +41,16 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             throw new Error("Can't place map annotations before the map has been received from the robot.");
         }
 
-        for (const type of this.supportedAnnotationTypes) {
-            if (mapAnnotations.filter(a => a.type === type).length > MAX_PER_TYPE) {
-                throw new Error(`Can't store more than ${MAX_PER_TYPE} annotations of type ${type}.`);
-            }
-        }
-
         /** @type {Array<{type: string, setting: number, key: "curtains"|"doorSills"}>} */
         const kinds = [
             {type: ValetudoMapAnnotation.TYPE.CURTAIN, setting: MSmartConst.SETTING.SET_CURTAINS, key: "curtains"},
             {type: ValetudoMapAnnotation.TYPE.THRESHOLD, setting: MSmartConst.SETTING.SET_DOOR_SILLS, key: "doorSills"}
         ];
 
-        for (const {type, setting, key} of kinds) {
-            const previous = this.robot.mapParser.annotations[key].filter(r => !r.isAi);
-            const next = mapAnnotations.filter(a => a.type === type).map((annotation, i) => {
+        const changes = kinds.map(({type, setting, key}) => {
+            const stored = this.robot.mapParser.annotations[key];
+            const aiDetected = stored.filter(r => r.isAi);
+            const userDefined = mapAnnotations.filter(a => a.type === type).map((annotation, i) => {
                 return {
                     id: FIRST_USER_DEFINED_ID + i,
                     type: 0, // Door sills: 0 = passable
@@ -63,49 +60,47 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
                 };
             });
 
-            if (previous.length > 0) {
-                await this.sendAnnotations(setting, ACTION.DELETE, previous);
-            }
-            if (next.length > 0) {
-                await this.sendAnnotations(setting, ACTION.SET, next);
+            if (aiDetected.length + userDefined.length > MAX_PER_FRAME) {
+                throw new Error(
+                    `Can't store more than ${MAX_PER_FRAME - aiDetected.length} annotations of type ${type}` +
+                    (aiDetected.length > 0 ? ` (the robot detected ${aiDetected.length} itself).` : ".")
+                );
             }
 
+            return {
+                setting: setting,
+                key: key,
+                records: [...aiDetected, ...userDefined],
+                changed: userDefined.length > 0 || stored.some(r => !r.isAi)
+            };
+        });
+
+        for (const {setting, key, records, changed} of changes) {
+            if (!changed) {
+                continue;
+            }
+
+            await this.sendAnnotationFrame(setting, records);
+
             // Shown right away. The robot reports its own view of it shortly after
-            this.robot.mapParser.annotations[key] = [
-                ...this.robot.mapParser.annotations[key].filter(r => r.isAi),
-                ...next
-            ];
+            this.robot.mapParser.annotations[key] = records;
         }
 
         this.robot.pollMap();
     }
 
     /**
+     * Replaces the robot's list of one kind with the records
+     *
      * @private
      * @param {number} setting
-     * @param {number} action
      * @param {Array<import("../MideaMapParser").MideaAnnotationRecord>} records
      * @returns {Promise<void>}
      */
-    async sendAnnotations(setting, action, records) {
-        // One frame can't be longer than 255 bytes, which fits 12 records. The robot adds or deletes by id,
-        // so a longer list goes out in several frames
-        for (let i = 0; i < records.length; i += RECORDS_PER_FRAME) {
-            await this.sendAnnotationFrame(setting, action, records.slice(i, i + RECORDS_PER_FRAME));
-        }
-    }
-
-    /**
-     * @private
-     * @param {number} setting
-     * @param {number} action
-     * @param {Array<import("../MideaMapParser").MideaAnnotationRecord>} records
-     * @returns {Promise<void>}
-     */
-    async sendAnnotationFrame(setting, action, records) {
+    async sendAnnotationFrame(setting, records) {
         const payload = Buffer.alloc(2 + records.length * RECORD_LENGTH);
 
-        payload[0] = action;
+        payload[0] = ACTION_SET;
         payload[1] = records.length;
 
         records.forEach((record, i) => {
@@ -114,7 +109,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             payload[offset] = record.id;
             payload[offset + 1] = record.type;
             // State. The robot only passes a set on to the planner when this is 0
-            payload[offset + 2] = action === ACTION.SET ? 0 : action;
+            payload[offset + 2] = 0;
             payload[offset + 3] = record.isAi ? 1 : 0;
 
             // The robot takes the corners in cyclic order and calls them left bottom, right bottom, right top, left top
@@ -125,8 +120,8 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
         });
 
         Logger.debug(
-            `Sending ${records.length} ${setting === MSmartConst.SETTING.SET_CURTAINS ? "curtain" : "threshold"}(s), ` +
-            `action ${action === ACTION.SET ? "set" : "delete"}. Payload: ${payload.toString("hex")}`
+            `Setting ${records.length} ${setting === MSmartConst.SETTING.SET_CURTAINS ? "curtain" : "threshold"}(s). ` +
+            `Payload: ${payload.toString("hex")}`
         );
 
         const packet = new MSmartPacket({
@@ -168,8 +163,8 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 }
 
 const RECORD_LENGTH = 20;
-const RECORDS_PER_FRAME = 10;
-const MAX_PER_TYPE = 32;
+// A frame can't be longer than 255 bytes, which fits 12 records. A set replaces the whole list, so it can't be split
+const MAX_PER_FRAME = 12;
 const FIRST_USER_DEFINED_ID = 100; // Lower ids seem to be reserved for AI-detected ones
 // cm. Curtains are drapes that move around, and the robot only treats them differently inside the rectangle,
 // so they get a generous width
@@ -178,9 +173,7 @@ const ANNOTATION_WIDTH = Object.freeze({
     [ValetudoMapAnnotation.TYPE.THRESHOLD]: 10
 });
 
-const ACTION = Object.freeze({
-    SET: 1,
-    DELETE: 2
-});
+// Action 2 (delete) only adds the records to a separate list of deleted ones and leaves them in place
+const ACTION_SET = 1;
 
 module.exports = MideaMapAnnotationsCapability;

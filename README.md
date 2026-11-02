@@ -19,6 +19,7 @@ For Eureka (Midea) J15 robots:
 - **Emergency light**: the robot's camera light turns on when its dock loses power (Euclido options, off by default).
 - Separate **Avoid** and **Cross** carpet modes, where "Avoid" can make use of "Increased carpet avoidance" (based on AI with the RGB camera rather than just the carpet sensor).
 - A manual trigger for the **dock self-cleaning**
+- **Mop washing every 7 or 12 m²**, besides the usual 5, 10, 15, 20 and 25 (Mop Cleaning Frequency).
 - fixes for collision-avoidant navigation, the operation mode shown after choosing a preset, and **automatic detection of floor materials**
   (setting one room no longer stops the robot from detecting the others).
 - **Live path and robot position** on the J15 Pro Ultra, updated about every 2 seconds instead of every 92.

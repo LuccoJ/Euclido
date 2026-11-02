@@ -1,7 +1,7 @@
 # Notes for Claude Code
 
 Euclido is a fork of Valetudo, mainly for Eureka (Midea) J15 robots. The maintainer tests every change on their
-Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Valetudo` (the repository was renamed to Euclido).
+Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Euclido`.
 
 ## Pull requests
 
@@ -23,7 +23,7 @@ Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Valetudo` (th
   the workspaces, not whole directories.
 - Commit messages are descriptive. For changes that remove or replace things specific to the original project,
   keep the wording neutral and brief.
-- Don't put model names in commits or code.
+- Don't put model names in commits or code unless they are specific to that one model.
 
 ## Robot safety (Midea)
 
