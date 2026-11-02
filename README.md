@@ -26,6 +26,8 @@ For Eureka (Midea) J15 robots:
 
 For all robots:
 - **Map rotation** in steps of 90°, saved per robot (Map Options → Maps).
+- **Keyboard shortcuts** on the map: Delete removes the selected zone, wall or area, Escape deselects it, Tab steps
+  through them and the arrow keys move them. The restriction and annotation editors also get **Undo** (button or Ctrl+Z).
 - On phones, the collapsed controls show the robot's state, mode, fan speed and water usage.
 - The theme follows the system's light or dark setting.
 - A fix for the map editor, where dragging one line or zone over another could move that one instead.
