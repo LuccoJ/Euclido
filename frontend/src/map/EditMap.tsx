@@ -453,14 +453,8 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
                             onAddCuttingLine={() => {
                                 const currentCenter = this.getCurrentViewportCenterCoordinatesInPixelSpace();
 
-                                const p0 = {
-                                    x: currentCenter.x -15,
-                                    y: currentCenter.y -15
-                                };
-                                const p1 = {
-                                    x: currentCenter.x +15,
-                                    y: currentCenter.y +15
-                                };
+                                const p0 = this.offsetOnScreen(currentCenter, -15, -15);
+                                const p1 = this.offsetOnScreen(currentCenter, 15, 15);
 
                                 this.structureManager.addClientStructure(new CuttingLineClientStructure(
                                     p0.x, p0.y,
@@ -496,14 +490,8 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
                             onAddVirtualWall={() => {
                                 const currentCenter = this.getCurrentViewportCenterCoordinatesInPixelSpace();
 
-                                const p0 = {
-                                    x: currentCenter.x -15,
-                                    y: currentCenter.y -15
-                                };
-                                const p1 = {
-                                    x: currentCenter.x +15,
-                                    y: currentCenter.y +15
-                                };
+                                const p0 = this.offsetOnScreen(currentCenter, -15, -15);
+                                const p1 = this.offsetOnScreen(currentCenter, 15, 15);
 
                                 this.structureManager.addClientStructure(new VirtualWallClientStructure(
                                     p0.x, p0.y,
@@ -624,14 +612,8 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
                             onAddThreshold={() => {
                                 const currentCenter = this.getCurrentViewportCenterCoordinatesInPixelSpace();
 
-                                const p0 = {
-                                    x: currentCenter.x -10,
-                                    y: currentCenter.y -10
-                                };
-                                const p1 = {
-                                    x: currentCenter.x +10,
-                                    y: currentCenter.y +10
-                                };
+                                const p0 = this.offsetOnScreen(currentCenter, -10, -10);
+                                const p1 = this.offsetOnScreen(currentCenter, 10, 10);
 
                                 this.structureManager.addClientStructure(new ThresholdClientStructure(
                                     p0.x, p0.y,
@@ -647,14 +629,8 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
                             onAddCurtain={() => {
                                 const currentCenter = this.getCurrentViewportCenterCoordinatesInPixelSpace();
 
-                                const p0 = {
-                                    x: currentCenter.x -10,
-                                    y: currentCenter.y -10
-                                };
-                                const p1 = {
-                                    x: currentCenter.x +10,
-                                    y: currentCenter.y +10
-                                };
+                                const p0 = this.offsetOnScreen(currentCenter, -10, -10);
+                                const p1 = this.offsetOnScreen(currentCenter, 10, 10);
 
                                 this.structureManager.addClientStructure(new CurtainClientStructure(
                                     p0.x, p0.y,
@@ -670,22 +646,10 @@ class EditMap extends BaseMap<EditMapProps, EditMapState> {
                             onAddRamp={() => {
                                 const currentCenter = this.getCurrentViewportCenterCoordinatesInPixelSpace();
 
-                                const p0 = {
-                                    x: currentCenter.x -5,
-                                    y: currentCenter.y -5
-                                };
-                                const p1 = {
-                                    x: currentCenter.x +5,
-                                    y: currentCenter.y -5
-                                };
-                                const p2 = {
-                                    x: currentCenter.x +5,
-                                    y: currentCenter.y +5
-                                };
-                                const p3 = {
-                                    x: currentCenter.x -5,
-                                    y: currentCenter.y +5
-                                };
+                                const p0 = this.offsetOnScreen(currentCenter, -5, -5);
+                                const p1 = this.offsetOnScreen(currentCenter, 5, -5);
+                                const p2 = this.offsetOnScreen(currentCenter, 5, 5);
+                                const p3 = this.offsetOnScreen(currentCenter, -5, 5);
 
                                 this.structureManager.addClientStructure(new RampClientStructure(
                                     p0.x, p0.y,
