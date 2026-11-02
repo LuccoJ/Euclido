@@ -22,14 +22,6 @@ class MideaMapParser {
         this.annotations = {curtains: [], doorSills: []};
 
         /**
-         * Ramps last sent to the robot as bridges, in Valetudo coordinates (4 corners each).
-         * The robot reports its bridges in "bridge_data", whose format isn't known yet, so these are what the map shows.
-         *
-         * @type {Array<Array<{x: number, y: number}>>}
-         */
-        this.bridges = [];
-
-        /**
          * Last raw value of map updates that are only logged for now, to log each one once when it changes
          *
          * @type {{[type: string]: string}}
@@ -166,11 +158,8 @@ class MideaMapParser {
                 // Ignored for now, but logged to learn their format
                 this.logUpdateOnChange(type, data);
                 break;
-            case "bridge_data":
-                // Logged to learn the format of the bridges the robot stores
-                this.logUpdateOnChange(type, data);
-                break;
             case "points":
+            case "bridge_data":
             case "backup_map":
             case "3d":
             case "stain_area":
@@ -338,14 +327,6 @@ class MideaMapParser {
             }),
             ...this.annotations.doorSills.filter(r => !r.isAi).map(r => {
                 return this.annotationRecordToEntity(r, mapEntities.LineMapEntity.TYPE.THRESHOLD);
-            }),
-            ...this.bridges.map(corners => {
-                return new mapEntities.PolygonMapEntity({
-                    type: mapEntities.PolygonMapEntity.TYPE.RAMP,
-                    points: corners.flatMap(c => {
-                        return [c.x, c.y];
-                    })
-                });
             })
         ];
 

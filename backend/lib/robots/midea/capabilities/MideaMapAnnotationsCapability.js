@@ -27,8 +27,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
         super(Object.assign({}, options, {
             supportedAnnotationTypes: [
                 ValetudoMapAnnotation.TYPE.THRESHOLD,
-                ValetudoMapAnnotation.TYPE.CURTAIN,
-                ValetudoMapAnnotation.TYPE.RAMP
+                ValetudoMapAnnotation.TYPE.CURTAIN
             ]
         }));
     }
@@ -76,11 +75,6 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             };
         });
 
-        const ramps = mapAnnotations.filter(a => a.type === ValetudoMapAnnotation.TYPE.RAMP);
-        if (ramps.length > MAX_BRIDGES) {
-            throw new Error(`Can't store more than ${MAX_BRIDGES} annotations of type ${ValetudoMapAnnotation.TYPE.RAMP}.`);
-        }
-
         for (const {setting, key, records, changed} of changes) {
             if (!changed) {
                 continue;
@@ -92,81 +86,7 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
             this.robot.mapParser.annotations[key] = records;
         }
 
-        await this.setBridges(ramps);
-
         this.robot.pollMap();
-    }
-
-    /**
-     * Experimental: ramps are sent as the robot's bridges (0x2F), which it detects with its camera, checks by driving
-     * to them and crosses with a guided run. A bridge is a line; the line sent is the ramp's centre line along its
-     * longer side. They're sent unconfirmed, which makes the robot go and check them right away, so they're only sent
-     * when the ramps changed.
-     *
-     * @private
-     * @param {Array<ValetudoMapAnnotation>} ramps
-     * @returns {Promise<void>}
-     */
-    async setBridges(ramps) {
-        const corners = ramps.map(ramp => {
-            return ramp.points.map(p => {
-                return {x: p.x, y: p.y};
-            });
-        });
-
-        if (JSON.stringify(corners) === JSON.stringify(this.robot.mapParser.bridges)) {
-            return;
-        }
-
-        const payload = Buffer.alloc(2 + corners.length * BRIDGE_RECORD_LENGTH);
-        payload[0] = 0; // Index of the bridge to check first
-        payload[1] = corners.length;
-
-        corners.forEach((c, i) => {
-            const offset = 2 + i * BRIDGE_RECORD_LENGTH;
-            const [pA, pB] = this.getBridgeLine(c).map(p => {
-                return this.robot.mapParser.convertToMideaCoordinates(p.x, p.y);
-            });
-
-            payload[offset] = FIRST_BRIDGE_ID + i;
-            payload[offset + 1] = 0; // Type
-            payload[offset + 2] = BRIDGE_UNCONFIRMED;
-            payload.writeUInt16LE(pA.x, offset + 3);
-            payload.writeUInt16LE(pA.y, offset + 5);
-            payload.writeUInt16LE(pB.x, offset + 7);
-            payload.writeUInt16LE(pB.y, offset + 9);
-        });
-
-        Logger.debug(`Setting ${corners.length} bridge(s). Payload: ${payload.toString("hex")}`);
-
-        const packet = new MSmartPacket({
-            messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
-            payload: MSmartPacket.buildPayload(MSmartConst.SETTING.SET_BRIDGES, payload)
-        });
-        const response = await this.robot.sendCommand(packet.toHexString());
-
-        Logger.debug(`Bridge response payload: ${response?.payload?.toString("hex")}`);
-
-        this.robot.mapParser.bridges = corners;
-    }
-
-    /**
-     * The centre line of a ramp's rectangle, along its longer side
-     *
-     * @private
-     * @param {Array<{x: number, y: number}>} c the 4 corners, in order
-     * @returns {Array<{x: number, y: number}>}
-     */
-    getBridgeLine(c) {
-        const middle = (a, b) => {
-            return {x: (a.x + b.x) / 2, y: (a.y + b.y) / 2};
-        };
-
-        if (Math.hypot(c[1].x - c[0].x, c[1].y - c[0].y) >= Math.hypot(c[2].x - c[1].x, c[2].y - c[1].y)) {
-            return [middle(c[0], c[3]), middle(c[1], c[2])];
-        } else {
-            return [middle(c[0], c[1]), middle(c[3], c[2])];
-        }
     }
 
     /**
@@ -243,12 +163,6 @@ class MideaMapAnnotationsCapability extends MapAnnotationsCapability {
 }
 
 const RECORD_LENGTH = 20;
-const BRIDGE_RECORD_LENGTH = 11;
-// A frame can't be longer than 255 bytes
-const MAX_BRIDGES = 21;
-const FIRST_BRIDGE_ID = 1;
-// Confirm status: 1 is confirmed; anything else makes the robot drive to the bridges to check them
-const BRIDGE_UNCONFIRMED = 0;
 // A frame can't be longer than 255 bytes, which fits 12 records. A set replaces the whole list, so it can't be split
 const MAX_PER_FRAME = 12;
 // The planner keeps ids up to 100 for the ones it detects itself (it tracks which of those are taken)
