@@ -19,6 +19,7 @@ import {PinchEndTouchHandlerEvent} from "./utils/touch_handling/events/PinchEndT
 import {PointCoordinates} from "./utils/types";
 import { create } from "zustand";
 import {clampMapScalingFactorFactor, considerHiDPI} from "./utils/helpers";
+import {isKeyForSomethingElse, moveStructure, screenDirectionToMapStep, sortByScreenPosition} from "./utils/mapKeyboard";
 
 export interface MapProps {
     rawMap: RawMapData;
@@ -404,42 +405,92 @@ abstract class BaseMap<P, S> extends React.Component<P & MapProps, S & MapState 
     }
 
     /**
-     * Delete (or Backspace, as Mac laptops have no Delete key) removes the selected zone, wall, area etc.,
-     * like its remove button does
+     * Keyboard shortcuts for the selected zone, wall, area etc.:
+     * - Delete (or Backspace, as Mac laptops have no Delete key) removes it, like its remove button
+     * - Escape deselects it
+     * - Tab and Shift+Tab select the next and previous one, from the top left of the screen
+     * - The arrow keys move it by one map pixel, ten with Shift
      *
      * @param {KeyboardEvent} evt - The key event
      */
     protected onKeyDown(evt: KeyboardEvent) : void {
-        if (evt.key !== "Delete" && evt.key !== "Backspace") {
-            return;
-        }
-
         // Leave the keys alone while typing or in a dialog, e.g. when renaming a segment
-        const target = evt.target as HTMLElement | null;
-        if (
-            target instanceof HTMLElement &&
-            (
-                target.isContentEditable ||
-                ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
-                target.closest("[role=\"dialog\"]") !== null
-            )
-        ) {
+        if (evt.altKey || isKeyForSomethingElse(evt.target)) {
             return;
         }
 
-        const selectedStructures = this.structureManager.getClientStructures().filter(s => {
+        if (evt.ctrlKey || evt.metaKey) {
+            return;
+        }
+
+        const structures = this.structureManager.getClientStructures();
+        const selectedStructures = structures.filter(s => {
             return s.active;
         });
+
+        // Tab only steps through the map's items while one is selected, or nothing else on the page has focus,
+        // so that it can still be used to move between buttons
+        if (
+            evt.key === "Tab" &&
+            structures.length > 0 &&
+            (selectedStructures.length > 0 || document.activeElement === document.body)
+        ) {
+            const ordered = sortByScreenPosition(structures, this.ctxWrapper.getTransform());
+            const current = selectedStructures.length > 0 ? ordered.indexOf(selectedStructures[0]) : -1;
+            let next: number;
+
+            if (current === -1) {
+                next = evt.shiftKey ? ordered.length - 1 : 0;
+            } else {
+                next = (current + (evt.shiftKey ? -1 : 1) + ordered.length) % ordered.length;
+            }
+
+            evt.preventDefault();
+
+            structures.forEach(s => {
+                s.active = s === ordered[next];
+            });
+
+            this.updateState();
+            this.draw();
+
+            return;
+        }
 
         if (selectedStructures.length === 0) {
             return;
         }
 
-        evt.preventDefault();
+        const arrowDirections: Record<string, [number, number]> = {
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0],
+            ArrowUp: [0, -1],
+            ArrowDown: [0, 1]
+        };
 
-        selectedStructures.forEach(s => {
-            this.structureManager.removeClientStructure(s);
-        });
+        if (evt.key === "Delete" || evt.key === "Backspace") {
+            selectedStructures.forEach(s => {
+                this.structureManager.removeClientStructure(s);
+            });
+
+        } else if (evt.key === "Escape") {
+            selectedStructures.forEach(s => {
+                s.active = false;
+            });
+        } else if (arrowDirections[evt.key] !== undefined) {
+            // On screen, so that the arrows go the way they point whatever the map rotation
+            const [dx, dy] = arrowDirections[evt.key];
+            const step = screenDirectionToMapStep(this.ctxWrapper.getTransform(), dx, dy);
+            const distance = evt.shiftKey ? 10 : 1;
+
+            selectedStructures.forEach(s => {
+                moveStructure(s, step.x * distance, step.y * distance);
+            });
+        } else {
+            return;
+        }
+
+        evt.preventDefault();
 
         this.updateState();
         this.draw();
