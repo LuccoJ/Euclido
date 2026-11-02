@@ -25,7 +25,9 @@ For Eureka (Midea) J15 robots:
 - Camera streaming at 24 fps instead of 30 fps, although you may still have mixed luck with it on this robot's board.
 
 For all robots:
-- **Map rotation** in steps of 90°, saved per robot (Map Options → Maps).
+- **Map rotation** in steps of 90°, saved per robot (Map Options → Maps). Zones and areas keep their remove button
+  at the top left and resize button at the bottom right whatever the rotation.
+- The **Delete key** removes the selected zone, wall or area.
 - On phones, the collapsed controls show the robot's state, mode, fan speed and water usage.
 - The theme follows the system's light or dark setting.
 - A fix for the map editor, where dragging one line or zone over another could move that one instead.
