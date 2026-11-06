@@ -5,6 +5,7 @@ const {execFile} = require("child_process");
 
 const BEightParser = require("../../msmart/BEightParser");
 const capabilities = require("./capabilities");
+const DoNotDisturbCapability = require("../../core/capabilities/DoNotDisturbCapability");
 const dtos = require("../../msmart/dtos");
 const DummyCloudTLSManager = require("../../utils/DummyCloudTLSManager");
 const entities = require("../../entities");
@@ -80,7 +81,9 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.lastObstacleSoundTimestampByName = new Map();
         if (this.config.get("embedded") === true) {
             this.mapParser.onNewObstacle = (name) => {
-                this.playObstacleSound(name);
+                this.playObstacleSound(name).catch(err => {
+                    Logger.warn(`Could not play the sound for obstacle "${name}"`, err);
+                });
             };
         }
         this.mapUpdateDebounceTimeout = null;
@@ -627,7 +630,37 @@ class MideaValetudoRobot extends ValetudoRobot {
         }
     }
 
-    playObstacleSound(name) {
+    /**
+     * Whether it's within the robot's Do Not Disturb time. The firmware mutes only the sounds it plays itself,
+     * by setting the volume right before each of them, so sounds played directly have to check this on their own
+     *
+     * @private
+     * @returns {Promise<boolean>}
+     */
+    async isInDndTime() {
+        if (!this.hasCapability(DoNotDisturbCapability.TYPE)) {
+            return false;
+        }
+
+        const dnd = await this.capabilities[DoNotDisturbCapability.TYPE].getDndConfiguration();
+        if (!dnd.enabled) {
+            return false;
+        }
+
+        // The robot keeps the DND times in UTC
+        const now = new Date();
+        const nowMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+        const start = dnd.start.hour * 60 + dnd.start.minute;
+        const end = dnd.end.hour * 60 + dnd.end.minute;
+
+        if (start <= end) {
+            return nowMinutes >= start && nowMinutes < end;
+        } else {
+            return nowMinutes >= start || nowMinutes < end;
+        }
+    }
+
+    async playObstacleSound(name) {
         const now = Date.now();
         if (
             now - this.lastObstacleSoundTimestamp < OBSTACLE_SOUND_MIN_INTERVAL ||
@@ -657,6 +690,23 @@ class MideaValetudoRobot extends ValetudoRobot {
 
         this.lastObstacleSoundTimestamp = now;
         this.lastObstacleSoundTimestampByName.set(name, now);
+
+        let inDndTime;
+        try {
+            inDndTime = await this.isInDndTime();
+        } catch (e) {
+            // Staying quiet is the safer mistake
+            Logger.warn(`Not playing ${file}: could not check the Do Not Disturb time`, e);
+
+            return;
+        }
+
+        if (inDndTime) {
+            Logger.info(`Not playing ${file} during Do Not Disturb`);
+
+            return;
+        }
+
         Logger.info(`Playing ${file} for a newly detected obstacle`);
 
         execFile("mp3play.sh", [file], (err) => {
