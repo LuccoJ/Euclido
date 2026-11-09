@@ -5,6 +5,7 @@ import {StructureInterceptionHandlerResult} from "../Structure";
 import {Canvas2DContextTrackingWrapper} from "../../utils/Canvas2DContextTrackingWrapper";
 import {PointCoordinates} from "../../utils/types";
 import {calculateBoxAroundPoint, considerHiDPI, isInsideBox} from "../../utils/helpers";
+import {dragRectangleEdge, getScreenCorners, getScreenTopLeftEdges, isShownSideways} from "../../utils/screenCorners";
 
 const img_delete_button = new Image();
 img_delete_button.src = deleteButtonIconSVG;
@@ -42,6 +43,7 @@ class ZoneClientStructure extends ClientStructure {
         const ctx = ctxWrapper.getContext();
         const p0 = new DOMPoint(this.x0, this.y0).matrixTransform(transformationMatrixToScreenSpace);
         const p1 = new DOMPoint(this.x1, this.y1).matrixTransform(transformationMatrixToScreenSpace);
+        const {topLeft, bottomRight} = getScreenCorners(this.getBounds(), transformationMatrixToScreenSpace);
 
         const scaledDeleteButtonSize = this.getControlElementImageScaledSize(img_delete_button, scaleFactor);
         const scaledScaleButtonSize = this.getControlElementImageScaledSize(img_scale_button, scaleFactor);
@@ -50,7 +52,10 @@ class ZoneClientStructure extends ClientStructure {
             x: ((Math.round(this.x1) - Math.round(this.x0)) * pixelSize) / 100,
             y: ((Math.round(this.y1) - Math.round(this.y0)) * pixelSize) / 100
         };
-        const label = dimensions.x.toFixed(2) + " x " + dimensions.y.toFixed(2) + "m";
+        // Width x height as seen on screen
+        const label = isShownSideways(transformationMatrixToScreenSpace) ?
+            dimensions.y.toFixed(2) + " x " + dimensions.x.toFixed(2) + "m" :
+            dimensions.x.toFixed(2) + " x " + dimensions.y.toFixed(2) + "m";
 
         ctxWrapper.save();
 
@@ -86,10 +91,10 @@ class ZoneClientStructure extends ClientStructure {
             const textXOffset = (scaledDeleteButtonSize.width / 2) + considerHiDPI(5);
 
             ctx.lineWidth = considerHiDPI(3);
-            ctx.strokeText(label, p0.x + textXOffset, p0.y - considerHiDPI(8));
+            ctx.strokeText(label, topLeft.x + textXOffset, topLeft.y - considerHiDPI(8));
 
             ctx.lineWidth = considerHiDPI(1);
-            ctx.fillText(label, p0.x + textXOffset, p0.y - considerHiDPI(8));
+            ctx.fillText(label, topLeft.x + textXOffset, topLeft.y - considerHiDPI(8));
         }
 
         ctxWrapper.restore();
@@ -98,20 +103,24 @@ class ZoneClientStructure extends ClientStructure {
 
             ctx.drawImage(
                 this.getOptimizedImage(img_delete_button, scaledDeleteButtonSize.width, scaledDeleteButtonSize.height),
-                p0.x - scaledDeleteButtonSize.width / 2,
-                p0.y - scaledDeleteButtonSize.height / 2,
+                topLeft.x - scaledDeleteButtonSize.width / 2,
+                topLeft.y - scaledDeleteButtonSize.height / 2,
                 scaledDeleteButtonSize.width,
                 scaledDeleteButtonSize.height
             );
 
             ctx.drawImage(
                 this.getOptimizedImage(img_scale_button, scaledScaleButtonSize.width, scaledScaleButtonSize.height),
-                p1.x - scaledScaleButtonSize.width / 2,
-                p1.y - scaledScaleButtonSize.height / 2,
+                bottomRight.x - scaledScaleButtonSize.width / 2,
+                bottomRight.y - scaledScaleButtonSize.height / 2,
                 scaledScaleButtonSize.width,
                 scaledScaleButtonSize.height
             );
         }
+    }
+
+    private getBounds() {
+        return {minX: this.x0, minY: this.y0, maxX: this.x1, maxY: this.y1};
     }
 
     postProcess(): void {
@@ -130,7 +139,8 @@ class ZoneClientStructure extends ClientStructure {
 
         const scaledDeleteButtonSize = this.getControlElementImageScaledSize(img_delete_button, scaleFactor);
         const deleteButtonHitboxPadding = Math.max(scaledDeleteButtonSize.width, scaledDeleteButtonSize.height) / 2;
-        const deleteButtonHitbox = calculateBoxAroundPoint(p0, deleteButtonHitboxPadding);
+        const {topLeft} = getScreenCorners(this.getBounds(), transformationMatrixToScreenSpace);
+        const deleteButtonHitbox = calculateBoxAroundPoint(topLeft, deleteButtonHitboxPadding);
 
         if (this.active && isInsideBox(tappedPoint, deleteButtonHitbox )) {
             return {
@@ -171,7 +181,8 @@ class ZoneClientStructure extends ClientStructure {
 
             const scaledScaleButtonSize = this.getControlElementImageScaledSize(img_scale_button, scaleFactor);
             const scaleButtonHitboxPadding = Math.max(scaledScaleButtonSize.width, scaledScaleButtonSize.height) / 2;
-            const scaleButtonHitbox = calculateBoxAroundPoint(p1, scaleButtonHitboxPadding);
+            const {bottomRight} = getScreenCorners(this.getBounds(), transformationMatrixToScreenSpace);
+            const scaleButtonHitbox = calculateBoxAroundPoint(bottomRight, scaleButtonHitboxPadding);
 
             if (!this.isResizing && isInsideBox(lastCoordinates, scaleButtonHitbox)) {
                 this.isResizing = true;
@@ -184,11 +195,18 @@ class ZoneClientStructure extends ClientStructure {
             } = ClientStructure.calculateTranslateDelta(lastCoordinates, currentCoordinates, transformationMatrixToScreenSpace);
 
             if (this.isResizing) {
-                if (currentInMapSpace.x > this.x0 + pixelSize && this.x1 + dx > this.x0 + pixelSize) {
-                    this.x1 += dx;
+                // The resize button is on whichever corner is shown at the bottom right, opposite the top left one
+                const {xIsMin, yIsMin} = getScreenTopLeftEdges(transformationMatrixToScreenSpace);
+
+                if (xIsMin) {
+                    this.x1 = dragRectangleEdge(this.x1, this.x0, dx, currentInMapSpace.x, pixelSize);
+                } else {
+                    this.x0 = dragRectangleEdge(this.x0, this.x1, dx, currentInMapSpace.x, pixelSize);
                 }
-                if (currentInMapSpace.y > this.y0 + pixelSize && this.y1 + dy > this.y0 + pixelSize) {
-                    this.y1 += dy;
+                if (yIsMin) {
+                    this.y1 = dragRectangleEdge(this.y1, this.y0, dy, currentInMapSpace.y, pixelSize);
+                } else {
+                    this.y0 = dragRectangleEdge(this.y0, this.y1, dy, currentInMapSpace.y, pixelSize);
                 }
 
                 return {

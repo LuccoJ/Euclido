@@ -5,6 +5,7 @@ import {StructureInterceptionHandlerResult} from "../Structure";
 import {Canvas2DContextTrackingWrapper} from "../../utils/Canvas2DContextTrackingWrapper";
 import {PointCoordinates} from "../../utils/types";
 import {calculateBoxAroundPoint, considerHiDPI, isInsideBox} from "../../utils/helpers";
+import {dragRectangleEdge, getScreenCorners, getScreenTopLeftEdges} from "../../utils/screenCorners";
 
 const img_delete_button = new Image();
 img_delete_button.src = deleteButtonIconSVG;
@@ -105,25 +106,35 @@ abstract class RestrictedZoneClientStructure extends ClientStructure {
 
 
         if (this.active) {
+            const {topLeft, bottomRight} = getScreenCorners(this.getBounds(), transformationMatrixToScreenSpace);
             const scaledDeleteButtonSize = this.getControlElementImageScaledSize(img_delete_button, scaleFactor);
             const scaledScaleButtonSize = this.getControlElementImageScaledSize(img_scale_button, scaleFactor);
 
             ctx.drawImage(
                 this.getOptimizedImage(img_delete_button, scaledDeleteButtonSize.width, scaledDeleteButtonSize.height),
-                p0.x - scaledDeleteButtonSize.width / 2,
-                p0.y - scaledDeleteButtonSize.height / 2,
+                topLeft.x - scaledDeleteButtonSize.width / 2,
+                topLeft.y - scaledDeleteButtonSize.height / 2,
                 scaledDeleteButtonSize.width,
                 scaledDeleteButtonSize.height
             );
 
             ctx.drawImage(
                 this.getOptimizedImage(img_scale_button, scaledScaleButtonSize.width, scaledScaleButtonSize.height),
-                p2.x - scaledScaleButtonSize.width / 2,
-                p2.y - scaledScaleButtonSize.height / 2,
+                bottomRight.x - scaledScaleButtonSize.width / 2,
+                bottomRight.y - scaledScaleButtonSize.height / 2,
                 scaledScaleButtonSize.width,
                 scaledScaleButtonSize.height
             );
         }
+    }
+
+    private getBounds() {
+        return {
+            minX: Math.min(this.x0, this.x1, this.x2, this.x3),
+            minY: Math.min(this.y0, this.y1, this.y2, this.y3),
+            maxX: Math.max(this.x0, this.x1, this.x2, this.x3),
+            maxY: Math.max(this.y0, this.y1, this.y2, this.y3)
+        };
     }
 
     postProcess(): void {
@@ -148,7 +159,8 @@ abstract class RestrictedZoneClientStructure extends ClientStructure {
 
         const scaledDeleteButtonSize = this.getControlElementImageScaledSize(img_delete_button, scaleFactor);
         const deleteButtonHitboxPadding = Math.max(scaledDeleteButtonSize.width, scaledDeleteButtonSize.height) / 2;
-        const deleteButtonHitbox = calculateBoxAroundPoint(p0, deleteButtonHitboxPadding);
+        const {topLeft} = getScreenCorners(this.getBounds(), transformationMatrixToScreenSpace);
+        const deleteButtonHitbox = calculateBoxAroundPoint(topLeft, deleteButtonHitboxPadding);
 
         if (this.active && isInsideBox(tappedPoint, deleteButtonHitbox)) {
             return {
@@ -189,7 +201,8 @@ abstract class RestrictedZoneClientStructure extends ClientStructure {
 
             const scaledScaleButtonSize = this.getControlElementImageScaledSize(img_scale_button, scaleFactor);
             const scaleButtonHitboxPadding = Math.max(scaledScaleButtonSize.width, scaledScaleButtonSize.height) / 2;
-            const scaleButtonHitbox = calculateBoxAroundPoint(p2, scaleButtonHitboxPadding);
+            const {bottomRight} = getScreenCorners(this.getBounds(), transformationMatrixToScreenSpace);
+            const scaleButtonHitbox = calculateBoxAroundPoint(bottomRight, scaleButtonHitboxPadding);
 
             if (!this.isResizing && isInsideBox(lastCoordinates, scaleButtonHitbox)) {
                 this.isResizing = true;
@@ -203,14 +216,32 @@ abstract class RestrictedZoneClientStructure extends ClientStructure {
 
 
             if (this.isResizing) {
-                if (currentInMapSpace.x > this.x0 + pixelSize && this.x1 + dx > this.x0 + pixelSize) {
-                    this.x1 += dx;
-                    this.x2 += dx;
-                }
-                if (currentInMapSpace.y > this.y0 + pixelSize && this.y2 + dy > this.y0 + pixelSize) {
-                    this.y2 += dy;
-                    this.y3 += dy;
-                }
+                /*
+                 * The resize button is on whichever corner is shown at the bottom right, opposite the top left one.
+                 * Only the corners on the dragged edges move, each staying in its place in the list,
+                 * so the order of the corners sent to the robot doesn't change
+                 */
+                const {xIsMin, yIsMin} = getScreenTopLeftEdges(transformationMatrixToScreenSpace);
+                const bounds = this.getBounds();
+
+                const xEdge = xIsMin ? bounds.maxX : bounds.minX;
+                const newXEdge = dragRectangleEdge(xEdge, xIsMin ? bounds.minX : bounds.maxX, dx, currentInMapSpace.x, pixelSize);
+                const yEdge = yIsMin ? bounds.maxY : bounds.minY;
+                const newYEdge = dragRectangleEdge(yEdge, yIsMin ? bounds.minY : bounds.maxY, dy, currentInMapSpace.y, pixelSize);
+
+                const onEdge = (value: number, edge: number, newEdge: number) => {
+                    return value === edge ? newEdge : value;
+                };
+
+                this.x0 = onEdge(this.x0, xEdge, newXEdge);
+                this.x1 = onEdge(this.x1, xEdge, newXEdge);
+                this.x2 = onEdge(this.x2, xEdge, newXEdge);
+                this.x3 = onEdge(this.x3, xEdge, newXEdge);
+
+                this.y0 = onEdge(this.y0, yEdge, newYEdge);
+                this.y1 = onEdge(this.y1, yEdge, newYEdge);
+                this.y2 = onEdge(this.y2, yEdge, newYEdge);
+                this.y3 = onEdge(this.y3, yEdge, newYEdge);
 
                 return {
                     stopPropagation: true

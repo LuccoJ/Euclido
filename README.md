@@ -19,6 +19,7 @@ For Eureka (Midea) J15 robots:
 - **Emergency light**: the robot's camera light turns on when its dock loses power (Euclido options, off by default).
 - Separate **Avoid** and **Cross** carpet modes, where "Avoid" can make use of "Increased carpet avoidance" (based on AI with the RGB camera rather than just the carpet sensor).
 - A manual trigger for the **dock self-cleaning**
+- **Mop washing every 7 or 12 m²**, besides the usual 5, 10, 15, 20 and 25 (Mop Cleaning Frequency).
 - fixes for collision-avoidant navigation, the operation mode shown after choosing a preset, and **automatic detection of floor materials**
   (setting one room no longer stops the robot from detecting the others).
 - **Live path and robot position** on the J15 Pro Ultra, updated about every 2 seconds instead of every 92.
@@ -26,12 +27,14 @@ For Eureka (Midea) J15 robots:
 
 For all robots:
 - **Map rotation** in steps of 90°, saved per robot (Map Options → Maps).
+- **Keyboard shortcuts** on the map: Delete removes the selected zone, wall or area, Escape deselects it, Tab steps
+  through them and the arrow keys move them. The restriction and annotation editors also get **Undo** (button or Ctrl+Z).
 - Small **specks of floor and wall outside the rooms** (lidar seeing through windows or reflections) are hidden
   from the map, so they no longer shrink its default zoom.
 - On phones, the collapsed controls show the robot's state, mode, fan speed and water usage.
 - The theme follows the system's light or dark setting.
 - A fix for the map editor, where dragging one line or zone over another could move that one instead.
-- Updates from Euclido's own nightly builds.
+- Updates from Euclido's own releases, or from its nightly builds.
 
 The rest of this file is Valetudo's own README.
 

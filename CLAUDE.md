@@ -1,7 +1,7 @@
 # Notes for Claude Code
 
 Euclido is a fork of Valetudo, mainly for Eureka (Midea) J15 robots. The maintainer tests every change on their
-Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Valetudo` (the repository was renamed to Euclido).
+Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Euclido`.
 
 ## Pull requests
 
@@ -23,7 +23,16 @@ Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Valetudo` (th
   the workspaces, not whole directories.
 - Commit messages are descriptive. For changes that remove or replace things specific to the original project,
   keep the wording neutral and brief.
-- Don't put model names in commits or code.
+- Don't put model names in commits or code unless they are specific to that one model.
+
+## Releases
+
+- Release numbers use Valetudo's format, `YYYY.MM.N` (year, month, then 0, 1, … within the month). A release is a
+  `chore(release): YYYY.MM.N` commit that sets the version in `package.json` and `package-lock.json`, then a GitHub
+  release tagged with exactly that version. Publishing it runs the release workflow, which uploads the binaries and
+  the manifest that the updater's Release channel reads.
+- Upstream's tags use the same format, so fetch upstream with `--no-tags` and never push its tags here, or they
+  could clash with Euclido's own.
 
 ## Robot safety (Midea)
 

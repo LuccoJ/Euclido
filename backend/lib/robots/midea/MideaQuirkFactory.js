@@ -476,7 +476,7 @@ class MideaQuirkFactory {
                     id: id,
                     title: "Mop Cleaning Frequency",
                     description: "Determine how often the robot should clean and re-wet its mopping pads during a cleanup.",
-                    options: ["every_5_m2", "every_10_m2", "every_15_m2", "every_20_m2", "every_25_m2"],
+                    options: ["every_5_m2", "every_7_m2", "every_10_m2", "every_12_m2", "every_15_m2", "every_20_m2", "every_25_m2"],
                     getter: async () => {
                         const packet = new MSmartPacket({
                             messageType: MSmartPacket.MESSAGE_TYPE.ACTION,
@@ -490,9 +490,12 @@ class MideaQuirkFactory {
                             switch (parsedResponse.general_backwash_area) {
                                 case 5:
                                     return "every_5_m2";
+                                case 7:
+                                    return "every_7_m2";
                                 case 10:
                                     return "every_10_m2";
-                                case 12: //hack-ish. Handle the default on the J15PU
+                                case 12: // the J15 Pro Ultra's default, also offered by the vendor app
+                                    return "every_12_m2";
                                 case 15:
                                     return "every_15_m2";
                                 case 20:
@@ -513,8 +516,14 @@ class MideaQuirkFactory {
                             case "every_5_m2":
                                 val = 5;
                                 break;
+                            case "every_7_m2":
+                                val = 7; // not offered by the vendor app
+                                break;
                             case "every_10_m2":
                                 val = 10;
+                                break;
+                            case "every_12_m2":
+                                val = 12;
                                 break;
                             case "every_15_m2":
                                 val = 15;

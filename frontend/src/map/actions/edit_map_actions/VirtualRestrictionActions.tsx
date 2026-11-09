@@ -9,6 +9,7 @@ import {
 import React from "react";
 import {Box, Button, CircularProgress, Container, Grid2, Typography} from "@mui/material";
 import {ActionButton} from "../../Styled";
+import UndoActionButton from "./UndoActionButton";
 import MapActionsCombinedActionsMenuPopoverButton from "../../MapActionsCombinedActionsMenuPopoverButton";
 import VirtualWallClientStructure from "../../structures/client_structures/VirtualWallClientStructure";
 import NoGoAreaClientStructure from "../../structures/client_structures/NoGoAreaClientStructure";
@@ -41,6 +42,9 @@ interface VirtualRestrictionActionsProperties {
     onSave(): void;
     onRefresh(): void;
     onClear(): void;
+
+    canUndo?: boolean;
+    onUndo?(): void;
 }
 
 const VirtualRestrictionActions = (
@@ -250,6 +254,11 @@ const VirtualRestrictionActions = (
                         </>
                     )}
                 </MapActionsCombinedActionsMenuPopoverButton>
+            }
+            {
+                canEdit && props.onUndo !== undefined &&
+
+                <UndoActionButton disabled={!props.canUndo} onClick={props.onUndo}/>
             }
             {
                 canEdit &&
