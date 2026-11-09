@@ -77,8 +77,6 @@ Here's a table with some thoughts, ordered somewhat chronologically
 
 Robots I didn't mention in this table are probably irrelevant but also probably fine?
 
-Additionally, I have added further thoughts as flavor text in the Dustfab.
-
 ### Okay, but what should I buy?
 
 Probably a Mova V50.<br/>
