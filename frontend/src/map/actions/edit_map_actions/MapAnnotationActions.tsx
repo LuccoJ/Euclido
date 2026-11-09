@@ -9,6 +9,7 @@ import {
 import React from "react";
 import {Box, Button, CircularProgress, Container, Grid2, Typography} from "@mui/material";
 import {ActionButton} from "../../Styled";
+import UndoActionButton from "./UndoActionButton";
 import {PointCoordinates} from "../../utils/types";
 import {Add as AddIcon, Clear as ClearIcon, Refresh as RefreshIcon, Save as SaveIcon,} from "@mui/icons-material";
 import {AddCurtainIcon, AddRampIcon, AddThresholdIcon} from "../../../components/CustomIcons";
@@ -32,6 +33,9 @@ interface MapAnnotationActionsProperties {
     onSave(): void;
     onRefresh(): void;
     onClear(): void;
+
+    canUndo?: boolean;
+    onUndo?(): void;
 }
 
 const MapAnnotationActions = (
@@ -253,6 +257,11 @@ const MapAnnotationActions = (
                         </>
                     )}
                 </MapActionsCombinedActionsMenuPopoverButton>
+            }
+            {
+                canEdit && props.onUndo !== undefined &&
+
+                <UndoActionButton disabled={!props.canUndo} onClick={props.onUndo}/>
             }
             {
                 canEdit &&
