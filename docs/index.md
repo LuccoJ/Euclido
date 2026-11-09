@@ -14,8 +14,8 @@ Since it was started in 2018, it has matured to a reliable fire-and-forget solut
 Valetudo is made, managed, maintained and more by me,
 <a href="https://hypfer.de" rel="noopener" target="_blank">Sören Beye</a>, with occasional contributions by
 <a href="https://github.com/Hypfer/Valetudo/graphs/contributors" rel="noopener" target="_blank">these awesome people</a>.<br/>
-It would not exist without the ongoing work of <a href="https://dontvacuum.me/" rel="noopener" target="_blank">Dennis Giese</a>,
-who is constantly providing us with new ways of liberating and gaining actual ownership of our robots.
+It would not exist without the foundational work of <a href="https://dontvacuum.me/" rel="noopener" target="_blank">Dennis Giese</a>,
+whose ideas, work and expertise created the environmental conditions for Valetudo to form.
 
 As there is no telemetry built-in and no commercial interest to change that, I can't tell you how many users exactly are there,
 however judging by download counts and support group members, I'd guesstimate that there are a few thousand.
@@ -29,7 +29,7 @@ To choose the right robot to buy, head over to [Buying supported robots](/pages/
 If you want to learn more about why I'm building Valetudo, the answer is actually pretty simple:<br/>
 When I was looking for a vacuum robot for myself, I didn't find anything that matched what I was looking for.<br/>
 Thus, in a brief moment of hubris, I thought to myself: "How hard can it be?".<br/>
-Now, more than seven years later, we're here, and I'm quite happy with how it turned out.
+Now, more than eight years later, we're here, and I'm quite happy with how it turned out.
 
 Valetudo is licensed under the Apache-2.0 open-source license, because you need to be able to know what your smart
 devices are doing and also alter (some parts of) it without being dependent on some vendor and/or third party.
