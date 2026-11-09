@@ -8,7 +8,10 @@ No daily update check means no daily pings to some external server.
 
 It checks the builds published on GitHub, so no other server learns anything about you.
 
-Euclido currently only publishes nightly builds, so the updater always offers the latest one.
+There are two update channels. Release offers Euclido's stable releases, Nightly the latest nightly build.
+
+**Note: On the Release channel, the updater will always try to update you to the next chronological release. If you're
+multiple releases behind, you will have to update multiple times in a row.**
 
 As the updater is just a convenience feature, there might be situations in which it doesn't work. In those situations,
 you will have to do a manual update, which usually involves SSH access to the robot.

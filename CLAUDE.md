@@ -25,6 +25,15 @@ Eureka J15 Pro Ultra and pushes through `https://github.com/LuccoJ/Euclido`.
   keep the wording neutral and brief.
 - Don't put model names in commits or code unless they are specific to that one model.
 
+## Releases
+
+- Release numbers use Valetudo's format, `YYYY.MM.N` (year, month, then 0, 1, … within the month). A release is a
+  `chore(release): YYYY.MM.N` commit that sets the version in `package.json` and `package-lock.json`, then a GitHub
+  release tagged with exactly that version. Publishing it runs the release workflow, which uploads the binaries and
+  the manifest that the updater's Release channel reads.
+- Upstream's tags use the same format, so fetch upstream with `--no-tags` and never push its tags here, or they
+  could clash with Euclido's own.
+
 ## Robot safety (Midea)
 
 - Never send the commands on the do-not-send list kept with the firmware notes. Among them are the resets,

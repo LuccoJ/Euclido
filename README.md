@@ -32,7 +32,7 @@ For all robots:
 - On phones, the collapsed controls show the robot's state, mode, fan speed and water usage.
 - The theme follows the system's light or dark setting.
 - A fix for the map editor, where dragging one line or zone over another could move that one instead.
-- Updates from Euclido's own nightly builds.
+- Updates from Euclido's own releases, or from its nightly builds.
 
 The rest of this file is Valetudo's own README.
 
