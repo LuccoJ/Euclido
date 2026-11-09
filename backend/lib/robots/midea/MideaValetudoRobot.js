@@ -650,14 +650,14 @@ class MideaValetudoRobot extends ValetudoRobot {
         });
 
         if (!file) {
-            Logger.info(`No sound file for obstacle "${name}"`);
+            Logger.debug(`No sound file for obstacle "${name}"`);
 
             return;
         }
 
         this.lastObstacleSoundTimestamp = now;
         this.lastObstacleSoundTimestampByName.set(name, now);
-        Logger.info(`Playing ${file} for a newly detected obstacle`);
+        Logger.debug(`Playing ${file} for a newly detected obstacle`);
 
         execFile("mp3play.sh", [file], (err) => {
             if (err) {
