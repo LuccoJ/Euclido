@@ -1,6 +1,6 @@
 import {Button, Grid2, Typography} from "@mui/material";
 import React from "react";
-import SadLogo from "../assets/icons/valetudo_sad.svg?react";
+import SadLogo from "../assets/icons/euclido_logo.svg?react";
 import ValetudoSplash from "./ValetudoSplash";
 
 const SplashErrorFallback = (): React.ReactElement => {
