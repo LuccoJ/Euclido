@@ -63,7 +63,7 @@
     "updater": {
         "enabled": true,
         "updateProvider": {
-            "type": "github_nightly",
+            "type": "github",
             "implementationSpecificConfig": {}
         }
     },

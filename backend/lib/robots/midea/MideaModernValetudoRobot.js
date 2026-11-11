@@ -142,9 +142,9 @@ class MideaModernValetudoRobot extends MideaValetudoRobot {
 
     /**
      * Outside of a map session, the robot sends its full path, the only source of its position, about every 92s.
-     * While a session is open, it is supposed to send the newest part of the path about every 2s, for as many ~2s ticks
-     * as the countdown says. "start" opens a session and requests a full path, "keepalive" extends it.
-     * For now this only opens the session, so that the parts can be logged and understood; drawing is unchanged.
+     * While a session is open (the vendor app opens one while its live map is shown), it sends the newest part of
+     * the path about every 2s instead, for as many ~2s ticks as the countdown says. "start" opens a session and
+     * requests a full path, "keepalive" extends it. The parts are appended by MideaMapParser.
      *
      * @private
      */

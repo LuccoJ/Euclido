@@ -13,6 +13,10 @@ class MideaMapParser {
     constructor(options) {
         this.mapHacksProvider = options.mapHacksProvider;
 
+        /** @type {Buffer|undefined} the last full track, with the parts received since appended */
+        this.trackPayload = undefined;
+        this.lastIncrementalTrackIndex = 0;
+
         /**
          * Curtains and door sills as last reported by the robot, in robot map coordinates.
          * Kept separately from the parsed entities so that they survive map resets; the robot sends them again on map load.
@@ -38,10 +42,6 @@ class MideaMapParser {
         this.knownObstacleIds = undefined;
         /** @type {number|undefined} the robot's last known heading, for when the path doesn't show one */
         this.lastRobotAngle = undefined;
-        /** @type {Buffer|undefined} the last full track with the parts received since appended */
-        this.trackPayload = undefined;
-        this.lastIncrementalTrackIndex = 0;
-        this.lastIncrementalTrackRender = 0;
 
         this.reset();
     }
@@ -192,34 +192,6 @@ class MideaMapParser {
 
             Logger.debug(`Map update '${type}' (${typeof data}${Buffer.isBuffer(data) ? ", buffer" : ""}): ${raw?.slice(0, 2000)}`);
         }
-    }
-
-    /**
-     * Logs which path types the track consists of, to learn what each type is used for.
-     * Lists the last pieces in order, since the most recent driving is the interesting part.
-     *
-     * @param {Array<{points: Array<number>, type: number|undefined}>} paths
-     * @param {Buffer} payload the decompressed track, whose first bytes may tell a full path from a part
-     */
-    logTrackSummary(paths, payload) {
-        const pieces = paths.filter(p => p.type !== MideaMapParser.PATH_TYPES.HEADER && p.points.length > 0);
-        const typeName = (type) => {
-            return Object.keys(MideaMapParser.PATH_TYPES).find(k => MideaMapParser.PATH_TYPES[k] === type) ?? `unknown ${type}`;
-        };
-        const totals = {};
-
-        pieces.forEach(p => {
-            const name = typeName(p.type);
-            totals[name] = (totals[name] ?? 0) + p.points.length / 2;
-        });
-
-        const recent = pieces.slice(-12).map(p => {
-            const n = p.points.length;
-
-            return `${typeName(p.type)} ${n / 2}pt (${p.points[0]},${p.points[1]})->(${p.points[n - 2]},${p.points[n - 1]})`;
-        });
-
-        Logger.debug(`Track: header ${payload.subarray(0, 6).toString("hex")}, ${payload.length} bytes, ${pieces.length} pieces, points per type ${JSON.stringify(totals)}, last pieces: ${recent.join(" | ")}`);
     }
 
     /**
@@ -552,7 +524,7 @@ class MideaMapParser {
 
         this.trackPayload = payload.subarray(0, payload.length - payload.length % 6);
         this.lastIncrementalTrackIndex = 0;
-        this.renderTrack(this.trackPayload, true);
+        this.renderTrack(this.trackPayload);
     }
 
     /**
@@ -590,22 +562,14 @@ class MideaMapParser {
         }
 
         this.trackPayload = Buffer.concat([this.trackPayload, ...records]);
-
-        // Parts arrive about every 2s, but every redraw parses the whole track again. Redrawing every few seconds is
-        // enough; the parts in between are kept and shown with the next redraw
-        const now = Date.now();
-        if (now - this.lastIncrementalTrackRender >= MideaMapParser.INCREMENTAL_TRACK_RENDER_INTERVAL) {
-            this.lastIncrementalTrackRender = now;
-            this.renderTrack(this.trackPayload, false);
-        }
+        this.renderTrack(this.trackPayload);
     }
 
     /**
      * @private
-     * @param {Buffer} payload the decompressed track
-     * @param {boolean} isFull whether this is a full track from the robot, as opposed to one with parts appended
+     * @param {Buffer} payload the decompressed track, a whole number of records
      */
-    renderTrack(payload, isFull) {
+    renderTrack(payload) {
         this.entities = this.entities.filter(e => {
             return ![
                 mapEntities.PathMapEntity.TYPE.PATH,
@@ -614,6 +578,7 @@ class MideaMapParser {
                 mapEntities.PointMapEntity.TYPE.ROBOT_POSITION
             ].includes(e.type);
         });
+
 
         // First 4 payload bytes were observed to be 00 00 00 00 and 00 02 00 00
         // TODO: figure out what that means
@@ -647,10 +612,6 @@ class MideaMapParser {
 
         // Final path
         paths.push({ points: points, type: currentType });
-
-        if (isFull) {
-            this.logTrackSummary(paths, payload);
-        }
 
 
         const entities = paths.filter(p => p.type !== 2400 && p.points.length > 0).map(path => {
@@ -1187,8 +1148,6 @@ class MideaMapParser {
 
 MideaMapParser.PIXEL_SIZE = 5;
 MideaMapParser.INFO_MAP_REGEX = /^info_map (?<id>\d+) (?<left>\d+) (?<bottom>\d+) (?<right>\d+) (?<top>\d+) (?<payload>[a-zA-Z0-9+=/]+)$/;
-
-MideaMapParser.INCREMENTAL_TRACK_RENDER_INTERVAL = 0; // ms, 0 draws every part (about every 2s)
 
 MideaMapParser.PATH_TYPES = Object.freeze({
     "NONE": 0, // Probably not a real type?
