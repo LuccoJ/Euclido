@@ -16,6 +16,8 @@ For Eureka (Midea) J15 robots:
 - A **Curtain Recognition** switch next to the existing Threshold Recognition one (its effect on the J15 Pro Ultra is still unknown).
 - **Obstacle names** for all the object types the robot can report, and **obstacle sounds**: an MP3 of your choice
   played when a new obstacle is detected (see `docs/pages/usage/obstacle-sounds.md`).
+- **Recognized furniture and doors** (beds, sofas, tables, doors) no longer show up as obstacles: they are logged,
+  and only drawn on the map if you turn that on. A second switch turns their recognition on and off (Quirks).
 - **Emergency light**: the robot's camera light turns on when its dock loses power (Euclido options, off by default).
 - Separate **Avoid** and **Cross** carpet modes, where "Avoid" can make use of "Increased carpet avoidance" (based on AI with the RGB camera rather than just the carpet sensor).
 - A manual trigger for the **dock self-cleaning**
