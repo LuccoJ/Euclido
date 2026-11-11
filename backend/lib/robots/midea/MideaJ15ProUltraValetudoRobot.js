@@ -96,6 +96,8 @@ class MideaJ15ProUltraValetudoRobot extends MideaModernValetudoRobot {
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.CURTAIN_RECOGNITION),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.BRIDGE_BOOST),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.ROOM_WISE_MOP_WASH),
+                quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.SCENE_OBJECT_RECOGNITION),
+                quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.SCENE_OBJECTS_ON_MAP),
             ]
         }));
 

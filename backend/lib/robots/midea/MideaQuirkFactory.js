@@ -885,6 +885,69 @@ class MideaQuirkFactory {
                         }).toHexString());
                     }
                 });
+            case MideaQuirkFactory.KNOWN_QUIRKS.SCENE_OBJECT_RECOGNITION:
+                return new Quirk({
+                    id: id,
+                    title: "Furniture and Door Recognition",
+                    description: "Recognize doors and furniture such as beds, sofas and tables using the AI camera. The robot doesn't avoid them. It uses them to tell rooms apart.",
+                    options: ["off", "on"],
+                    getter: async () => {
+                        const response = await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.ACTION,
+                            payload: MSmartPacket.buildPayload(MSmartConst.ACTION.GET_STATUS)
+                        }).toHexString());
+                        const parsedResponse = BEightParser.PARSE(response);
+
+                        if (parsedResponse instanceof MSmartStatusDTO) {
+                            return parsedResponse.furniture_identify_switch ? "on" : "off";
+                        } else {
+                            throw new Error("Invalid response from robot");
+                        }
+                    },
+                    setter: async (value) => {
+                        let val;
+
+                        switch (value) {
+                            case "off":
+                                val = 0;
+                                break;
+                            case "on":
+                                val = 1;
+                                break;
+                            default:
+                                throw new Error(`Invalid furniture and door recognition value: ${value}`);
+                        }
+
+                        await this.robot.sendCommand(new MSmartPacket({
+                            messageType: MSmartPacket.MESSAGE_TYPE.SETTING,
+                            payload: MSmartPacket.buildPayload(
+                                MSmartConst.SETTING.SET_VARIOUS_TOGGLES,
+                                Buffer.from([
+                                    0x32, // big-object-switch
+                                    val
+                                ])
+                            )
+                        }).toHexString());
+                    }
+                });
+            case MideaQuirkFactory.KNOWN_QUIRKS.SCENE_OBJECTS_ON_MAP:
+                return new Quirk({
+                    id: id,
+                    title: "Furniture and Doors on the Map",
+                    description: "Show the doors and furniture the robot recognizes on the map, like obstacles. When off, they are only written to the log. Applies from the next map update.",
+                    options: ["off", "on"],
+                    getter: async () => {
+                        return this.robot.mapParser.showSceneObjects ? "on" : "off";
+                    },
+                    setter: async (value) => {
+                        if (value !== "off" && value !== "on") {
+                            throw new Error(`Invalid furniture and doors on the map value: ${value}`);
+                        }
+
+                        this.robot.mapParser.showSceneObjects = value === "on";
+                        this.robot.sceneObjectsOnMapStore.set({enabled: value === "on"});
+                    }
+                });
             default:
                 throw new Error(`There's no quirk with id ${id}`);
         }
@@ -908,6 +971,8 @@ MideaQuirkFactory.KNOWN_QUIRKS = {
     CURTAIN_RECOGNITION: "401ad527-f4b9-41e6-99ee-007463ed3589",
     BRIDGE_BOOST: "17d539ff-51d3-49be-8b9e-29aa1e9c8d39",
     ROOM_WISE_MOP_WASH: "ad9be0a9-4021-4594-991b-d6aaf525f2ad",
+    SCENE_OBJECT_RECOGNITION: "760c6bad-757c-419c-8902-087b6be3f77f",
+    SCENE_OBJECTS_ON_MAP: "8a3e70b9-7aba-4406-bddc-b7ef633ed13c",
 };
 
 module.exports = MideaQuirkFactory;

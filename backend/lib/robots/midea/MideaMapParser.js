@@ -42,6 +42,16 @@ class MideaMapParser {
         this.knownObstacleIds = undefined;
         /** @type {number|undefined} the robot's last known heading, for when the path doesn't show one */
         this.lastRobotAngle = undefined;
+        /** Whether furniture and doors are drawn on the map like obstacles. They are always kept in sceneObjects */
+        this.showSceneObjects = false;
+        /**
+         * The furniture and doors of the last report, in Valetudo map coordinates
+         *
+         * @type {Array<{id: string, type: number, name: string, x: number, y: number}>}
+         */
+        this.sceneObjects = [];
+        /** @type {Set<string>} ids of the scene objects logged so far */
+        this.loggedSceneObjectIds = new Set();
 
         this.reset();
     }
@@ -851,6 +861,7 @@ class MideaMapParser {
      */
     async handleSemanticDataUpdate(data) {
         this.entities = this.entities.filter(e => e.type !== mapEntities.PointMapEntity.TYPE.OBSTACLE);
+        this.sceneObjects = [];
 
         if (!data) {
             return;
@@ -895,6 +906,21 @@ class MideaMapParser {
                     objectHash = `${object.timestamp_us}_${object.center_point.x}_${object.center_point.y}`;
                 }
 
+                const id = uuid.v5(objectHash, OBSTACLE_ID_NAMESPACE);
+
+                if (MideaConst.isSceneObject(object.object_type)) {
+                    this.sceneObjects.push({id: id, type: object.object_type, name: obstacleType, x: coords.x, y: coords.y});
+
+                    if (!this.loggedSceneObjectIds.has(id)) {
+                        this.loggedSceneObjectIds.add(id);
+                        Logger.info(`Scene object detected: ${obstacleType} at ${coords.x}, ${coords.y}`);
+                    }
+
+                    if (!this.showSceneObjects) {
+                        continue;
+                    }
+                }
+
                 newObstacleEntities.push(new mapEntities.PointMapEntity({
                     points: [
                         coords.x,
@@ -903,7 +929,7 @@ class MideaMapParser {
                     type: mapEntities.PointMapEntity.TYPE.OBSTACLE,
                     metaData: {
                         label: `${obstacleType} (${confidence})`,
-                        id: uuid.v5(objectHash, OBSTACLE_ID_NAMESPACE),
+                        id: id,
                         image: image
                     }
                 }));

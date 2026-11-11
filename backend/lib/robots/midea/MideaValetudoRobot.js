@@ -76,6 +76,8 @@ class MideaValetudoRobot extends ValetudoRobot {
         this.lastObstacleSoundTimestamp = 0;
         // Brightness in percent for the camera's fill light when the dock seems to have lost power, 0 = off
         this.emergencyLightStore = new MideaPersistentStore({config: this.config, key: "emergencyLight"});
+        this.sceneObjectsOnMapStore = new MideaPersistentStore({config: this.config, key: "sceneObjectsOnMap"});
+        this.mapParser.showSceneObjects = this.sceneObjectsOnMapStore.get()?.enabled === true;
         /** @type {string|undefined} the fill light's level before the emergency light turned it on */
         this.fillLightLevelBefore = undefined;
         /** @type {Map<string, number>} */

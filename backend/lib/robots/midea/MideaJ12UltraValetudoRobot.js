@@ -42,6 +42,7 @@ class MideaJ12UltraValetudoRobot extends MideaModernValetudoRobot {
             quirks: [
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.MOP_DOCK_MOP_CLEANING_FREQUENCY),
                 quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.MOP_DOCK_WATER_USAGE),
+                quirkFactory.getQuirk(MideaQuirkFactory.KNOWN_QUIRKS.SCENE_OBJECTS_ON_MAP),
             ]
         }));
     }

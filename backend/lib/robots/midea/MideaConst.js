@@ -114,9 +114,20 @@ const AI_OBSTACLE_IDS = Object.freeze({
     "65534": "Socks",
 });
 
+/**
+ * Scene objects aren't obstacles: the robot doesn't avoid them, it only uses them to tell rooms apart
+ *
+ * @param {number} objectType
+ * @returns {boolean}
+ */
+function isSceneObject(objectType) {
+    return objectType >= 1000 && objectType < 2000;
+}
+
 module.exports = {
     DUMMY_CLIENT_CERT: DUMMY_CLIENT_CERT,
     DUMMY_CLIENT_KEY: DUMMY_CLIENT_KEY,
-    AI_OBSTACLE_IDS: AI_OBSTACLE_IDS
+    AI_OBSTACLE_IDS: AI_OBSTACLE_IDS,
+    isSceneObject: isSceneObject
 };
 
