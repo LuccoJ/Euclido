@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-11-14T09:07:43.772Z",
+  "version": "1b9e0c8987c272ee3f61e6844e38cbcef005c3e9",
+  "sha256sums": {
+    "valetudo-armv7": "dd88cecc6d5dff05a65082ce4ff5da201074e7630d8b1bd49352e11cf80eb341",
+    "valetudo-armv7-lowmem": "5215ee291eecac534ac7563e1e43644333bb834c3cb6ccf0f581fa663b4e12a8",
+    "valetudo-aarch64": "5862cad4b051f0bc9afa418d6eb91b5f73baa8492957f97f0039927ce13ead9b",
+    "valetudo-armv7.upx": "d4ad3e4aa3803001a4418e879b943572c62663062bfec1fdd59682c953d4ed40",
+    "valetudo-armv7-lowmem.upx": "e9abc8c2b23eae5d3ac2c6545a8e30aa3c2ebb0a9c9f5f93384fb501f93973ed",
+    "valetudo-aarch64.upx": "e7adbe0806a26a928b03cfb03b0b50bf379f6f13459aa64fcdb8876fc8df18d4"
+  },
+  "changelog": "## Euclido nightly (2026-11-14T09:07:43.585Z)\n"
+}
