@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-11-21T18:39:11.258Z",
+  "version": "ref: refs/heads/claude/personalized-clean-count",
+  "sha256sums": {
+    "valetudo-armv7": "18c8a490dae8bf02994f06cba9256f9058cdf58f399856c066a44f105b6b6444",
+    "valetudo-armv7-lowmem": "014b223ff1052ad6b6307065609e545cec7d67a35e0946bf64e5b20cf5053b78",
+    "valetudo-aarch64": "bc83800ce41082b8de817f16e5a84093c33dde228bfcda8a4aef4ef6d890b544",
+    "valetudo-armv7.upx": "ce69dd52fec4f8756f792a6683ae0ea0b81a98652efed9d8b7d55df8dcb460a0",
+    "valetudo-armv7-lowmem.upx": "2c1abad919ec0c450c1a262041aaed2c8320f42d40a4ffa80400d6b2f2b8402c",
+    "valetudo-aarch64.upx": "92b053da357e5f82f8f2d538e19d871792399477ea42b36a3b7d40dbba1bd48a"
+  },
+  "changelog": "## Euclido nightly (2026-11-21T18:39:11.065Z)\n\n### Fixes\n\n- Merge pull request #35 from LuccoJ/claude/remove-startup-jokes [`43998ed`](https://github.com/LuccoJ/Euclido/commit/43998edaf90da1b73f0d67d4a6a8d004b436d4b7)\n- **ui**: Remove the rotating joke hints from the loading screen [`fd57af8`](https://github.com/LuccoJ/Euclido/commit/fd57af864f6bc084799f4c10f268b6ee2dccc7ee)\n- Merge pull request #34 from LuccoJ/claude/room-settings-readback [`ce4d88b`](https://github.com/LuccoJ/Euclido/commit/ce4d88b71f549a71f4f598ebedcce0c318e07428)\n"
+}
