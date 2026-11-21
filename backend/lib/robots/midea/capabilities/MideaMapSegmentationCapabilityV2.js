@@ -48,11 +48,15 @@ class MideaMapSegmentationCapabilityV2 extends MapSegmentationCapability {
         // On the J15 fw 413, this is being ignored by the robot :(
         segmentDataPayload[0] = segments.length;
 
+        const iterations = segments.slice(0, 10).map(segment => {
+            return this.getSegmentIterations(segment, operationMode, options);
+        });
+
         segments.slice(0, 10).forEach((segment, i) => {
             const offset = 1 + i * 10;
 
             segmentDataPayload[offset] = parseInt(segment.id);
-            segmentDataPayload[offset + 1] = typeof options?.iterations === "number" ? options.iterations : 1;
+            segmentDataPayload[offset + 1] = iterations[i];
             segmentDataPayload[offset + 2] = operationMode;
             // offset + 3 unknown
             segmentDataPayload[offset + 4] = fanSpeed;
@@ -71,7 +75,7 @@ class MideaMapSegmentationCapabilityV2 extends MapSegmentationCapability {
         Logger.debug(
             `Starting segment cleanup of segments [${segments.map(s => s.id).join(", ")}] ` +
             `with operation mode ${operationMode} (${OperationModeStateAttribute?.value ?? "not yet known"}), ` +
-            `fan speed ${fanSpeed}, water grade ${waterGrade}, iterations ${options?.iterations ?? 1}. ` +
+            `fan speed ${fanSpeed}, water grade ${waterGrade}, iterations [${iterations.join(", ")}]. ` +
             `Robot last reported operation mode ${this.robot.lastRawOperationMode}. ` +
             `Payload: ${segmentDataPayload.toString("hex")}`
         );
@@ -79,6 +83,20 @@ class MideaMapSegmentationCapabilityV2 extends MapSegmentationCapability {
         const response = await this.robot.sendCommand(packet.toHexString());
 
         Logger.debug(`Segment cleanup response payload: ${response?.payload?.toString("hex")}`);
+    }
+
+    /**
+     * The number of passes sent for one room. The robot uses this value even in the personalized mode.
+     *
+     * @protected
+     * @param {import("../../../entities/core/ValetudoMapSegment")} segment
+     * @param {number} operationMode
+     * @param {object} [options]
+     * @param {number} [options.iterations]
+     * @returns {number}
+     */
+    getSegmentIterations(segment, operationMode, options) {
+        return typeof options?.iterations === "number" ? options.iterations : 1;
     }
 
     /**
